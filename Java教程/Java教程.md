@@ -1,7 +1,7 @@
-[Java教程](https://www.liaoxuefeng.com/wiki/1252599548343744)   廖雪峰
+[《Java教程》](https://www.liaoxuefeng.com/wiki/1252599548343744) 笔记
 ----------
 
-
+[《Java教程》](https://www.liaoxuefeng.com/wiki/1252599548343744)   廖雪峰
 
 **为什么Java应用最广泛？**
 
@@ -47,7 +47,7 @@ Java的三个版本：
 - JDK：Java Development Kit
 - JRE：Java Runtime Environment
 
-JRE就是运行Java字节码的虚拟机。但是，如果只有Java源码，要编译成Java字节码，就需要JDK，因为JDK除了包含JRE，还提供了编译器、调试器等开发工具。
+JRE就是**运行Java字节码的虚拟机**。但是，如果只有Java源码，要编译成Java字节码，就需要JDK，因为JDK除了包含JRE，还提供了编译器、调试器等开发工具。
 
 ![](../images/java-002.jpg)
 
@@ -79,11 +79,11 @@ JRE就是运行Java字节码的虚拟机。但是，如果只有Java源码，要
 
 `JAVA_HOME`的`bin`目录下找到很多可执行文件。
 
-- java：这个可执行程序其实就是JVM，运行Java程序，就是启动JVM，然后让JVM执行指定的编译后的代码；
-- javac：这是Java的编译器，它用于把Java源码文件（以`.java`后缀结尾）编译为Java字节码文件（以`.class`后缀结尾）；
-- jar：用于把一组`.class`文件打包成一个`.jar`文件，便于发布；
-- javadoc：用于从Java源码中自动提取注释并生成文档；
-- jdb：Java调试器，用于开发阶段的运行调试
+- `java`：这个可执行程序其实就是JVM，运行Java程序，就是启动JVM，然后让JVM执行指定的编译后的代码；
+- `javac`：这是Java的编译器，它用于把Java源码文件（以`.java`后缀结尾）编译为Java字节码文件（以`.class`后缀结尾；
+- `jar`：用于把一组`.class`文件打包成一个`.jar`文件，便于发布；
+- `javadoc`：用于从Java源码中自动提取注释并生成文档；
+- `jdb`：Java调试器，用于开发阶段的运行调试
 
 
 
@@ -131,13 +131,43 @@ IntelliJ Idea
 
 NetBeans
 
-#### 使用Eclipse IDE练习插件
+使用Eclipse IDE练习插件
+
+**General > Editors > Text Editors**
+
+钩上“Show line numbers”，这样编辑器会显示行号；
+
+**General > Workspace**
+
+钩上“Refresh using native hooks or polling”，这样Eclipse会自动刷新文件夹的改动；
+
+对于“Text file encoding”，如果Default不是`UTF-8`，一定要改为“Other：UTF-8”，所有文本文件均使用`UTF-8`编码；
+
+对于“New text file line delimiter”，建议使用Unix，即换行符使用`\n`而不是Windows的`\r\n`。
+
+**Java > Compiler**
+
+将“Compiler compliance level”设置为`13`，本教程的所有代码均使用Java 13的语法，并且编译到Java 13的版本。
+
+去掉“Use default compliance settings”并钩上“Enable preview features for Java 13”，这样我们就可以使用Java 13的预览功能。
+
+**Java > Installed JREs**
+
+在Installed JREs中应该看到Java SE 13，如果还有其他的JRE，可以删除，以确保Java SE 13是默认的JRE。
 
 
+
+![eclipse-workspace](../images/java-014.jpg)
+
+<u>视图可以任意组合，然后把一组视图定义成一个Perspective（见5），Eclipse预定义了Java、Debug等几个Perspective，用于快速切换。</u>
+
+#### IDE插件
+
+安装重启后 ，在“Window”-“Show View”-“Other...”中查找插件
 
 ### 1.2 Java程序基础
 
-#### Java程序基本结构
+#### 1.2.1 Java程序基本结构
 
 ```java
 /**
@@ -162,11 +192,11 @@ public class Hello {  // 类名是Hello
 
 特殊的多行注释`/**   ...   */`，写在类和方法的定义处，可以用于自动创建文档。
 
-`Ctrl+Shift+F`（macOS是`⌘+⇧+F`）
+eclipse代码快速格式化：`Ctrl+Shift+F`（macOS是`⌘+⇧+F`）
 
 
 
-#### 变量和数据类型
+#### 1.2.2 变量和数据类型
 
 ##### 变量
 
@@ -230,7 +260,6 @@ final double PI = 3.14; // PI是一个常量
 ```java
 StringBuilder sb = new StringBuilder();
 
-
 var sb = new StringBuilder();
 ```
 
@@ -238,9 +267,31 @@ var sb = new StringBuilder();
 
 
 
-#### 整数运算
+#### 1.2.3 整数运算
+
+整数运算永远是精确，除法只能得到整数部分。
 
 ##### 溢出
+
+溢出<font color=#FF8C00>*不会出错*</font>，却会得到一个奇怪的结果：
+
+```java
+// 运算溢出
+public class Main {
+    public static void main(String[] args) {
+        int x = 2147483640;
+        int y = 15;
+        int sum = x + y;
+        System.out.println(sum); // -2147483641
+    }
+}
+```
+
+![](../images/java-015.jpg)
+
+结果最高位变成了1，变成了一个负数。把int类型换成long类型就可以解决。
+
+
 
 ##### 自增/自减
 
@@ -258,7 +309,11 @@ var sb = new StringBuilder();
 
 
 
-#### 浮点数运算
+应该选择合适范围的整型（`int`或`long`），没有必要为了节省内存而使用`byte`和`short`进行整数运算。
+
+
+
+#### 1.2.4 浮点数运算
 
 浮点数只能进行加减乘除这些数值计算，不能做位运算和移位运算。
 
@@ -276,13 +331,17 @@ var sb = new StringBuilder();
 
 
 
-#### 布尔运算
+比较两个浮点数通常比较它们的绝对值之差是否小于一个特定值
+
+
+
+#### 1.2.5 布尔运算
 
 布尔运算的一个重要特点是**短路运算**。如果一个布尔运算的表达式能提前确定结果，则后续的计算不再执行，直接返回结果。
 
 
 
-#### 字符和字符串
+#### 1.2.6 字符和字符串
 
 ##### 字符类型
 
@@ -303,11 +362,19 @@ char c4 = '\u4e2d'; // '中'，因为十六进制4e2d = 十进制20013
 
 ##### 字符串类型
 
+常见的转义字符包括：
 
+- `\"` 表示字符`"`
+- `\'` 表示字符`'`
+- `\\` 表示字符`\`
+- `\n` 表示换行符
+- `\r` 表示回车符
+- `\t` 表示Tab
+- `\u####` 表示一个Unicode编码的字符
 
 ##### 字符串连接
 
-
+可以使用`+`连接任意字符串和其他数据类型，此时会将其他数据类型先自动转型为字符串，再连接。
 
 ##### 多行字符串
 
@@ -319,6 +386,10 @@ String s = """
           ORDER BY name DESC
           """;
 ```
+
+##### 不可变特性
+
+字符串的不可变是指字符串内容不可变
 
 ##### 空值null
 
@@ -340,12 +411,16 @@ public class Main {
 
 
 
-#### 数组类型
+#### 1.2.7 数组类型
 
 Java的数组有几个特点：
 
 - 数组所有元素初始化为默认值，整型都是`0`，浮点型是`0.0`，布尔型是`false`；
 - 数组一旦创建后，大小就不可改变。
+
+```java
+ int[] ns = new int[] { 68, 79, 91, 85, 62 };
+```
 
 
 
@@ -371,6 +446,24 @@ System.out.println("END");   // 输出并换行
 System.out.printf("%.2f\n", d); // 格式化输出
 ```
 
+##### 格式化输出
+
+为什么要格式化输出？因为计算机表示的数据不一定适合人来阅读。
+
+| 占位符 | 说明                             |
+| :----- | :------------------------------- |
+| %d     | 格式化输出整数                   |
+| %x     | 格式化输出十六进制整数           |
+| %f     | 格式化输出浮点数                 |
+| %e     | 格式化输出科学计数法表示的浮点数 |
+| %s     | 格式化字符串                     |
+
+注意，由于%表示占位符，因此，连续两个%%表示一个%字符本身。
+
+
+
+##### 输入
+
 从控制台读取一个字符串和一个整数:
 
 ```java
@@ -392,19 +485,80 @@ public class Main {
 
 Java提供Scanner对象来方便输入。
 
-
-
 #### if
 
-要判断引用类型的变量内容是否相等，必须使用`equals()`方法。
+要判断引用类型的变量**内容**是否相等，必须使用`equals()`方法。
+
+执行语句`s1.equals(s2)`时，如果变量`s1`为`null`，会报`NullPointerException`。
 
 
-
-#### Switch多重选择
+#### Switch多重选择??
 
 对于多个`==`判断的情况，使用`switch`结构更加清晰。
 
-任何时候都不要忘记写`break`。
+`case`语句具有“*穿透性*”，任何时候都不要忘记写`break`。
+
+建议按照自然顺序排列，便于阅读。
+
+
+
+##### 编译检查
+
+##### java 12开始，switch表达式简化
+
+java12后不要break。
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        String fruit = "apple";
+        switch (fruit) {
+        case "apple" -> System.out.println("Selected apple");
+        case "pear" -> System.out.println("Selected pear");
+        case "mango" -> {
+            System.out.println("Selected mango");
+            System.out.println("Good choice!");
+        }
+        default -> System.out.println("No fruit selected");
+        }
+    }
+}
+
+// 直接赋值
+public class Main {
+    public static void main(String[] args) {
+        String fruit = "apple";
+        int opt = switch (fruit) {
+            case "apple" -> 1;
+            case "pear", "mango" -> 2;
+            default -> 0;
+        }; // 注意赋值语句要以;结束
+        System.out.println("opt = " + opt);
+    }
+}
+
+```
+
+##### yield
+
+复杂的语句，可以放到`{...}`里，然后，用`yield`返回一个值作为`switch`语句的返回值：
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        String fruit = "orange";
+        int opt = switch (fruit) {
+            case "apple" -> 1;
+            case "pear", "mango" -> 2;
+            default -> {
+                int code = fruit.hashCode();
+                yield code; // switch语句返回值
+            }
+        };
+        System.out.println("opt = " + opt);
+    }
+}
+```
 
 
 
@@ -416,7 +570,18 @@ Java提供Scanner对象来方便输入。
 
 #### for循环
 
-`for each`
+使用`for`循环时，千万不要在循环体内修改计数器！在循环体中修改计数器常常导致莫名其妙的逻辑错误。
+
+##### `for each`
+
+```java
+int[] ns = { 1, 4, 9, 16, 25 };
+for (int n : ns) {  // 循环的变量n不再是计数器，而是直接对应到数组的每个元素
+  System.out.println(n);
+}
+```
+
+
 
 #### break和continue
 
@@ -1029,3 +1194,979 @@ Integer.getInteger("java.version"); // 版本号，11
 
 
 ##### 字符编码
+
+
+
+#### 2.2.2 StringBuilder
+
+为了能高效拼接字符串，Java标准库提供了`StringBuilder`，它是一个可变对象，可以预分配缓冲区。
+
+
+
+#### 2.2.3 StringJoiner
+
+
+
+#### 2.2.4 包装类型
+
+引用类型可以赋值为`null`，表示空，但基本类型不能赋值为`null`。
+
+通过包装类可以把基本类型变成引用类型，比如定义一个`Integer`类，它只包含一个实例字段`int`，这样，`Integer`类就可以视为`int`的**包装类（Wrapper Class）**：
+
+```java
+public class Integer {
+    private int value;
+
+    public Integer(int value) {
+        this.value = value;
+    }
+
+    public int intValue() {
+        return this.value;
+    }
+}
+
+Integer n = null;
+Integer n2 = new Integer(99);
+int n3 = n2.intValue();
+```
+
+包装类型非常有用，Java核心库为每种基本类型都提供了对应的包装类型：
+
+| 基本类型 | 对应的引用类型      |
+| :------- | :------------------ |
+| boolean  | java.lang.Boolean   |
+| byte     | java.lang.Byte      |
+| short    | java.lang.Short     |
+| int      | java.lang.Integer   |
+| long     | java.lang.Long      |
+| float    | java.lang.Float     |
+| double   | java.lang.Double    |
+| char     | java.lang.Character |
+
+##### Auto Boxing
+
+`int`和`Integer`可以互相转换：
+
+```java
+int i = 100;
+Integer n = Integer.valueOf(i);
+int x = n.intValue();
+```
+
+Java编译器也可以自动在`int`和`Integer`之间转型：
+
+```java
+Integer n = 100; // 编译器自动使用Integer.valueOf(int)
+int x = n; // 编译器自动使用Integer.intValue()
+```
+
+<u>自动装箱和自动拆箱只发生在编译阶段，目的是为了少写代码。</u>
+
+装箱和拆箱会影响执行效率，且拆箱时可能发生`NullPointerException`。
+
+包装类型的比较必须使用`equals()`；
+
+整数和浮点数的包装类型都继承自`Number`；
+
+包装类型提供了大量实用方法。
+
+##### 不变类
+
+
+
+##### 进制转换
+
+
+
+##### 处理无符号整型
+
+
+
+#### 2.2.5 JavaBean
+
+如果读写方法符合以下这种命名规范：
+
+```
+// 读方法:
+public Type getXyz()
+// 写方法:
+public void setXyz(Type value)
+```
+
+那么这种`class`被称为`JavaBean`。
+
+##### JavaBean的作用
+
+JavaBean主要用来传递数据，即把一组数据组合成一个JavaBean便于传输。此外，JavaBean可以方便地被IDE工具分析，生成读写属性的代码，主要用在图形界面的可视化设计中。
+
+
+
+##### 枚举JavaBean属性
+
+使用`Introspector.getBeanInfo()`可以获取属性列表。
+
+
+
+属性是一种通用的叫法，并非Java语法规定。
+
+
+
+#### 2.2.6 枚举类
+
+```java
+enum Weekday {
+    SUN, MON, TUE, WED, THU, FRI, SAT;
+}
+```
+
+和`int`定义的常量相比，使用`enum`定义枚举有如下好处:
+
+1. `enum`常量本身带有类型信息，即`Weekday.SUN`类型是`Weekday`，编译器会自动检查出类型错误。
+2. 不可能引用到非枚举的值，因为无法通过编译。
+
+##### enum的比较
+
+引用类型比较使用`equals()`，不能使用`==`。虽然enum类型也是引用类型，但enum类型比较也可以使用`==`，因为`enum`类型的每个常量在JVM中只有一个唯一实例。
+
+```java
+if (day == Weekday.FRI) { // ok!
+}
+if (day.equals(Weekday.SUN)) { // ok, but more code!
+}
+```
+
+##### enum类型
+
+通过`enum`定义的枚举类，和其他的`class`没有任何区别。`enum`定义的类型就是`class`，只不过它有以下几个特点：
+
+- 定义的`enum`类型总是继承自`java.lang.Enum`，且无法被继承；
+- 只能定义出`enum`的实例，而无法通过`new`操作符创建`enum`的实例；
+- 定义的每个实例都是引用类型的唯一实例；
+- 可以将`enum`类型用于`switch`语句。
+
+例如，`Color`枚举类的定义：
+
+```java
+public enum Color {
+    RED, GREEN, BLUE;
+}
+```
+
+编译器编译出的`class`大概就像这样：
+
+```java
+public final class Color extends Enum { // 继承自Enum，标记为final class
+    // 每个实例均为全局唯一:
+    public static final Color RED = new Color();
+    public static final Color GREEN = new Color();
+    public static final Color BLUE = new Color();
+    // private构造方法，确保外部无法调用new操作符:
+    private Color() {}
+}
+```
+
+因为`enum`也是`class`，所以它也有一些实例方法：
+
+```java
+String s = Weekday.SUN.name(); // "SUN"
+int n = Weekday.MON.ordinal(); // 1   返回常量定义的顺序（无实质意义）
+```
+
+##### switch
+
+
+
+可以为`enum`编写构造方法、字段和方法
+
+`enum`的构造方法要声明为`private`，字段强烈建议声明为`final`；
+
+#### 2.2.7 BigInteger
+
+`java.math.BigInteger`就是用来表示任意大小的整数。`BigInteger`内部用一个`int[]`数组来模拟一个非常大的整数。
+
+`BigInteger`是不变类，并且继承自`Number`；将`BigInteger`转换成基本类型时可使用`longValueExact()`等方法保证结果准确。
+
+#### 2.2.8 BigDecimal
+
+`BigDecimal`可以表示一个任意大小且精度完全准确的浮点数，常用于财务计算，比较`BigDecimal`的值是否相等，必须使用`compareTo()`而不能使用`equals()`。
+
+#### 2.2.9 常用工具类
+
+##### Math
+
+```java
+Math.abs(-100); // 100
+Math.max(100, 99); // 100
+Math.min(1.2, 2.3); // 1.2
+Math.pow(2, 10); // 2的10次方=1024
+Math.sqrt(2); // √x   1.414...
+Math.exp(2); // 7.389...
+Math.log(4); // 以e为底的对数 1.386...
+Math.log10(100); // 以10为底的对数 2
+
+Math.sin(3.14); // 0.00159...
+Math.cos(3.14); // -0.9999...
+Math.tan(3.14); // -0.0015...
+Math.asin(1.0); // 1.57079...
+Math.acos(1.0); // 0.0
+
+Math.PI
+Math.E
+
+Math.random(); // 随机数的范围是0 <= x < 1：
+```
+
+
+
+##### Random
+
+`Random`用来创建伪随机数。所谓伪随机数，是指只要给定一个初始的种子，产生的随机数序列是完全一样的。
+
+```java
+Random r = new Random();
+r.nextInt(); // 2071575453,每次都不一样
+r.nextInt(10); // 5,生成一个[0,10)之间的int
+r.nextLong(); // 8811649292570369305,每次都不一样
+r.nextFloat(); // 0.54335...生成一个[0,1)之间的float
+r.nextDouble(); // 0.3716...生成一个[0,1)之间的double
+```
+
+
+
+Math.random()`实际上内部调用了`Random`类，所以它也是伪随机数，只是我们无法指定种子。
+
+##### SecureRandom
+
+实际上真正的真随机数只能通过量子力学原理来获取，而我们想要的是一个不可预测的安全的随机数，`SecureRandom`就是用来创建安全的随机数的：
+
+```java
+SecureRandom sr = new SecureRandom();
+System.out.println(sr.nextInt(100));
+```
+
+`SecureRandom`无法指定种子，它使用RNG（random number generator）算法。
+
+
+
+## 3.异常处理
+
+### 3.1 Java的异常
+
+一个健壮的程序必须处理各种各样的错误。
+
+所谓**错误**，就是程序调用某个函数的时候，如果失败了，就表示出错。
+
+<u>调用方如何获知调用失败的信息？</u>有两种方法：
+
+方法一：约定返回错误码。
+
+方法二：在语言层面上提供一个异常处理机制。
+
+Java的异常是`class`，它的继承关系如下：
+
+![](../images/java-008.jpg)
+
+`Throwable`是异常体系的根。`Throwable`有两个体系：`Error`和`Exception`，`Error`表示严重的错误，程序对此一般无能为力，例如：
+
+- `OutOfMemoryError`：内存耗尽
+- `NoClassDefFoundError`：无法加载某个Class
+- `StackOverflowError`：栈溢出
+
+而`Exception`则是运行时的错误，它可以被捕获并处理。
+
+而`Exception`则是运行时的错误，它可以被捕获并处理。
+
+某些异常是应用程序逻辑处理的一部分，应该捕获并处理。例如：
+
+- `NumberFormatException`：数值类型的格式错误
+- `FileNotFoundException`：未找到文件
+- `SocketException`：读取网络失败
+
+还有一些异常是程序逻辑编写不对造成的，应该修复程序本身。例如：
+
+- `NullPointerException`：对某个`null`的对象调用方法或字段
+- `IndexOutOfBoundsException`：数组索引越界
+
+`Exception`又分为两大类：
+
+1. `RuntimeException`以及它的子类；
+2. 非`RuntimeException`（包括`IOException`、`ReflectiveOperationException`等等）
+
+Java规定：
+
+- 必须捕获的异常，包括`Exception`及其子类，但不包括`RuntimeException`及其子类，这种类型的异常称为Checked Exception。
+- 不需要捕获的异常，包括`Error`及其子类，`RuntimeException`及其子类。
+
+### 3.2 捕获异常
+
+`try...catch`
+
+#### 多catch语句
+
+
+
+#### finally语句
+
+
+
+#### 捕获多种异常
+
+
+
+### 3.3 抛出异常
+
+当某个方法抛出了异常时，如果当前方法没有捕获异常，异常就会被抛到上层调用方法，直到遇到某个`try ... catch`被捕获为止
+
+
+
+### 3.4 自定义异常
+
+Java标准库定义的常用异常包括：
+
+```ascii
+Exception
+│
+├─ RuntimeException
+│  │
+│  ├─ NullPointerException
+│  │
+│  ├─ IndexOutOfBoundsException
+│  │
+│  ├─ SecurityException
+│  │
+│  └─ IllegalArgumentException
+│     │
+│     └─ NumberFormatException
+│
+├─ IOException
+│  │
+│  ├─ UnsupportedCharsetException
+│  │
+│  ├─ FileNotFoundException
+│  │
+│  └─ SocketException
+│
+├─ ParseException
+│
+├─ GeneralSecurityException
+│
+├─ SQLException
+│
+└─ TimeoutException
+```
+
+
+
+### 3.5 使用断言
+
+
+
+### 3.6 使用JDK Logging
+
+输出日志，而不是用`System.out.println()`，有以下几个好处：
+
+1. 可以设置输出样式，避免自己每次都写`"ERROR: " + var`；
+2. 可以设置输出级别，禁止某些级别输出。例如，只输出错误日志；
+3. 可以被重定向到文件，这样可以在程序运行结束后查看日志；
+4. 可以按包名控制日志级别，只输出某些包打的日志；
+5. 可以……
+
+`java.util.logging`
+
+
+
+### 3.7 使用Commons Logging
+
+和Java标准库提供的日志不同，Commons Logging是一个第三方日志库，它是由Apache创建的日志模块。
+
+Commons Logging的特色是，它可以挂接不同的日志系统，并通过配置文件指定挂接的日志系统。默认情况下，Commons Loggin自动搜索并使用Log4j（Log4j是另一个流行的日志系统），如果没有找到Log4j，再使用JDK Logging。
+
+
+
+### 3.8 使用Log4j
+
+
+
+### 3.9 使用SLF4J和Logback
+
+前面介绍了Commons Logging和Log4j这一对好基友，它们一个负责充当日志API，一个负责实现日志底层，搭配使用非常便于开发。
+
+其实SLF4J类似于Commons Logging，也是一个日志接口，而Logback类似于Log4j，是一个日志的实现。
+
+
+
+## 4.反射
+
+反射就是Reflection，Java的反射是指程序在运行期可以拿到一个对象的所有信息。
+
+反射是为了解决在运行期，对某个实例一无所知的情况下，如何调用其方法。
+
+### 4.1 Class类
+
+JVM持有的每个`Class`实例都指向一个数据类型（`class`或`interface`）：
+
+![](../images/java-009.jpg)
+
+一个`Class`实例包含了该`class`的所有完整信息：
+
+![](../images/java-010.jpg)
+
+
+
+JVM为每个加载的`class`及`interface`创建了对应的`Class`实例来保存`class`及`interface`的所有信息；
+
+获取一个`class`对应的`Class`实例后，就可以获取该`class`的所有信息；
+
+通过Class实例获取`class`信息的方法称为反射（Reflection）；
+
+JVM总是动态加载`class`，可以在运行期根据条件来控制加载class。
+
+### 4.2 访问字段
+
+通过`Class`实例的方法可以获取`Field`实例：`getField()`，`getFields()`，`getDeclaredField()`，`getDeclaredFields()`；
+
+通过Field实例可以获取字段信息：`getName()`，`getType()`，`getModifiers()`；
+
+通过Field实例可以读取或设置某个对象的字段，如果存在访问限制，要首先调用`setAccessible(true)`来访问非`public`字段。
+
+通过反射读写字段是一种非常规方法，它会破坏对象的封装。
+
+### 4.3 调用方法
+
+
+
+### 4.4 调用构造方法
+
+
+
+### 4.5 获取继承关系
+
+通过`Class`对象可以获取继承关系：
+
+- `Class getSuperclass()`：获取父类类型；
+- `Class[] getInterfaces()`：获取当前类实现的所有接口。
+
+通过`Class`对象的`isAssignableFrom()`方法可以判断一个向上转型是否可以实现。
+
+
+
+### 4.6 动态代理
+
+Java标准库提供了动态代理功能，允许在运行期动态创建一个接口的实例；
+
+动态代理是通过`Proxy`创建代理对象，然后将接口方法“代理”给`InvocationHandler`完成的。
+
+
+
+## 5.注解
+
+Java程序的一种特殊“注释”——**注解（Annotation）**。
+
+### 5.1 使用注解
+
+注解是放在Java源码的类、方法、字段、参数前的一种特殊“注释”。
+
+注释会被编译器直接忽略，注解则可以被编译器打包进入class文件，因此，注解是一种用作标注的“元数据”。
+
+从JVM的角度看，注解本身对代码逻辑没有任何影响，<u>如何使用注解完全由工具决定</u>。
+
+有三类注解，第一类是由编译器使用的注解（不会被编译进入`.class`文件），例如：
+
+- `@Override`：让编译器检查该方法是否正确地实现了覆写；
+- `@SuppressWarnings`：告诉编译器忽略此处代码产生的警告。
+
+第二类是由工具处理`.class`文件使用的注解，比如有些工具会在加载class的时候，对class做动态修改，实现一些特殊的功能。这类注解会被编译进入`.class`文件，但加载结束后并不会存在于内存中。这类注解只被一些底层库使用，一般我们不必自己处理。
+
+第三类是在程序运行期能够读取的注解，它们在加载后一直存在于JVM中，这也是最常用的注解。例如，一个配置了`@PostConstruct`的方法会在调用构造方法后自动被调用（这是Java代码读取该注解实现的功能，JVM并不会识别该注解）。
+
+### 5.2 定义注解
+
+
+
+### 5.3 处理注解
+
+
+
+## 6.泛型
+
+泛型是一种“代码模板”，可以用一套代码套用各种类型。
+
+### 6.1 什么是泛型
+
+
+
+### 6.2 使用泛型
+
+
+
+### 6.3 编写泛型
+
+
+
+### 6.4 擦拭法
+
+
+
+### 6.5 extends通配符
+
+
+
+### 6.6 super通配符
+
+
+
+### 6.7 泛型和反射
+
+
+
+## 7.集合
+
+集合类型是Java标准库中被使用最多的类型。
+
+### 7.1 Java集合简介
+
+在Java中，如果一个Java对象可以在内部持有若干其他Java对象，并对外提供访问接口，我们把这种Java对象称为**集合**。
+
+#### Collection
+
+`java.util.Collection`
+
+`List`
+
+`Set`
+
+`Map`
+
+
+
+### 7.2 使用List
+
+`List`是按索引顺序访问的长度可变的有序表，优先使用`ArrayList`而不是`LinkedList`；
+
+可以直接使用`for each`遍历`List`；
+
+`List`可以和`Array`相互转换。
+
+
+
+### 7.3 编写equals方法
+
+
+
+### 7.4 使用Map
+
+`Map`是一种映射表，可以通过`key`快速查找`value`。
+
+可以通过`for each`遍历`keySet()`，也可以通过`for each`遍历`entrySet()`，直接获取`key-value`。
+
+最常用的一种`Map`实现是`HashMap`。
+
+
+
+### 7.5 编写equals和hashCode
+
+
+
+### 7.6 使用EnumMap
+
+
+
+### 7.7 TreeMap
+
+![](../images/java-011.jpg)
+
+`SortedMap`在遍历时严格按照Key的顺序遍历，最常用的实现类是`TreeMap`；
+
+作为`SortedMap`的Key必须实现`Comparable`接口，或者传入`Comparator`；
+
+要严格按照`compare()`规范实现比较逻辑，否则，`TreeMap`将不能正常工作。
+
+
+
+### 7.8 Properties
+
+
+
+### 7.9 Set
+
+
+
+### 7.10 Queue
+
+
+
+### 7.11 PriorityQueue
+
+`PriorityQueue`实现了一个优先队列：从队首获取元素时，总是获取优先级最高的元素。
+
+`PriorityQueue`默认按元素比较的顺序排序（必须实现`Comparable`接口），也可以通过`Comparator`自定义排序算法（元素就不必实现`Comparable`接口）。
+
+
+
+### 7.12 使用Deque
+
+把条件放松一下，允许两头都进，两头都出，这种队列叫双端队列（Double Ended Queue），学名`Deque`。
+
+
+
+### 7.13 使用Stack
+
+
+
+### 7.14 使用Iterator
+
+
+
+### 7.15 使用Collections
+
+
+
+## 8.IO
+
+
+
+### 8.1 File对象
+
+Java标准库的`java.io.File`对象表示一个文件或者目录：
+
+- 创建`File`对象本身不涉及IO操作；
+- 可以获取路径／绝对路径／规范路径：`getPath()`/`getAbsolutePath()`/`getCanonicalPath()`；
+- 可以获取目录的文件和子目录：`list()`/`listFiles()`；
+- 可以创建或删除文件和目录。
+
+
+
+### 8.2 InputStream
+
+`InputStream`就是Java标准库提供的最基本的输入流。
+
+
+
+### 8.3 OutputStream
+
+
+
+### 8.4 Filter模式
+
+Java的IO标准库使用Filter模式为`InputStream`和`OutputStream`增加功能：
+
+- 可以把一个`InputStream`和任意个`FilterInputStream`组合；
+- 可以把一个`OutputStream`和任意个`FilterOutputStream`组合。
+
+Filter模式可以在运行期动态增加功能（又称Decorator模式）
+
+
+
+### 8.5 操作Zip
+
+`ZipInputStream`
+
+![](../images/java-012.jpg)
+
+
+
+### 8.6 读取classpath资源
+
+
+
+### 8.7 序列化
+
+`java.io.Serializable`
+
+
+
+### 8.8 Reader
+
+`Reader`是Java的IO库提供的另一个输入流接口。和`InputStream`的区别是，`InputStream`是一个字节流，即以`byte`为单位读取，而`Reader`是一个字符流，即以`char`为单位读取：
+
+| InputStream                         | Reader                                |
+| :---------------------------------- | :------------------------------------ |
+| 字节流，以`byte`为单位              | 字符流，以`char`为单位                |
+| 读取字节（-1，0~255）：`int read()` | 读取字符（-1，0~65535）：`int read()` |
+| 读到字节数组：`int read(byte[] b)`  | 读到字符数组：`int read(char[] c)`    |
+
+
+
+### 8.9 Writer
+
+
+
+### 8.10 PrintStream和PrintWriter
+
+
+
+## 9.日期与时间
+
+### 9.1 基本概念
+
+### 9.2 Date和Calendar
+
+计算机表示的时间是以整数表示的时间戳存储的，即Epoch Time，Java使用`long`型来表示以毫秒为单位的时间戳，通过`System.currentTimeMillis()`获取当前时间戳。
+
+Java有两套日期和时间的API：
+
+- 旧的Date、Calendar和TimeZone；
+- 新的LocalDateTime、ZonedDateTime、ZoneId等。
+
+分别位于`java.util`和`java.time`包中。
+
+### 9.3 LocalDateTime
+
+
+
+### 9.4 ZonedDateTime
+
+
+
+### 9.5 DateTimeFormatter
+
+
+
+### 9.6 Instant
+
+
+
+
+
+## 10.单元测试
+
+### 10.1 编写JUnit测试
+
+什么是单元测试呢？单元测试就是针对最小的功能单元编写测试代码。Java程序最小的功能单元是方法，因此，对Java程序进行单元测试就是针对单个Java方法的测试。
+
+### 10.2 使用Fixture
+
+
+
+### 10.3 异常测试
+
+
+
+### 10.4 条件测试
+
+
+
+### 10.5 参数化测试
+
+
+
+## 11.正则表达式
+
+
+
+## 12.加密与安全
+
+应对潜在的安全威胁，需要做到三防：
+
+- 防窃听
+- 防篡改
+- 防伪造
+
+要编写安全的计算机程序，我们要做到：
+
+- 不要自己设计山寨的加密算法；
+- 不要自己实现已有的加密算法；
+- 不要自己修改已有的加密算法。
+
+### 12.1 编码算法
+
+URL编码和Base64编码都是<font color=#FF8C00>编码</font>算法，它们不是<font color=#FF8C00>加密</font>算法；
+
+URL编码的目的是把任意文本数据编码为%前缀表示的文本，便于浏览器和服务器处理；
+
+Base64编码的目的是把任意二进制数据编码为文本，但编码后数据量会增加1/3。
+
+### 12.2 哈希算法
+
+哈希算法（Hash）又称摘要算法（Digest），它的作用是：对任意一组输入数据进行计算，得到一个固定长度的输出摘要。
+
+### 12.3 BouncyCastle
+
+### 12.4 Hmac算法
+
+### 12.5 对称加密算法
+
+### 12.6 口令加密算法
+
+### 12.7 密钥交换算法
+
+### 12.8 非对称加密算法
+
+### 12.9 签名算法
+
+### 12.10 数字证书
+
+数字证书就是集合了多种密码学算法，用于实现数据加解密、身份认证、签名等多种功能的一种安全标准。
+
+数字证书采用链式签名管理，顶级的Root CA证书已内置在操作系统中。
+
+数字证书存储的是公钥，可以安全公开，而私钥必须严格保密。
+
+
+
+## 13.多线程
+
+### 多线程基础
+
+
+
+### 创建新线程
+
+
+
+### 线程的状态
+
+ava线程的状态有以下几种：
+
+- New：新创建的线程，尚未执行；
+- Runnable：运行中的线程，正在执行`run()`方法的Java代码；
+- Blocked：运行中的线程，因为某些操作被阻塞而挂起；
+- Waiting：运行中的线程，因为某些操作在等待中；
+- Timed Waiting：运行中的线程，因为执行`sleep()`方法正在计时等待；
+- Terminated：线程已终止，因为`run()`方法执行完毕。
+
+用一个状态转移图表示如下：
+
+![](../images/java-013.jpg)
+
+### 中断线程
+
+
+
+### 守护线程
+
+
+
+### 线程同步
+
+
+
+### 同步方法
+
+
+
+### 死锁
+
+
+
+### 使用wait和notify
+
+### 使用ReentrantLock
+
+### 使用Condition
+
+### 使用ReadWriteLock
+
+### 使用StampedLock
+
+### 使用Concurrent集合
+
+### 使用Atomic
+
+### 使用线程池
+
+### 使用Future
+
+### 使用CompletableFuture
+
+### 使用ForkJoin
+
+### 使用ThreadLocal
+
+
+
+## 14.Maven基础
+
+Maven是一个Java项目管理和构建工具，它可以定义项目结构、项目依赖，并使用统一的方式进行自动化构建，是Java项目不可缺少的工具。
+
+### 14.1 Maven介绍
+
+
+
+### 14.2 依赖管理
+
+
+
+### 14.3 构建流程
+
+### 14.4 使用插件
+
+### 14.5 模块管理
+
+### 14.6 使用mvnw
+
+
+
+
+
+## 15.网络编程
+
+网络编程是Java最擅长的方向之一，使用Java进行网络编程时，由虚拟机实现了底层复杂的网络协议，Java程序只需要调用Java标准库提供的接口，就可以简单高效地编写网络程序。
+
+### 网络编程基础
+
+
+
+### TCP编程
+
+
+
+### UDP编程
+
+
+
+### 发送Email
+
+### 接收Email
+
+### HTTP编程
+
+### RMI远程调用
+
+
+
+## 16.XML与JSON
+
+### XML简介
+
+### 使用DOM
+
+### 使用SAX
+
+### 使用Jackson
+
+### 使用JSON
+
+## 17.JDBC编程
+
+Java为关系数据库定义了一套标准的访问接口：JDBC（Java Database Connectivity）
+
+### JDBC简介
+
+### JDBC查询
+
+### JDBC更新
+
+### JDBC事务
+
+### JDBC Batch
+
+### JDBC连接池
+
+
+
+## 18.函数式编程
+
+
+
+
+
+
+
+
+
+
+
+
+
