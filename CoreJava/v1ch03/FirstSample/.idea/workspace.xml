@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="95635e07-0f4b-47d2-8566-c1994062c0c3" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/FirstSample.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../Eclipse教程/Eclipse教程.md" beforeDir="false" afterPath="$PROJECT_DIR$/../../../Eclipse教程/Eclipse教程.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../Java教程/Java教程-2.md" beforeDir="false" afterPath="$PROJECT_DIR$/../../../Java教程/Java教程-2.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../../../README.md" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
+  </component>
+  <component name="ProjectId" id="1XiDoyo63Rv79USYa1T7uEY2st8" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+  </component>
+  <component name="RunManager">
+    <configuration name="FirstSample" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="FirstSample" />
+      <module name="FirstSample" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.FirstSample" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="95635e07-0f4b-47d2-8566-c1994062c0c3" name="Default Changelist" comment="" />
+      <created>1581520199644</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1581520199644</updated>
+      <workItem from="1581520203819" duration="149000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state width="1238" height="70" key="GridCell.Tab.0.bottom" timestamp="1581520352783">
+      <screen x="0" y="0" width="1280" height="800" />
+    </state>
+    <state width="1238" height="70" key="GridCell.Tab.0.bottom/0.0.1280.800/-1920.-699.1920.1080@0.0.1280.800" timestamp="1581520352783" />
+    <state width="1238" height="70" key="GridCell.Tab.0.center" timestamp="1581520352781">
+      <screen x="0" y="0" width="1280" height="800" />
+    </state>
+    <state width="1238" height="70" key="GridCell.Tab.0.center/0.0.1280.800/-1920.-699.1920.1080@0.0.1280.800" timestamp="1581520352781" />
+    <state width="1238" height="70" key="GridCell.Tab.0.left" timestamp="1581520352780">
+      <screen x="0" y="0" width="1280" height="800" />
+    </state>
+    <state width="1238" height="70" key="GridCell.Tab.0.left/0.0.1280.800/-1920.-699.1920.1080@0.0.1280.800" timestamp="1581520352780" />
+    <state width="1238" height="70" key="GridCell.Tab.0.right" timestamp="1581520352782">
+      <screen x="0" y="0" width="1280" height="800" />
+    </state>
+    <state width="1238" height="70" key="GridCell.Tab.0.right/0.0.1280.800/-1920.-699.1920.1080@0.0.1280.800" timestamp="1581520352782" />
+    <state x="17" y="22" key="new project wizard" timestamp="1581520350326">
+      <screen x="0" y="0" width="1280" height="800" />
+    </state>
+    <state x="17" y="22" key="new project wizard/0.0.1280.800/-1920.-699.1920.1080@0.0.1280.800" timestamp="1581520350326" />
+  </component>
+</project>
