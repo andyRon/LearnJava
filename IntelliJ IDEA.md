@@ -78,3 +78,15 @@ IntelliJ IDEA 没有类似 Eclipse 工作空间（workspace）的概念的。
 ```
 
 3. 重启 IDEA
+
+
+
+
+
+### 补充
+
+
+
+#### 创建package
+
+在`src`上，右击创建
