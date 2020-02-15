@@ -207,3 +207,43 @@ char[] passwd = cons.readPassword("Password: ");
 
 
 ## 5 继承
+
+
+
+### 5.1 超类和子类
+
+
+
+### 5.2 Object：所有类的超类
+
+
+
+#### 5.2.1 equals 方法？？
+
+```java
+Objects.equals
+```
+
+
+
+#### toString()
+
+
+
+### 5.3  ArrayList
+
+
+
+### 5.4 Object Wrappers and Autoboxing
+
+
+
+### 5.5 参数数量可变的方法
+
+
+
+### 5.6 枚举类
+
+
+
+### 5.7 反射??
