@@ -55,6 +55,9 @@ public class FirstSample {
         all.equals(subS);
         all.equalsIgnoreCase(subS);
 
+
     }
 
 }
+
+

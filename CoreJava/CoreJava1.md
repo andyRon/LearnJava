@@ -85,7 +85,7 @@ http://bugs.java.com/bugdatabase/index.jsp   ，java bug数据库，通过bug号
 
 #### 整型
 
-在Java中，整型的范围与运行的机器无关；没有无符号。
+在Java中，整型的范围与运行的机器无关；没有无符号类型。
 
 
 
@@ -104,11 +104,13 @@ http://bugs.java.com/bugdatabase/index.jsp   ，java bug数据库，通过bug号
 0b1001;   
 ```
 
+建议不要使用八进制常数，易混淆。
+
 #### 浮点数
 
-`float`
+`float`    4字节；
 
-`double`
+`double`     8字节；
 
 `NaN`
 
@@ -120,13 +122,29 @@ http://bugs.java.com/bugdatabase/index.jsp   ，java bug数据库，通过bug号
 
 有些Unicode字符可以用一个char值描述，另外一些Unicode字符则需要两个char值。
 
-Unicode转义序列会在解析代码之前得到处理。
+char类型的字面量值要用**单引号**括起来。`'A'`   `'\u03C0'`
+
+
+
+**Unicode转义序列会在解析代码之前得到处理。**
 
 一定要当心注释中的\u。
 
 强烈建议不要使用char类型。
 
+#### Unicode 和 char
+
+**code point**（码点）是指与一个编码表中的某个字符对应的代码值。a code value that is associated with a character in an encoding scheme.
+
+在 Unicode 标准中， 码点采用十六进制书写，并加上前缀U+, 例如**U+0041**就是拉丁字母A的码点。
+
+UTF 16 编码采用不同长度的编码表示所有 Unicode 码点。在基本的多语言级别中， 每个字符用16位表示，通常被称为代码单元(**code unit**)。
+
 ### 3.4 变量
+
+`Character.isJavaIdentifierPart()` `Character.isJavaIdentifierStart()`
+
+
 
 逐一声明每一个变量可以提高程序的可读性。
 
@@ -134,7 +152,11 @@ Unicode转义序列会在解析代码之前得到处理。
 
 #### 常量
 
-关键字`final`指示常量。习惯上，常量名使用全大写。
+关键字`final`指示**常量**。习惯上，常量名使用全大写。
+
+使用关键字`static final`设置**类常量**。 
+
+
 
 ### 3.5 运算符
 
@@ -180,7 +202,7 @@ if (str != null && str.length() != 0)
 
 
 
-#### Code Points and Code Units??
+#### Code Points and Code Units
 
 `char()`和`length()`都是与**Code Units**相关的。
 
@@ -205,7 +227,13 @@ codePointAt
 
 #### StringBuilder
 
-### IO
+### 3.7 IO
+
+#### 读取输入
+
+`Scanner`  
+
+`console`来处理控制台输入
 
 ```java
 Console cons = System.console();
@@ -213,15 +241,17 @@ String username = cons.readLine("User name: ");
 char[] passwd = cons.readPassword("Password: ");
 ```
 
-#### 
+
 
 #### 格式化输出
 
-
+`System.out.printf`
 
 #### 文件输入与输出
 
+`Paths`
 
+`PrintWriter`
 
 ### 3.8 控制流程
 
@@ -235,7 +265,35 @@ char[] passwd = cons.readPassword("Password: ");
 
 任意长度
 
-### 3.10 数组
+
+
+
+
+### 3.10 数组??
+
+```java
+int[] a;
+
+int[] a = new int[100];
+
+int[] smallPrimes = {2, 3, 5};
+
+new int[]{17, 19, 31};
+
+smallPrimes = new int[]{17, 19, 31};
+```
+
+
+
+#### 命令行参数
+
+
+
+#### 数组排序
+
+
+
+
 
 
 
@@ -243,35 +301,95 @@ char[] passwd = cons.readPassword("Password: ");
 
 
 
+### 4.1 面向对象程序设计概述
+
+
+
+#### 类
+
+**封装**（encapsulation，也称**数据隐藏**）
+
+**instance field**  是数据
+
+**方法**（method）是操纵数据的过程
+
+#### 对象
+
+**对象的行为 (behavior )**     可以对对象施加哪些操作，或可以对对象施加哪些方法? 
+
+**对象的状态 (state )**       当施加那些方法时， 对象如何响应?
+
+**对象标识（identity）**   如何辨别具有相同行为与状态的不同对象?
+
+对象状态的改变必须通过调用方法实现。
+
+#### 识别类
+
+识别类的简单规则是在**分析问题的过程中寻找名词，而方法对应着动词。
+
+#### 类之间的关系
+
+依赖（“users-a）
+
+聚合（”has-a“）
+
+继承（”is-a“）
+
+
+
 ### 4.2 使用预定义类
 
 
 
-#### 4.2.1 对象与对象变量
+#### 对象与对象变量
 
 一个对象变量并没有实际包含一个对象，而仅仅引用一个对象。
 
-#### 4.2.2 LocalDate
+#### LocalDate
 
 
 
-#### 4.2.3 mutator method and accessor method
+#### mutator method and accessor method
 
 
 
 ### 4.3 用户自定义类
 
+在一个源文件中，只能有一个公有类，但可以有任意数目的非公有类。
 
+构造器总是伴随着new操作符的执行被调用。
 
 ### 4.4 静态属性和静态方法??
 
 
 
-### 4.5 Method Parameters ??
+### 4.5 Method Parameters 
+
+Java程序设计语言总是采用按值调用。
+
+
+
+方法得到的是对象引用的拷贝，对象引用以及其他的拷贝同时引用同一个对象。
 
 
 
 ### 4.6 对象构造
+
+
+
+#### 重载(overloading)
+
+方法的签名（signature）
+
+#### Default Field Initialization
+
+#### 无参数的构造器
+
+#### 调用另一个构造器
+
+`this()`
+
+#### 初始化块
 
 
 
@@ -285,7 +403,39 @@ char[] passwd = cons.readPassword("Password: ");
 
 
 
-### 4.8 类路径??
+从编译器的角度来看，嵌套的包之间没有任何关系。
+
+一个类可以使用所属包中的所有类，以及其他包中的公有类。
+
+
+
+**静态导入**
+
+`import static java.lang.System.*;`
+
+不必加类名前缀，就可以使用System类的静态方法和静态字段。
+
+将包中的文件放到与完整的包名匹配的子目录中。
+
+
+
+### 4.8 类路径
+
+
+
+### 4.9 文档注释
+
+
+
+#### 通用注释
+
+`@see com.andyron.com.corejava.Employee#raiseSalary(double)`
+
+
+
+#### 包与概述注释
+
+包注释需要在每个包目录中添加一个单独的文件。
 
 
 
@@ -294,6 +444,44 @@ char[] passwd = cons.readPassword("Password: ");
 
 
 ### 5.1 超类和子类
+
+子类比超类拥有的功能更加丰富。
+
+应该将通用的方法放在超类中，将具有特殊用途的方法放在子类中。
+
+
+
+super不是一个对象的引用，不能将其赋给另一个对象变量，它只是一个指示编译器调用超类方法的**特殊关键字**。
+
+
+
+#### 理解方法调用??
+
+
+
+#### 阻止继承：final类和方法
+
+
+
+#### 强制类型转换
+
+`ClassCastException`
+
+`instanceof`
+
+#### 抽象类
+
+#### 受保护访问
+
+`protected`
+
+
+
+
+
+
+
+
 
 
 

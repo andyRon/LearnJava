@@ -2,7 +2,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 
 /**
- * 显示当前月日历
+ * 打印当前月日历
  * @author Andy Ron
  */
 public class CalendarTest {

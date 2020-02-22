@@ -9,6 +9,11 @@ public class MyString {
         System.out.println("java\u2122");
 
 
+        char c = '\u03C0' ;
+
+        System.out.println(c);
+
+
     }
 
 

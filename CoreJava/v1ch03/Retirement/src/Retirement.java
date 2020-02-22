@@ -11,7 +11,6 @@ public class Retirement {
         System.out.print("How much money do you need to retire? ");
         double goal = in.nextDouble();
 
-        //
         System.out.print("How much money will you contribute every year? ");
         double payment = in.nextDouble();
 
