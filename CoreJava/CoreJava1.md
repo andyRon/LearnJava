@@ -529,13 +529,132 @@ Objects.equals
 
 ### 6.1 接口
 
+接口中所有方法自动地属于public。
+
+接口绝不能含有实例属性。可以将接口看成是没有实例属性的抽象类。
+
+
+
+### 6.2 接口实例
+
+`Comparator`
+
+`Cloneable`   ??
+
+
+
+### 6.3 lambda表达式
+
+
+
+#### 函数式接口
+
+`Predicate`
+
+#### 方法引用
+
+`::`
+
+`Timer t = new Timer(1000, System.out::println);`
+
+
+
+```java
+object::instanceMethod
+Class::staticMethod
+Class::instnaceMethod
+```
+
+#### 构造器引用
+
+`Person::new`
+
+#### 变量作用域
+
+
+
+#### 处理lambda表达式
+
+
+
+#### 再谈Comparator
+
+```java
+Arrays.sort(people, Comparator.comparing(Person::getName))
+  
+Arrays.sort(people, Comparator.comparing(Person::getLastName).thenComparing(Person::getFirstName));
+
+Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compare(s.length(), t.length())));
+```
+
+
+
+### 6.4 内部类
+
+
+
+
+
+### 6.5 代理??
+
+
 
 
 ## 7.异常、断言和日志
 
+向用户通告错误;
+
+保存所有的工作结果; 
+
+允许用户以妥善的形式退出程序。
+
 
 
 ### 7.1 处理错误
+
+\1. 用户输入错误
+
+\2. 设备错误
+
+\3. 物理限制
+
+\4. 代码错误
+
+在 Java 中， 如果某个方法不能够采用正常的途径完整它的任务， 就可以通过另外一个路径**退出**方法。 在这种情况下， 方法并**不返回任何值**， 而是抛出 (throw) 一个封装了错误信息的对象。 异常处理机制开始搜索能够处理这种异常状况的**异常处理器** (exception handler )。
+
+#### 异常分类
+
+![](../images/java-028.jpg)
+
+
+
+
+
+### 7.2 捕获异常
+
+如果某个异常发生的时候没有在任何地方进行捕获， 那程序就会终止执行， 并在控制台上打印出异常信息， 其中包括异常的类型和堆栈的内容。
+
+#### finally子句
+
+不管是否有异常被捕获， finally 子句中的代码都被执行。 
+
+#### 带资源的 try 语句
+
+```java
+try (Resource res = ...) {
+  work with res
+}
+```
+
+
+
+#### 分析堆栈轨迹元素
+
+### 7.3 使用异常机制的技巧
+
+
+
+### 7.4 使用断言
 
 
 
@@ -677,3 +796,7 @@ Objects.equals
 
 
 
+
+```
+
+```
