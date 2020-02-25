@@ -670,7 +670,15 @@ try (Resource res = ...) {
 
 
 
+### 8.1 为什么要使用泛型程序设计
 
+泛型程序设计(Generic programming) 
+
+
+
+
+
+### 8.9 反射和泛型？？
 
 
 
