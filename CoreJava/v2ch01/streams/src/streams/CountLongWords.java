@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * 流和集合的对比
  * @author Andy Ron
  */
 public class CountLongWords {
@@ -29,5 +30,7 @@ public class CountLongWords {
 
         count = words.parallelStream().filter(w -> w.length() > 12).count();
         System.out.println(count);
+
+        // stream() 和 parallelStream() 分别获得顺序流和并行流，当然此处结果没有多大影响。
     }
 }
