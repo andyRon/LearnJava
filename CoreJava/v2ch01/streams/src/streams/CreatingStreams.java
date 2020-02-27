@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * 创建流的各种方式
  * @author Andy Ron
  */
 public class CreatingStreams {
