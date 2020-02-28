@@ -15,7 +15,7 @@ public class MailTest {
 
     public static void main(String[] args) throws IOException {
         Properties props = new Properties();
-        try (InputStream in = Files.newInputStream(Paths.get("mail", "mail.properties"))){
+        try (InputStream in = Files.newInputStream(Paths.get("mail.properties"))){
             props.load(in);
         }
         List<String> lines = Files.readAllLines(Paths.get(args[0]), Charset.forName("UTF-8"));
