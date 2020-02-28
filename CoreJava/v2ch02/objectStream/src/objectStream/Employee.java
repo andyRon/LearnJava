@@ -1,15 +1,9 @@
-package randomAccess;
+package objectStream;
 
+import java.io.*;
 import java.time.*;
 
-/**
- * @author Andy Ron
- */
-public class Employee
-{
-    public static final int NAME_SIZE = 40;
-    public static final int RECORD_SIZE = 2 * NAME_SIZE + 8 + 4 + 4 + 4;
-
+public class Employee implements Serializable {
     private String name;
     private double salary;
     private LocalDate hireDay;
