@@ -4,6 +4,32 @@
 
 ## 1 Java SE 8的流库
 
+### 1.1 从迭代到流
+
+`java.util.Collection`的  `stream()`，`parallelStream()`
+
+流遵循了“**做什么而非怎么做**”的原则。
+
+流与集合的差异：
+
+1. 流并不存储其元素。
+2. 流的操作不会修改其数据源。
+3. 流的操作是尽可能**惰性执行**的。
+
+### 1.2 流的创建
+
+`Stream.of()`
+
+`Array.stream(array, from, to)`
+
+`Stream.empty()`
+
+`Stream.generate()`
+
+`Stream.iterate()`
+
+
+
 
 
 ### 1.3 filter, map, flatMap
@@ -11,6 +37,24 @@
 
 
 ## 2 输入与输出
+
+![输入流与输出流的层次结构](/Users/andyron/myfield/github/LearnJava/images/java-029.jpg)
+
+
+
+![Reader和Writer的层次结构](/Users/andyron/myfield/github/LearnJava/images/java-030.jpg)
+
+
+
+
+
+![Closeable,Flushable,Readable,Appendable接口](/Users/andyron/myfield/github/LearnJava/images/java-031.jpg)
+
+
+
+### 2.2 文本输入与输出
+
+
 
 
 
@@ -35,6 +79,12 @@
 
 
 ### 2.7 正则表达式
+
+
+
+
+
+
 
 
 
@@ -68,7 +118,11 @@
 
 ## 5 数据库编程
 
+### 5.1 JDBC的设计
 
+
+
+### 5.2 结构化查询语言
 
 
 

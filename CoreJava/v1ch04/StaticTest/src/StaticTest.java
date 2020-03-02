@@ -1,4 +1,6 @@
-
+/**
+ * 静态字段和静态方法测试
+ */
 public class StaticTest {
     public static void main(String[] args) {
         Employee[] staff = new Employee[3];
@@ -51,7 +53,7 @@ class Employee {
         return nextId;
     }
 
-    public static void main(String[] args) {  // unit test
+    public static void main(String[] args) {  // 一般用于 unit test
         Employee e = new Employee("Andy", 500000);
         System.out.println(e.getName() + " " + e.getSalary());
     }
