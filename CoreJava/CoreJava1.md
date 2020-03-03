@@ -539,9 +539,88 @@ Objects.equals
 
 
 
-### 5.7 反射??
+### 5.7 反射
+
+**反射库**(reflection library，`java.lang.reflect.*`) 提供了一个非常丰富且精心设计的工具集， 以便编写能够动态操纵 Java 代码的程序。
+
+能够分析类能力的程序称为**反射**(reflective )。 
+
+反射主要使用人员是**工具构造者**，它的用途:
+
+- 在运行时分析类的能力。
+
+- 在运行时查看对象， 例如， 编写一个 toString 方法供所有类使用。
+
+- 实现通用的数组操作代码。
+
+- 利用 Method 对象， 这个对象很像中的函数指针。
+
+#### Class类
+
+Java运行时系统始终为所有的对象维护一个被称为**运行时的类型标识**。 这个信息跟踪着每个对象所属的类。 **虚拟机利用运行时类型信息选择相应的方法执行**。保存这些信息的类被称为`Class`。
+
+三种获得Class类对象的方法：
+
+```java
+Random generator = new Random0:
+Class cl = generator.getClass();
+String name = cl.getName(); // name is set to "java.util .Random"
 
 
+String dassName = "java.util .Random";
+Class cl = Class.forName(dassName);
+
+
+Class dl = Random.class; // if you import java.util
+Gass cl2 = int.class;
+Class cl3 = Double[].class;
+
+```
+
+
+
+Class类实际上是泛型类。例如，`Employee.class`的类型是`Class<Employee>`。
+
+另外一创建Class类实例的方法：
+
+```java
+String s = "java.util.Random";
+Object m = Class.forName(s).newlnstance();
+```
+
+
+
+#### 捕获异常
+
+#### 利用反射分析类
+
+`java.lang.reflect.*`
+
+`Field`
+
+`Method`
+
+`Constructor`
+
+`Modifier`   
+
+`.getName()`
+
+`.getType()`
+
+...
+
+
+
+#### 在运行时使用反射分析对象
+
+
+
+#### 使用反射编写泛型数组代码
+
+
+
+#### 调用任意方法
 
 
 
