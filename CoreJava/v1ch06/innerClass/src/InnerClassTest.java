@@ -5,6 +5,7 @@ import java.util.Date;
 import javax.swing.*;
 
 /**
+ * 测试使用内部类
  * @author Andy Ron
  */
 public class InnerClassTest {
@@ -38,9 +39,9 @@ class TalkingClock {
         @Override
         public void actionPerformed(ActionEvent e) {
             System.out.println("At the tone, the time is " + new Date());
-            if (beep) Toolkit.getDefaultToolkit().beep();
-            // 获得默认工具箱。
-            // 发出一声铃声
+            if (beep) {  // 等价于 TalkingClock.this.beep
+                Toolkit.getDefaultToolkit().beep();// 获得默认工具箱；发出一声铃声
+            }
         }
     }
 }

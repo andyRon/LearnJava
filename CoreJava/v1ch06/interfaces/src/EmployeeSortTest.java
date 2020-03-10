@@ -15,8 +15,9 @@ public class EmployeeSortTest {
 
         Arrays.sort(staff);
 
-        for (Employee e : staff)
+        for (Employee e : staff) {
             System.out.println("name=" + e.getName() + ", salary=" + e.getSalary());
+        }
 
     }
 }
