@@ -3,6 +3,7 @@ import java.util.Date;
 import javax.swing.*;
 
 /**
+ * lambada表达式的用法
  * @author Andy Ron
  */
 public class LambdaTest {
@@ -12,6 +13,7 @@ public class LambdaTest {
         System.out.println(Arrays.toString(planets));
         System.out.println("Sorted in dictionary order:");
         Arrays.sort(planets);
+
         System.out.println(Arrays.toString(planets));
         System.out.println("Sorted by length:");
         Arrays.sort(planets, (first, second) -> first.length() - second.length());
@@ -24,3 +26,5 @@ public class LambdaTest {
         System.exit(0);
     }
 }
+
+

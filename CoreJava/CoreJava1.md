@@ -630,40 +630,134 @@ Object m = Class.forName(s).newlnstance();
 
 ### 6.1 接口
 
-接口中所有方法自动地属于public。
+接口不是类，而是对类的一组需求描述。
+
+**接口中所有方法自动地属于public**。
 
 接口绝不能含有实例属性。可以将接口看成是没有实例属性的抽象类。
+
+#### 接口的特性
+
+尽管不能构造接口的对象， 却能声明接口的变量；接口变量必须弓I用实现了接口的类对象:
+
+```java
+Comparable x;
+x= new Employee(...) // Employee 实现了 Comparable
+```
+
+检测一个对象是否实现了某个接口：
+
+```java
+if (anObj instanceof Comparable) { ... }
+```
+
+接口可以建立像类一样的继承关系，从而**扩展**接口；接口中可以包含常量：
+
+```java
+public interface Moveable {
+  void move(double x, double y);
+}
+
+public interface Powered extends Moveable {
+  double milesPerGallon();
+  double SPEED_LIMIT = 95;  // 省略了 public static final 
+}
+```
+
+**接口中的方法和常量不需要加任何修饰符号。**
+
+#### 接口与抽象类
+
+接口可以提供多重继承的大多数好处， 同时还能避免多重继承的复杂性和低效性。
+
+#### 静态方法
+
+标准库中，成对的接口和实用工具类，如Collection/Collections、Path/Paths。
+
+#### 默认方法
+
+可以为接口方法提供一个默认实现。需要`default`修饰符。
+
+#### 解决默认方法冲突
 
 
 
 ### 6.2 接口实例
 
-`Comparator`
+#### 接口与回调
 
-`Cloneable`   ??
+#### Comparator接口
 
 
+
+#### 对象克隆
+
+clone方法是 Object 的一个 protected 方法。
+
+**浅拷贝**：没有克隆对象中引用的其他对象。默认拷贝是浅拷贝，还会共享信息。
+
+![浅拷贝](../images/java-032.jpg)
+
+`Cloneable`   
+
+重写clone方法实现深拷贝。
 
 ### 6.3 lambda表达式
+
+#### 为什么引入lambda表达式
+
+
+
+#### lambda表达式的语法
+
+lambda表达式就是**一个代码块， 以及必须传人 代码的变量规范**。
+
+```java
+(参数) -> { 表达式 }
+```
+
+```java
+(String first, String second) -> { first.lengthO - second.lengthO }
+```
 
 
 
 #### 函数式接口
 
-`Predicate`
+对于只有一个抽象方法的接口， 需要这种接口的对象时， 就可以提供一个 lambda 表达 式。 这种接口称为**函数式接口 (functional interface )**。
+
+最好把 lambda 表达式看作是一 个函数， 而不是一个对象。
+
+`Comparator `
+
+`Predicate`  专门用来传递 lambda 表达式。
 
 #### 方法引用
+```java
+Timer t = new Timer(1000, System.out::println);
+```
 
-`::`
+表达式 `System.out::println` 是一个**方法引用(method reference)**, 它等价于 lambda 表达式 `x 一> System.out.println(x)`。
 
-`Timer t = new Timer(1000, System.out::println);`
+```java
+Timer t = new Timer(1000, event -> System.out.println(event));
+```
 
+用:: 操作符分隔方法名与对象或类名有三种方式：
 
 
 ```java
 object::instanceMethod
+```
+
+```java
 Class::staticMethod
+Math::pow 等价于 (x，y) -> Math.pow(x, y)
+```
+
+```java
 Class::instnaceMethod
+String::compareToIgnoreCase 等同于 (x, y) -> x.compareToIgnoreCase(y)
 ```
 
 #### 构造器引用
@@ -674,7 +768,7 @@ Class::instnaceMethod
 
 
 
-#### 处理lambda表达式
+#### 处理lambda表达式??
 
 
 
@@ -690,13 +784,45 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 
 
-### 6.4 内部类
+### 6.4 内部类(inner class)??
+
+使用内部类的原因：
+
+- 内部类方法可以访问该类定义所在的作用域中的数据， 包括私有的数据。 
+- 内部类可以对同一个包中的其他类隐藏起来。 
+- 当想要定义一个回调函数且不想编写大量代码时，使用匿名(anonymous) 内部类比较便捷。
 
 
 
+内部类既可以访问自身的数据域， 也 可以访问创建它的外围类对象的数据域。
+
+#### 内部类的特殊语法规则
 
 
-### 6.5 代理??
+
+#### 内部类是否有用、必要和安全
+
+#### 局部内部类
+
+在某个代码块中。
+
+#### 由外部方法访问变量
+
+#### 匿名内部类
+
+
+
+#### 静态内部类
+
+
+
+### 6.5 代理
+
+#### 何时使用代理
+
+#### 创建代理对象
+
+#### 代理类的特性
 
 
 
