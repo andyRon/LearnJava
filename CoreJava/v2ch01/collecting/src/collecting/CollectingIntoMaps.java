@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * 1.9 收集到映射表中
  * @author Andy Ron
  */
 public class CollectingIntoMaps {

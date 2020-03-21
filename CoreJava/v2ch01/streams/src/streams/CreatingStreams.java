@@ -20,10 +20,13 @@ public class CreatingStreams {
         Path path = Paths.get("../../gutenberg/alice30.txt");
         String contents = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
 
+        // 静态方法`Stream.of()`
         Stream<String> words = Stream.of(contents.split("\\PL+"));
         show("words", words);
         Stream<String> song = Stream.of("gently", "down", "the", "stream");
         show("song", song);
+
+        // 创建不包含任何元素的流：
         Stream<String> silence = Stream.empty();
         show("silence", silence);
 
@@ -42,6 +45,10 @@ public class CreatingStreams {
         try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)){
             show("lines", lines);
         }
+
+        Object[] powers = Stream.iterate(1.0, p -> p * 2)
+                .peek(e -> System.out.println("Fetcting " + e))
+                .limit(10).toArray();
     }
 
     public static <T> void show(String title, Stream<T> stream) {
@@ -49,11 +56,14 @@ public class CreatingStreams {
         List<T> firstElements = stream.limit(SIZE + 1).collect(Collectors.toList());
         System.out.println(title + ": ");
         for (int i = 0; i < firstElements.size(); i++) {
-            if (i > 0) System.out.println(", ");
-            if (i < SIZE)
+            if (i > 0) {
+                System.out.println(", ");
+            }
+            if (i < SIZE) {
                 System.out.println(firstElements.get(i));
-            else
+            } else {
                 System.out.println("...");
+            }
         }
         System.out.println();
     }

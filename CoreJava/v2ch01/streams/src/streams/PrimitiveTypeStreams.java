@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
+ * 1.13 基本类型流
  * @author Andy Ron
  */
 public class PrimitiveTypeStreams {
@@ -20,9 +21,14 @@ public class PrimitiveTypeStreams {
         int[] firstElements = stream.limit(SIZE + 1).toArray();
         System.out.println(title + ": ");
         for (int i = 0; i < firstElements.length; i++) {
-            if (i > 0) System.out.print(", ");
-            if (i < SIZE) System.out.print(firstElements[i]);
-            else System.out.print("...");
+            if (i > 0) {
+                System.out.print(", ");
+            }
+            if (i < SIZE) {
+                System.out.print(firstElements[i]);
+            } else {
+                System.out.print("...");
+            }
         }
         System.out.println();
     }
@@ -41,6 +47,7 @@ public class PrimitiveTypeStreams {
         Stream<String> words = Stream.of(contents.split("\\PL+"));
         IntStream is4 = words.mapToInt(String::length);
         show("is4", is4);
+
         String sentence = "\uD835\uDD46 is the set of octonions.";
         System.out.println(sentence);
         IntStream codes = sentence.codePoints();

@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.*;
 /**
+ * 1.11 下游收集器
  * @author Andy Ron
  */
 public class DownStreamCollectors {

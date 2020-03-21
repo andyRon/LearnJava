@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * 1.8 收集结果
  * @author Andy Ron
  */
 public class CollectingResults {
@@ -31,8 +32,9 @@ public class CollectingResults {
 
     public static void main(String[] args) throws IOException {
         Iterator<Integer> iter = Stream.iterate(0, n -> n + 1).limit(10).iterator();
-        while (iter.hasNext())
+        while (iter.hasNext()) {
             System.out.println(iter.next());
+        }
 
         Object[] numbers = Stream.iterate(0, n -> n + 1).limit(10).toArray();
         System.out.println("Object array:" + numbers);
