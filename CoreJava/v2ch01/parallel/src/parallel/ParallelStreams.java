@@ -13,6 +13,7 @@ import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 
 /**
+ * 1.14 并行流
  * @author Andy Ron
  */
 public class ParallelStreams {

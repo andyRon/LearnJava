@@ -16,12 +16,16 @@ public class CountLongWords {
     public static void main(String[] args) throws IOException {
 
         // 当前目录是项目的根目录，不是.java文件所在目录
-        String contents = new String(Files.readAllBytes(Paths.get("../../gutenberg/alice30.txt")), StandardCharsets.UTF_8);
+        String contents = new String(Files.readAllBytes(Paths.get("../../gutenberg/alice30.txt")),
+                StandardCharsets.UTF_8);
+        // \\PL+ 表示非字母字符
         List<String> words = Arrays.asList(contents.split("\\PL+"));
 
         long count = 0;
         for (String w : words) {
-            if (w.length() > 12) count++;
+            if (w.length() > 12) {
+                count++;
+            }
         }
         System.out.println(count);
 
