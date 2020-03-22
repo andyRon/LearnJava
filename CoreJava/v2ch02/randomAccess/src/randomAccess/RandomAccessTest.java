@@ -5,6 +5,7 @@ import java.util.*;
 import java.time.*;
 
 /**
+ * 2.3.2 随机访问文件
  * @author Andy Ron
  */
 public class RandomAccessTest {

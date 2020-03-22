@@ -917,15 +917,86 @@ try (Resource res = ...) {
 
 
 
-#### 接口与实现分离
+#### 将集合的接口与实现分离
+
+以队列为例子看是如何分离的。
+
+队列接口：
+
+```java
+public interface Queue<E> { // a simplified form of the interface in the standard library
+void add(E element); E remove();
+int size();
+}  
+```
+
+队列通常有两种实现方式：循环数组；链表。
+
+```java
+public class Ci cularAr ayQueue<E> implements Queue<E> { // not an actual library class
+  private int head;
+  private int tail;
+  CircularArrayQueue(int capacity) { . . . } 
+  public void add(E element) { . . . }
+  public E remove0{ . . . }
+  public int size() { . . . }
+  private EQ elements;
+}
+```
+
+```java
+public class LinkedListQueue<E> iipleients Queue<E> { // not an actual library class
+  private Link head; 
+  private Link tail;
+  
+  LinkedListQueueO { . . . } 
+  public void add(Eelement) {...} 
+  public E remove() { ...}
+  public int size() { . . . }
+}  
+```
+
+使用：
+
+```java
+Queue<Customer> expresslane = new CircularArrayQueue<>(100); 
+expessLane.add(new Customer("Harry"));
+```
+
+一旦改变了想法， 可以轻松地使用另外一种不同的实现：
+
+```java
+Queue<Custoaer> expressLane = new LinkedListQueue<>(); expressLane.add(new Custonier("Harry"));
+```
 
 
 
-#### Collection
+#### Collection接口
+
+基本接口 `Collection`
+
+```java
+public interface Collection<E> {
+	boolean add(E element); 
+  Iterator<E> iterator();
+  ...
+}
+```
 
 
 
-#### Iterator
+#### 迭代器 Iterator
+
+```java
+public interface Iterator<E> {
+  E next();
+  boolean hasNext();
+  void remove();
+  default void forEachRemaining(Consumer<? super E> action);
+}
+```
+
+
 
 `Iterator`
 
@@ -937,7 +1008,23 @@ try (Resource res = ...) {
 
 #### 泛型使用方法
 
+由于 Collection 与 Iterator 都是泛型接口， 可以编写操作任何集合类型的实用方法。
 
+```java
+int sizeO
+boolean isEmptyO
+boolean contains(Object obj)
+boolean containsAl1(Col1ection<?> c)
+boolean equals(Object other)
+boolean addAll (Collection<? extends E> from) 
+boolean remove(Object obj)
+boolean removeAl1(Col1ection<?> c)
+void clear()
+boolean retainAl1(Col1ection<?> c)
+Object口 toArray()
+<T> T[] toArray(T[] arrayToFill)
+...
+```
 
 `AbstractCollection`
 
@@ -945,7 +1032,11 @@ try (Resource res = ...) {
 
 #### 集合框架中的接口
 
-![集合框架中的接口](/Users/andyron/myfield/github/LearnJava/images/java-021.jpg)
+![集合框架中的接口](../images/java-021.jpg)
+
+两个基本接口 `Collection`  `Map`
+
+`List` 是有序集合。
 
 `SortedSet`  `SortedMap`
 
@@ -955,19 +1046,59 @@ try (Resource res = ...) {
 
 ![](../images/java-022.jpg)
 
+集合框架中的类：
+
 ![集合框架中的类](../images/java-023.jpg)
 
 
 
-#### 链表
+#### 链表 Linkedlist
 
 `Linkedlist`
 
+在 Java 程序设计语言中， 所有链表实际上都是**双向链接**的。
+
+```java
+// 链表中删除操作
+List<String> staff = new LinkedList<>(); // LinkedList implements List staff.add("Amy") ;
+staff.add("Amy");
+staff.add("BobH");
+staff.add("Carl");
+Iterator iter = staff.iterator();
+String first = iter.next(); // visit first element
+String second = iter.next(); // visit second element
+iter.remove();  // remove last visited element "
+```
+
+`LinkedList.add`方法将对象添加到链表的尾部。
+
+但是， 常常需要将元素添加到链表的中间。由于迭代器是描述**集合中位置**的， 所以这种依赖于位置的add方法将由迭代器负责（add方法定义在子接口ListIterator中而不是Iterator中）：
+
+```java
+interface ListIterator<E> extends Iterator<E> {
+	void add(E element);
+  ...
+} 
+```
+
+例子：
+
+```java
+List<String> staff = new LinkedList<>(); 
+staff.add("Amy");
+staff.add("Bob");
+staff.add("Carl") ;
+ListIterator<String> iter = staff.listlterator(); iter.next();// skip past first element 
+iter.add("Juliet") ;
+```
+
+![将一个元素添加到链表中](../images/java-033.jpg)
 
 
-#### 数组列表
 
+#### 数组列表 ArrayList
 
+动态数组
 
 #### 散列集  HashSet
 

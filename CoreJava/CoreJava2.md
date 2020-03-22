@@ -329,17 +329,85 @@ List<Locale> englishLocales = englishAndOtherLocales.get(true);
 
 ## 2 输入与输出
 
+
+
+### 2.1 输入/输出流
+
+与上一章中的流没有任何关系。
+
+**输入流**：可以读入一个字节序列的对象
+
+**输出流**：可以写入一个字节序列的对象
+
+#### 读写字节
+
+```java
+// java.io.InputStream
+
+abstract int read()
+  
+int read(byte[] b)
+
+int read(byte[] b, int off, int len)
+  
+long skip(long n)
+  
+int available()
+  
+void close()
+  
+void mark(int readlimit)
+  
+void reset()
+  
+boolean markSupported()
+```
+
+
+
+```java
+// java.io.OutputStream
+
+abstract void wirte(int n)
+  
+void write(byte[] b)
+  
+void write(byte[] b, int off, int len)
+  
+void close()
+  
+void flush()
+```
+
+
+
+#### 完整的流家族
+
+输入流与输出流的层次结构：
+
 ![输入流与输出流的层次结构](../images/java-029.jpg)
 
+`InputStream`和`OutputStream`用于读写单个字节或字节数组。
 
+`DataInputStream`和 `DataOutputStream`用于读写字符串和数字。
+
+对于Unicode文本，可用抽象类`Reader`和`Writer`的子类。
+
+Reader和Writer的层次结构：
 
 ![Reader和Writer的层次结构](../images/java-030.jpg)
 
 
 
-
+Closeable,Flushable,Readable,Appendable接口：
 
 ![Closeable,Flushable,Readable,Appendable接口](../images/java-031.jpg)
+
+#### 组合输入/输入流过滤器
+
+`FileInputStream`
+
+`FileOutputStream`
 
 
 
@@ -347,29 +415,210 @@ List<Locale> englishLocales = englishAndOtherLocales.get(true);
 
 
 
+#### 如何写出文本输出
+
+`PrintWriter`
+
+#### 如何读入文本输入
+
+`Scanner`
+
+`BufferedReader`
+
+#### 以文本格式存储对象
+
+
+
+#### 字符编码方式
+
 
 
 ### 2.3 读写二进制数据
 
-#### 
+#### DataInput和DataOutput接口
+
+```java
+// java.io.DataInput
+boolean readBoolean()
+byte readByte()
+char readChar()
+double readDouble()
+float readFloat()
+int readInt()
+long readLong()
+short readShort()
+void readFully(byte[] b)
+void readFully(byte[] b, int off, int len)
+String readUTF()
+int skipBytes(int n)
+```
+
+```java
+void writeBoolean(boolean b)
+void writeByte(int b)
+void writeChar(int c)
+void writeDouble(double d)
+void writeFloat(float f)
+void writeInt(int i)
+void writeLong(long l)
+void writeShort(int s)
+void writeUTF(String s)
+```
+
+#### 随机访问文件
+
+`java.io.RandomAccessFile`
+
+
 
 #### ZIP文档
 
+`java.util.zip.ZipInputStream`
+
+`java.util.zip.ZipOutputStream`
 
 
-### 2.4 序列化
+
+### 2.4 对象输入/输出流与序列化
+
+#### 保存和加载序列化对象
+
+`ObjectOutputStream`
+
+`ObjectIputStream`
+
+
+
+#### 理解对象序列化的文件格式!!
+
+
+
+#### 修改默认的序列化机制
+
+
+
+#### 序列化单例和类型安全的枚举
+
+
+
+#### 版本管理
+
+
+
+#### 为克隆使用序列化
+
+
 
 
 
 ### 2.5 操作文件
 
+#### Path
+
+
+
+#### 读写文件
+
+```java
+// java.nio.file.Files
+
+static byte[] readAllBytes(Path path) 
+static List<String> readAllLines(Path path, Charset cs) 
+
+static Path write(Path path, byte[] bytes, OpenOption... options)
+static Path write(Path path, Iterable<? extends CharSequence> lines, OpenOption... options)
+
+static InputStream newInputStream(Path path, OpenOption... options)
+static OutputStream newOutputStream(Path path, OpenOption... options)
+
+static BufferedReader newBufferedReader(Path path, Charset cs)
+static BufferedWriter newBufferedWriter(Path path, Charset cs, OpenOption... options)
+```
+
+
+
+#### 创建文件和目录
+
+```java
+Files.createDirectory(path);
+Files.createDirectories(path);
+Files.createFile(path);
+```
+
+
+
+#### 复制、移动和删除文件
+
+
+
+#### 获取文件信息
+
+
+
+#### 访问目录中的项
+
+
+
+```java
+Files.list()
+Files.walk()
+```
+
+
+
+#### 使用目录流
+
+
+
+#### ZIP文件系统
+
+```java
+java.nio.file.FileSystems
+  
+java.nio.file.FileSystem
+```
+
+
+
 
 
 ### 2.6 内存映射文件
 
+#### 内存映射文件的性能
+
+```java
+java.nio.channels.FileChannel
+  
+java.nio.Buffer
+  
+java.nio.ByteBuffer
+  
+java.ni.CharBuffer
+```
+
+
+
+#### 缓存区数据结构
+
+
+
+#### 文件加锁机制
+
+```java
+java.nio.channels.FileLock
+```
+
 
 
 ### 2.7 正则表达式
+
+
+
+```java
+java.util.regex.Pattern
+
+java.util.regex.Matcher
+```
 
 
 
@@ -387,23 +636,253 @@ List<Locale> englishLocales = englishAndOtherLocales.get(true);
 
 ### 4.1 连接到服务器
 
-`telnet time-a.nist.gov 13`
+```
+telnet time-a.nist.gov 13
+```
+
+获得铯原子钟的计量时间：
+
+```
+58929 20-03-21 08:26:12 50 0 0 351.8 UTC(NIST) *
+```
+
+
+
+```
+telnet horstmann.com 80
+```
+
+
+
+##### 用Java连接到服务器
+
+```java
+				try (Socket s = new Socket("time-a.nist.gov", 13);
+             Scanner in = new Scanner(s.getInputStream(), "UTF-8")){
+
+            while (in.hasNextLine()) {
+                String line = in.nextLine();
+                System.out.println(line);
+            }
+        }
+```
+
+#### socket超时
+
+对于不同的应用，应该确定合理的超时值。
+
+```java
+Socket s = new Socket(...);
+s.setSoTimeout(10000); // 单位是毫秒  
+```
+
+超时会抛出`SocketTimeoutException`异常。
+
+另一种创建方式：
+
+```java
+Socket s = new Socket();
+s.connect(new InetSocketAddress(host, port), timeout);
+```
+
+
+
+#### IP地址
+
+可通过`InetAddress`类把域名转换为IP地址。
+
+获得单个主机IP地址：
+
+```java
+InetAddress address = InetAddress.getByName("www.baidu.com");
+```
+
+获取所有主机IP地址: 
+
+```java
+InetAddress[] addresses = InetAddress.getAllByName(host);
+for (InetAddress a : addresses) {
+  System.out.println(a);
+}
+```
+
+获得本机IP地址：
+
+```java
+InetAddress localHostAddress = InetAddress.getLocalHost();
+```
 
 
 
 ### 4.2 实现服务器
 
+#### 服务器套接字
+
+客服端程序的输出是服务器输入流，同样服务器的输出流就成为客服端的输入。
+
+每一个服务器程序（比如这边的socket或HTTP Web服务器等），都会不间断地执行下面这个循环：
+
+1. 通过输入数据流从客户端接收一个命令
+2. 解码这个客户端命令
+3. 收集客户端所请求的信息
+4. 通过输出数据流发送信息给客户端
 
 
-### 4.3 可中断套接字
+
+```java
+// server/EchoServer.java
+
+		public static void main(String[] args) throws IOException {
+
+        // ServerSocket用于创建服务器套接字
+        try (ServerSocket s = new ServerSocket(8189)){
+            // 创建监控端口8189的等待程序Socket对象
+            try (Socket incoming = s.accept()){
+                // 通过Socket对象获得输入流和输出流
+                InputStream inStream = incoming.getInputStream();
+                OutputStream outStream = incoming.getOutputStream();
+
+                try (Scanner in = new Scanner(inStream, "UTF-8")){
+                    // 服务器的输出流就成为客服端的输入
+                    PrintWriter out = new PrintWriter(
+                            new OutputStreamWriter(outStream, "UTF-8"), true);
+                    // 向客服端打印...（也就是客服端的输入）
+                    out.println("Hello! Enter BYE to exit.");
+                    boolean done = false;
+                    while (!done && in.hasNextLine()) {
+                        String line = in.nextLine();
+                        out.println("Echo: " + line);
+                        if (line.trim().equals("BYE")) {
+                            done = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+```
+
+启动上面的服务器程序，用Telnet访问：
+
+```shell
+$ telnet localhost 8189
+Trying ::1...
+Connected to localhost.
+Escape character is '^]'.
+Hello! Enter BYE to exit.
+hello!
+Echo: hello!
+bye
+Echo: bye
+BYE
+Echo: BYE
+Connection closed by foreign host.
+$ 
+```
+
+
+
+#### 为多个客户端服务
+
+```java
+public class ThreadedEchoServer {
+
+    public static void main(String[] args) {
+        try (ServerSocket s = new ServerSocket(8189)) {
+            int i = 1;
+            // 为什么没有进入死循环
+            while (true) {  
+                Socket incoming = s.accept();
+                System.out.println("Spawning " + i);
+                Runnable r = new ThreadEchoHandler(incoming);
+                Thread t = new Thread(r);
+                t.start();
+                i++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class ThreadEchoHandler implements Runnable {
+    private Socket incoming;
+
+    public ThreadEchoHandler(Socket incomingSocket) {
+        incoming = incomingSocket;
+    }
+
+    @Override
+    public void run() {
+        try (InputStream inStream = incoming.getInputStream();
+             OutputStream outStream = incoming.getOutputStream()) {
+            Scanner in = new Scanner(inStream, "UTF-8");
+            PrintWriter out = new PrintWriter(
+                    new OutputStreamWriter(outStream, "UTF-8"), true);
+
+            out.println("Hello! Enter BYE to exit.");
+
+            boolean done = false;
+            while (!done && in.hasNextLine()) {
+                String line = in.nextLine();
+                out.println("Echo: " + line);
+                if (line.trim().equals("BYE")) {
+                    done = true;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+
+
+每个客户端请求都生成单独的线程，这种方法不能实现高的吞吐量，需要使用`java.nio`的一些特性。
+
+#### 半关闭
+
+
+
+
+
+### 4.3 可中断套接字??
 
 
 
 ### 4.4 获取Web数
 
+#### URL 和 URI
+
+
+
+#### 使用URLConnection获取信息
+
+```java
+java.net.URL
+
+java.net.URLConnection
+```
+
+
+
+#### 提交表单数据
+
+
+
+```
+java.net.HttpURLConnection
+java.net.URLEncoder
+java.net.URLDecoder
+```
+
 
 
 ### 4.5 发送Email
+
+
 
 
 
