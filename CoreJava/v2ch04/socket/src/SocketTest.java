@@ -3,6 +3,7 @@ import java.net.Socket;
 import java.util.Scanner;
 
 /**
+ *  4.1 连接服务器
  * @author Andy Ron
  */
 public class SocketTest {

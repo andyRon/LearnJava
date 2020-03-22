@@ -9,6 +9,7 @@ import java.util.Scanner;
 import java.util.stream.Stream;
 
 /**
+ * 2.2.3 以文本格式存储对象
  * @author Andy Ron
  */
 public class TextFileTest {
@@ -26,8 +27,9 @@ public class TextFileTest {
 
         try (Scanner in = new Scanner(new FileInputStream("../employee.dat"), "UTF-8")){
             Employee[] newStaff = readData(in);
-            for (Employee e : newStaff)
+            for (Employee e : newStaff) {
                 System.out.println(e);
+            }
         }
 
     }
@@ -35,8 +37,9 @@ public class TextFileTest {
     private static void writeData(Employee[] employees, PrintWriter out) throws IOException {
         out.println(employees.length);
 
-        for (Employee e : employees)
+        for (Employee e : employees) {
             writeEmployee(out, e);
+        }
     }
 
     private static Employee[] readData(Scanner in) {
@@ -44,8 +47,9 @@ public class TextFileTest {
         in.nextLine();
 
         Employee[] employees = new Employee[n];
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             employees[i] = readEmployee(in);
+        }
 
         return employees;
     }
