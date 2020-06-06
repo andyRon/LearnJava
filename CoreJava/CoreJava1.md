@@ -55,6 +55,15 @@ Mac中JDK安装位置一般为：`/Library/Java/JavaVirtualMachines/jdk-13.0.2.j
 
 ### 2.2 使用命令行工具
 
+```shell
+javac Welcome.java
+java Welcome
+```
+
+编译器需要一个**文件名**(Welcomejava)，而运行程序时，只需要指定**类名**(Welcome)，不要带扩展名 .java 或 .class。
+
+### 2.3 使用集成开发环境
+
 
 
 ### 2.4 运行图形化应用程序
@@ -75,9 +84,42 @@ Mac中JDK安装位置一般为：`/Library/Java/JavaVirtualMachines/jdk-13.0.2.j
 
 Java虚拟机将从指定类中的main方法开始执行。
 
-http://bugs.java.com/bugdatabase/index.jsp   ，java bug数据库，通过bug号（例如 4252539），来查询。
+[java bug数据库](http://bugs.java.com/bugdatabase/index.jsp   )，通过bug号（例如 4252539），来查询。
+
+ Sun公司在 Java 开源很久以前就把 bug 报 告及其解决方案放到网站上让所有人监督检查， 这是一种非常了不起的举动。
+
+
+
+每个 Java 应用程序都必须有一个 main 方法：
+
+```java
+public class ClassName {
+	public static void main(String[] args) {	
+    program statements
+	} 
+}
+```
+
+>  Java 中的所有函數都属于某个类的方法。
+>
+>  Java 中的 main 方法必须有一个外壳类。
+>
+> Java 中的 main 方法必须是静态的。 void 表示这个方法没有返回值。
 
 ### 3.2 注释
+
+```java
+//
+
+/*
+*/
+
+/**
+ */
+
+```
+
+
 
 ### 3.3 数据类型
 
@@ -160,6 +202,109 @@ UTF 16 编码采用不同长度的编码表示所有 Unicode 码点。在基本�
 
 ### 3.5 运算符
 
+#### 数学函数与常量
+
+```java
+
+
+Math.sin 
+Math.cos 
+Math.tan
+Math.atan 
+Math.atan2
+  
+Math.exp 
+Math.log 
+Math.log1O
+  
+Math.sqrt(x)
+Math.pow(x, a)
+```
+
+不必在数学方法名和常量名前添加前缀”Math“：`import static java.lang.Math.*`。
+
+#### 数值类型之间的转换
+
+```java
+int n = 123456789;
+float f = n; // f is 1.23456792E8
+```
+
+![](../images/java-036.jpg)
+
+
+
+#### 强制类型转换(cast)
+
+```java
+double x * 9.997; 
+int nx = (int) x;
+
+double x z 9.997;
+int nx = (int) Math.round(x);
+```
+
+> 如果试图将一个数值从一种类型强制转换为另一种类型， 而又超出了目标类型的 表示范围， 结果就会截断成一个完全不同的值。例如，(byte) 300 的实际值为 44。(10010 1100 -> 0010 1100，也就是300-256=44)
+
+#### 结合赋值和运算符
+
+```java
+x += 4;
+x *= 4;
+x %= 4;
+```
+
+> 如果运算符得到一个值， 其类型与左侧操作数的类型不同， 就会发生强制类型转换。
+
+#### 自增与自减运算符
+
+```java
+n++;
+++n;
+```
+
+#### 关系和 boolean 运算符
+
+```java
+3 == 7
+3 != 7
+
+expression1 && expression2
+expression1 || expression2
+!expression
+
+condition ? expression1 : expression2
+```
+
+
+
+#### 位运算符
+
+```java
+&
+|
+^("xor")
+~
+
+>>  	<<
+>>>
+```
+
+
+
+#### 括号与运算符级别
+
+![](../images/java-037.jpg)
+
+#### 枚举类型
+
+```java
+enum Size {SMALL, MEDIUM, LARGE, EXTRA_LARCE};
+Size s = Size.MEDIUM;
+```
+
+
+
 
 
 ### 3.6 字符串
@@ -202,9 +347,9 @@ if (str != null && str.length() != 0)
 
 
 
-#### Code Points and Code Units
+#### Code Points(码点) and Code Units（代码单元）
 
-`char()`和`length()`都是与**Code Units**相关的。
+`length()`是计算**Code Units**个数。(有时两个或几个代码单元组成一个码点)
 
 要想得到第i个Code Points，使用：
 
@@ -213,19 +358,152 @@ int index = greeting.offsetByCodePoints(0, i);
 int cp = greeting.codePointAt(index);
 ```
 
+也就是**String.length()**方法返回的是**代码单元(code unit)**的个数，而**String.codePointCount(0, length)**返回的是**码点(code point)**个数，即字符的个数。例子：
+
+```java
+System.out.println("---------------我是分割线-----------------");
+String sentence = "\u0041 \u0042";  // 该字符串的第二个（从一开始计）字符是空格
+System.out.println(sentence);
+int lengthU = sentence.length();
+int lengthP = sentence.codePointCount(0, lengthU);
+System.out.println(lengthU);        // 3个code units
+System.out.println(lengthP);        // 3个code points
+```
+
+结果：
+
+```
+---------------我是分割线-----------------
+A B
+3
+3
+```
+
+
+
+```java
+System.out.println("---------------我是分割线-----------------");
+String sentence = "\u03C0 \uD835\uDD6B";    // 该字符串的第二个（从一开始计）字符是空格
+System.out.println(sentence);
+int lengthU = sentence.length();
+int lengthP = sentence.codePointCount(0, lengthU);
+System.out.println(lengthU);        // 4个code units
+System.out.println(lengthP);        // 3个code points
+```
+
+结果：
+
+```
+---------------我是分割线-----------------
+π 𝕫
+4
+3
+```
+
 
 
 #### String API
 
 `String`有50+有用的方法
 
-chartAt
+```java
+//  java.lang.string 
 
-codePointAt
+char charAt(int index)
+返回给定位置的代码单元。除非对底层的代码单元感兴趣， 否则不需要调用这个方法。
+int codePointAt( int Index)
+返回从给定位置开始的码点。
+int offsetByCodePoints(int startlndex, int cpCount) 
+返回从 startlndex 代码点开始， 位移 cpCount 后的码点索引。
+int compareTo(String other)
+按照字典顺序， 如果字符串位于 other 之前， 返回一个负数; 如果字符串位于 other 之后， 返回一个正数; 如果两个字符串相等， 返回 0。
+IntStream codePoints()
+将这个字符串的码点作为一个流返回。 调用 toArray 将它们放在一个数组中。
+new String(int[] codePoints, int offset, int count) 
+用数组中从 offset 开始的 count 个码点构造一个字符串。
+boolean equals(Object other)
+如果字符串与 other 相等， 返回 true。
+  
+boolean equalsIgnoreCase(String other) 
+如果字符串与 other 相等 (忽略大小写，) 返回 tme。
+boolean startsWith(String prefix) 
+boolean endsWith(String suffix)
+如果字符串以 suffix 开头或结尾， 则返回 true。 
+                                                                     int indexOf(String str)
+int indexOf(String str, int fromlndex)
+int indexOf(int cp)
+int indexOf(int cp, int fromlndex)
+返回与字符串 str 或代码点 cp 匹配的第一个子串的开始位置。这个位置从索引 0 或 fromlndex 开始计算。 如果在原始串中不存在 st，r 返回 - 1。
+
+                                                                      int 1astIndexOf(String str)
+int 1astIndexOf(String str, int fromlndex) 
+int lastindexOf(int cp)
+int 1astindexOf(int cp, int fromlndex)
+返回与字符串 str 或代码点 cp 匹配的最后一个子串的开始位置。 这个位置从原始串尾端或 fromlndex 开始计算。 
+
+int 1ength( )
+返回字符串的长度。
+int codePointCount(int startlndex, int endlndex) 
+返回 startlndex 和 endludex- l 之间的代码点数量。 没有配成对的代用字符将计入代码点。
+String replace(CharSequence oldString,CharSequence newString) 
+返回一个新字符串。 这个字符串用 newString 代替原始字符串中所有的 oldString。 可 以用 String 或 StringBuilder 对象作为 CharSequence 参数。
+String substring(int beginlndex)
+String substring(int beginlndex, int endlndex)
+返回一个新字符串。这个字符串包含原始字符串中从 beginlndex 到串尾或 endlndex-l
+的所有代码单元。
+                                                                      
+String toLowerCase( ) 
+String toUpperCase( )
+返回一个新字符串。 这个字符串将原始字符串中的大写字母改为小写， 或者将原始字符串中的所有小写字母改成了大写字母。
+String trim( )
+返回一个新字符串。 这个字符串将删除了原始字符串头部和尾部的空格。
+String join(CharSequence delimiter, CharSequence... elements) 
+返回一个新字符串， 用给定的定界符连接所有元素。
+```
+
+
 
 
 
 #### StringBuilder
+
+每次连接字符串， 都会构建一个新的`String`对象，既耗时又浪费空间 。使用`StringBuilde`可以避免。
+
+```java
+StringBuilder builder = new StringBuilder();
+builder.append(ch); // appends a single character
+bui1der.append(str); // appends a string
+String completedString = builder.toString();
+```
+
+
+
+```java
+// java.lang.StringBuilder
+
+StringBuilder()
+构造一个空的字符串构建器。
+int length()
+返回构建器或缓冲器中的代码单元数量。
+StringBui1der append(String str)
+追加一个字符串并返回 this。
+StringBui1der append(char c)
+追加一个代码单元并返回 this。
+StringBui1der appendCodePoint(int cp)
+追加一个代码点，并将其转换为一个或两个代码单元并返回 this。
+void setCharAt(int i,char c)
+将第i个代码单元设置为 c。
+StringBui1der insert(int offset,String str)
+在 offset 位置插入一个字符串并返回 this。
+StringBuilder insert(int offset,Char c)
+在offset位置插入一个代码单元并返回 thi。s
+StringBui1der delete(1nt startindex,int endlndex)
+删除偏移量从startIndex到 endlndex-1 的代码单元并返回this。 
+String toString()
+返回一个与构建器或缓冲器内容相同的字符串。
+```
+
+
 
 ### 3.7 IO
 
@@ -241,11 +519,46 @@ String username = cons.readLine("User name: ");
 char[] passwd = cons.readPassword("Password: ");
 ```
 
+```java
+// java.util.Scanner
+
+Scanner (InputStream in)
+用给定的输人流创建一个 Scanner 对象。 
+String nextLine( )
+读取输入的下一行内容。
+String next( )
+读取输入的下一个单词 (以空格作为分隔符)。 
+int nextlnt( )
+double nextDouble( )
+读取并转换下一个表示整数或浮点数的字符序列。
+boolean hasNext( )
+检测输人中是否还有其他单词。
+boolean hasNextInt( )
+boolean hasNextDouble( )
+检测是否还有表示整数或浮点数的下一个字符序列。
+
+// java.lang System
+static Console console( )
+
+// java.io.Console
+static char[] readPassword(String prompt, Object...args)
+static String readLine(String prompt, Object...args)
+显示字符串 prompt 并且读取用户输入， 直到输入行结束。 args 参数可以用来提供输人 格式。 有关这部分内容将在下一节中介绍。
+```
+
+
+
 
 
 #### 格式化输出
 
-`System.out.printf`
+```java
+System.out.printf("Hello, %s, Next year, you'll be %d", name, age);
+```
+
+![image-20200606105658847](/Users/andyron/myfield/github/LearnJava/images/java-038.jpg)
+
+!!
 
 #### 文件输入与输出
 
@@ -253,7 +566,36 @@ char[] passwd = cons.readPassword("Password: ");
 
 `PrintWriter`
 
+
+
+```java
+Scanner in = new Scanner(Paths.get("niyflle.txt"), "UTF-8");
+```
+
+
+
 ### 3.8 控制流程
+
+#### 块作用域
+
+#### 条件语句
+
+#### 循环 while
+
+#### 确定循环 for
+
+#### 多重选择 switch
+
+#### 中断
+
+```java
+
+break;
+
+continue;
+```
+
+
 
 
 
@@ -265,11 +607,23 @@ char[] passwd = cons.readPassword("Password: ");
 
 任意长度
 
+```java
+BigInteger a = BigInteger.valueOf(100);
+BigInteger c = a.add(b);
+BigInteger d = c.multiply(b.add(BigInteger.valueOf(2)));  // d = c * (b + 2)
+```
 
 
 
 
-### 3.10 数组??
+
+### 3.10 数组
+
+#### for each循环
+
+
+
+#### 数组初始化
 
 ```java
 int[] a;
@@ -283,23 +637,72 @@ new int[]{17, 19, 31};
 smallPrimes = new int[]{17, 19, 31};
 ```
 
+#### 数组拷贝
+
+将一个数组变量拷贝给另一个数组变量：
+
+```java
+intQ luckyNumbers = smallPrimes;
+1uckyNumbers[5] = 12;  // now smallPrimes[5] is also 12
+```
+
+![](../images/java-039.jpg)
+
+将 一个数组的所有值拷贝到一个新的数组中去：
+
+```java
+int[] copiedLuckyNumbers = Arrays.copyOf(luckyNumbers, luckyNumbers.length);
+```
+
+
+
+`copyOf`方法通常用来增加数组的大小:
+
+```java
+luckyNumbers = Arrays.copyOf(luckyNumbers, 2 * luckyNumbers.length);
+```
+
+如果数组元素是数值型， 那么多余的元素将被赋值为 0 ;如果数组元素是布尔型， 则将赋值 为 false。 相反， 如果长度小于原始数组的长度， 则只拷贝最前面的数据元素。
+
 
 
 #### 命令行参数
+
+```shell
+$ java Message -g cruel world 
+```
+
+args 数组内容为：
+
+```
+args[0]: "-g"
+args[1]: "cruel"
+args[2]: "world"
+```
 
 
 
 #### 数组排序
 
+```java
+Arrays.sort(arr);
+```
 
+!!
 
+#### 多维数组
 
+!!
+
+#### 不规则数组
+
+!!
 
 
 
 ## 4.对象与类
 
-
+🔖
 
 ### 4.1 面向对象程序设计概述
 
@@ -1173,6 +1576,186 @@ iter.add("Juliet") ;
 
 ## 14.并发
 
+**线程(thread)**
 
+**多线程程序 (multithreaded )** ：可以同时运行一个以上线程的程序
+
+每个进程拥有自己的一整套变量， 而线程则共享数据。 
 
 ### 14.1 什么是线程
+
+??  程序球不动
+
+
+
+### 14.2 中断线程
+
+
+
+```java
+// java.lang.Thread
+
+void interrupt()
+static boolean interrupted()
+boolean isInterrupted()
+static Thread currentThread()
+```
+
+
+
+### 14.3 线程状态
+
+- New (新创建) 
+- Runnable (可运行) 
+- Blocked (被阻塞)
+- Waiting( 等待) 
+- Timed waiting (计时等待)
+- Terminated (被终止)
+
+![线程状态](../images/java-034.jpg)
+
+#### 新创建线程
+
+```java
+new Thread(r);
+```
+
+#### 可运行线程
+
+调用start方法后，线程处于可运行状态。此时线程不必始终保持运行（为了让其他线程获得运行机会）。
+
+线程调度的细节依赖于操作系统提供的服务。 
+
+**抢占式调度系统**（桌面以及服务器操作系统）给每一个可运行线程一个时间片来执行任务。
+
+像手机这样的小型设备可能使用**协作式调度**。 
+
+#### 被阻塞线程和等待线程
+
+当线程处于被阻塞或等待状态时，它**不运行任何代码且消耗最少的资源**。 
+
+#### 被终止的线程
+
+
+
+### 14.4 线程属性
+
+#### 线程优先级
+
+默认情况下， 一个线程**继承它的父线程的优先级**。 
+
+当虚拟机依赖于宿主机平台的线程实现机制时， **Java 线程的优先级被映射到宿主机平台的优先级上**， 优先级个数也许更多， 也许更少。
+
+```java
+// java.lang.Thread
+void setPriority(int newPriority)
+static int MIN_PRIORITY  // 1
+static int N0RM_PRI0RITY  // 5
+static int MAX_PRIORITY  // 10
+static void yield()
+```
+
+#### 守护线程
+
+守护线程的唯一用途是**为其他线程提供服务** 。如计时线程。
+
+守护线程应该永远**不去访问固有资源，如文件、 数据库**， 因为它会在任何时候甚至在一个操作的中间发生中断。
+
+```java
+void setDaemon(boolean isDaemon)
+```
+
+
+
+#### 未捕获异常处理器
+
+
+
+### 14.5 同步
+
+#### 竞争条件的列子
+
+
+
+#### 竞争条件详解
+
+
+
+#### 锁对象
+
+
+
+#### 条件对象
+
+
+
+#### synchronized关键字
+
+
+
+#### 同步阻塞
+
+
+
+#### 监视器概念
+
+
+
+#### Volatile域
+
+
+
+#### final变量
+
+
+
+#### 原子性
+
+
+
+#### 死锁
+
+
+
+#### 线程局部变量
+
+
+
+#### 锁测试与超时
+
+
+
+#### 读/写锁
+
+
+
+#### 为什么弃用stop和suspend方法
+
+
+
+
+
+
+
+### 14.6 阻塞队列
+
+
+
+### 14.7 线程安全的集合
+
+
+
+
+
+### 14.8 Callable与Future
+
+
+
+### 14.9 执行器
+
+
+
+### 14.10 同步器
+
+
+
