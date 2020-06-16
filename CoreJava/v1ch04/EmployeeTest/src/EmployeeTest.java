@@ -18,6 +18,7 @@ public class EmployeeTest {
 
         for (Employee e: staff) {
             System.out.println("name=" + e.getName() + ", salary=" + e.getSalary() + ", hireDay=" + e.getHireDay());
+            System.out.printf()
         }
 
     }
@@ -50,4 +51,5 @@ class Employee {
         double raise = salary * byPercent / 100;
         salary += raise;
     }
+
 }
