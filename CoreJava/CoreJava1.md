@@ -702,89 +702,293 @@ Arrays.sort(arr);
 
 ## 4.对象与类
 
-🔖
+
 
 ### 4.1 面向对象程序设计概述
 
 #### 类
 
+由类**构造**(construct) 对象的过程称为创建类的**实例**(instance)。
+
 **封装**（encapsulation，也称**数据隐藏**）
 
-**instance field**  是数据
+对象中的数据称为**实例域（instance field）**， 操纵数据的过程 称为**方法**（method）。
 
-**方法**（method）是操纵数据的过程
+通过扩展一个类来建立另外一个类的过程称为**继承 (inheritance)**。 
 
 #### 对象
 
-**对象的行为 (behavior )**     可以对对象施加哪些操作，或可以对对象施加哪些方法? 
+- **对象的行为 (behavior )**     可以对对象施加哪些操作，或可以对对象施加哪些方法? 
 
-**对象的状态 (state )**       当施加那些方法时， 对象如何响应?
+- **对象的状态 (state )**       当施加那些方法时， 对象如何响应?
 
-**对象标识（identity）**   如何辨别具有相同行为与状态的不同对象?
+- **对象标识（identity）**   如何辨别具有相同行为与状态的不同对象?
 
 对象状态的改变必须通过调用方法实现。
 
 #### 识别类
 
-识别类的简单规则是在**分析问题的过程中寻找名词，而方法对应着动词。
+识别类的简单规则是在**分析问题的过程中寻找<font color=#FF8C00>名词</font>，而方法对应着<font color=#FF8C00>动词</font>**。
 
 #### 类之间的关系
 
-依赖（“users-a）
+**依赖**（“users-a）
 
-聚合（”has-a“）
+**聚合**（”has-a“）
 
-继承（”is-a“）
+**继承**（”is-a“）
 
-
+应该尽可能地将相互依赖的类减至最少(在软件工程中，就是让类之间的耦合度最小)。
 
 ### 4.2 使用预定义类
 
-
-
 #### 对象与对象变量
+
+构造器的名字应该与类名相同。
 
 一个对象变量并没有实际包含一个对象，而仅仅引用一个对象。
 
 #### LocalDate
 
+类库设计者决定将**保存时间**与**给时间点命名**分开。所以标准 Java 类库分别包含了两个类: 一个是用来表示时间点的 **Date** 类(表示距离一个固定时间点UTC的毫秒数); 另一个是用来表示大家熟悉的日历表示法的 **LocalDate** 类。
 
 
-#### mutator method and accessor method
+
+```java
+LocalDate.now(); 		// LocalDate不使用构造器，使用静态工厂方法
+LocalDate newYearsEve = LocalDate.of(1999, 12, 31);
+int year = newYearEve.getYear();
+int month = newYearEve.getMonthValue();
+int day = newYearsEve.getDayOfMonth();
+
+// 距离当前对象指定天数的一个日期
+LocalDate aThousandDaysLater = newYearsEve.piusDays(1000): year = aThousandDaysLater.getYearO;	// 2002
+month = aThousandDaysLater.getMonthValueO; 	// 09
+day = aThousandDaysLater.getDayOfMonth(); 	// 26
+```
+
+> Date类也有getDay、getMonth等方法，但已经不推荐使用了。
+>
+> 当类库设计者意识到某个方法不应该存在时， 就把它标记为不鼓励使用（被加上@Deprecated注解）。
+
+#### 更改器方法与访问器方法
+
+上面的plusDays 方法会生成一个新的 LocalDate 对象。另一个日历类**GregorianCalendar**就不一样了：
+
+```java
+CregorianCalendar someDay = new CregorianCalendar(1999, 11, 31); 
+someDay.add(Calendar.DAY_0F_M0NTH, 1000);
+
+year = someDay.get(Calendar.YEAR); // 2002 
+month = someDay.get(Calendar.MONTH) + 1; // 09 
+day = someDay.ge(t Ca1endar.DAY_0F_M0NTH); // 26
+```
+
+ GregorianCalendar.add 方法是一个**更改器方法 ( mutator method )** 。
+
+正因如此，将变量命名为 someDay 而不是 newYearsEve 调用这个更改 器方法之后， 它不再是新年前夜。
+
+相 反， 只访问对象而不修改对象的方法有时称为**访 问 器 方 法** 。例 如， LocalDate.getYear 和 GregorianCalendar.get 就是访问器方法。
+
+>  C++：带有const后缀的方法是访问器方法，默认是更改器方法 。 
+>
+>  Java： 访问器方法与更改器方法在语法上没有明显的区别。
+
+```java
+// 使用LocalDate来显示当前月的日历
+	public static void main(String[] args) {
+        LocalDate date = LocalDate.now();
+        int month = date.getMonthValue();
+        int today = date.getDayOfMonth();
+
+        // 把date设置成当前月的第一天
+        date = date.minusDays(today - 1);
+        DayOfWeek weekday = date.getDayOfWeek();
+        int value = weekday.getValue();
+
+        System.out.println("Mon Tue Wed Thu Fri Sat Sun");
+        for (int i = 1; i < value; i++) {
+            // 四个空格，表示如"Mon "
+            System.out.print("    ");
+        }
+
+        while (date.getMonthValue() == month) {
+            System.out.printf("%3d", date.getDayOfMonth());
+            if (date.getDayOfMonth() == today) {
+                System.out.print("*");
+            } else {
+                System.out.print(" ");
+            }
+            date = date.plusDays(1);
+            if (date.getDayOfWeek().getValue() == 1) {
+                System.out.println();
+            }
+        }
+        if (date.getDayOfWeek().getValue() != 1) {
+            System.out.println();
+        }
+    }
+```
 
 
 
 ### 4.3 用户自定义类
 
-在一个源文件中，只能有一个公有类，但可以有任意数目的非公有类。
+要想创建一个完整的程序， 应该将若干类组合在一起， 其中只有一个类有 **main 方法**。
 
-构造器总是伴随着new操作符的执行被调用。
+#### Employee 类
+
+```java
+	// EmployeeTest/EmployeeTest.java
+import java.time.LocalDate;
+
+/**
+ *
+ */
+public class EmployeeTest {
+  
+    public static void main(String[] args) {
+        Employee[] staff = new Employee[3];
+
+        staff[0] = new Employee("Jack Ma", 75000, 1995, 12,15);
+        staff[1] = new Employee("Pony Ma", 55000, 1993, 11,2);
+        staff[2] = new Employee("Robin Li", 25000, 1994, 4,12);
+
+        for (Employee e : staff) {
+            e.raiseSalary(5);
+        }
+
+        for (Employee e: staff) {
+            System.out.println("name=" + e.getName() + ", salary=" + e.getSalary() + ", hireDay=" + e.getHireDay());
+        }     
+    }
+}
+
+class Employee {
+    private String name;
+    private double salary;
+    private LocalDate hireDay;
+
+    public Employee(String n, double s, int year, int month, int day) {
+        name = n;
+        salary = s;
+        hireDay = LocalDate.of(year, month, day);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getSalary() {
+        return salary;
+    }
+
+    public LocalDate getHireDay() {
+        return hireDay;
+    }
+
+    public void raiseSalary(double byPercent) {
+        double raise = salary * byPercent / 100;
+        salary += raise;
+    }
+}  
+```
+
+文件名必须与 public 类的名字相匹配。
+
+在一个源文件中，只能有一个public类，但可以有任意数目的非public 类。
+
+编译器会把上面的源代码编译成两个.class文件：EmployeeTest. class 和 Employee.class。
+
+将包含main方法的类名（此处是EmployeeTest）提供给字节码解释器，就启动程序：
+
+```shell
+$ java EmployeeTest
+```
 
 
 
-**final实例字段**
+#### 多个源文件的使用
+
+如果把Employee类单独放在Employee.java文件中，那么就有两种编译方法：
+
+1. 通配符调用
+
+   ```shell
+   $ javac Employee*.java
+   ```
+
+2. 直接编译
+
+   ```shell
+   $ javac EmployeeTest.java
+   ```
+
+   Java编译器会自动地搜索对应java类文件（Employee.java）。
 
 
 
-### 4.4 静态字段和静态方法
+#### 构造器
 
-静态变量  
+- 构造器与类同名 
+- 每个类可以有一个以上的构造器 
+- 构造器可以有 0 个、1 个或多个参数 
+- 构造器没有返回值 
+- 构造器总是伴随着 new 操作一起调用
 
-静态常量
-
-静态方法
-
-工厂方法
-
-main方法
+#### 隐式参数与显式参数
 
 
 
-### 4.5 Method Parameters 
-
-Java程序设计语言总是采用按值调用。
+#### 封装的优点
 
 
+
+#### 基于类的访问权限
+
+
+
+#### 私有方法
+
+
+
+#### **final实例域**
+
+构建对象时必须初始化这样的域。也就是说， 必须确保在每 一个构造器执行之后， 这个域的值被设置， 并且在后面的操作中， 不能够再对它进行修改。
+
+
+
+### 4.4 静态域和静态方法
+
+#### 静态域
+
+```java
+private static int nextld = 1;
+```
+
+#### 静态常量
+
+```java
+public static final double PI = 3.14159265358979323846;
+```
+
+#### 静态方法
+
+不能向对象实施操作的方法。
+
+#### 工厂方法
+
+静态方法还有另外一种常见的用途。 类似 LocalDate 和 NumberFormat 的类使用静态工 厂方法 ( factory methocd） 来构造对象。 
+
+
+
+#### main方法
+
+
+
+### 4.5 方法参数
+
+Java程序设计语言总是采用**按值调用**。
 
 **方法得到的是对象引用的拷贝，对象引用以及其他的拷贝同时引用同一个对象。**
 
@@ -798,9 +1002,19 @@ Java程序设计语言总是采用按值调用。
 
 方法的签名（signature）
 
-#### Default Field Initialization
+#### 默认域初始化（Default Field Initialization）
+
+
 
 #### 无参数的构造器
+
+
+
+#### 显式域初始化
+
+
+
+#### 参数名
 
 
 
@@ -808,9 +1022,13 @@ Java程序设计语言总是采用按值调用。
 
 `this()`
 
+
+
 #### 初始化块
 
 首先运行初始化块， 然后才运行构造器的主体部分。
+
+
 
 #### 对象析构与finalize方法
 
@@ -820,35 +1038,70 @@ Java程序设计语言总是采用按值调用。
 
 ### 4.7 包
 
-
+使用包的主要原因是**确保类名的唯一性**。
 
 从编译器的角度来看，嵌套的包之间没有任何关系。
+
+#### 类的导入
 
 <font color=#FF8C00>**一个类可以使用所属包中的所有类，以及其他包中的公有类。**</font>
 
 
 
-**静态导入**
+#### **静态导入**
 
-`import static java.lang.System.*;`
+```java
+import static java.lang.System.*;
+```
 
-不必加类名前缀，就可以使用System类的静态方法和静态字段。
+不必加类名前缀，就可以使用System类的静态方法和静态域。
+
+```java
+out.println("Goodbye, World!"); 	// i.e., System.out
+exit(0); //i.e., System.exit 
+```
+
+
+
+#### 将类放入包中
 
 将包中的文件放到与完整的包名匹配的子目录中。
 
 
 
+#### 包作用域
+
+
+
+
+
 ### 4.8 类路径
 
-类文件也可以存储在 JAR(Java 归档 )文件中。
+类文件也可以存储在 **JAR(Java 归档 )**文件中。
 
-JAR 文件使用 ZIP 格式组织文件和子目录。可以使用所有ZIP实用程序查看内部的rt.jar以及其他的JAR文件。
+JAR 文件使用 **ZIP 格式组织文件和子目录**。可以使用所有ZIP实用程序查看内部的rt.jar以及其他的JAR文件。
 
-##### 设置类路径
+#### 设置类路径
 
 `java -classpath /home/user/dassdir:.:/home/user/archives/archive.jar HyProg`
 
-### 4.9 文档注释
+### 4.9 文档注释 🔖
+
+由于文档注释与源代码在同一个文件中， 在修改源代码的同时， 重新运 行 javadoc 就可以轻而易举地保持两者的一致性。
+
+#### 注释的插入
+
+
+
+#### 类注释
+
+
+
+#### 方法注释
+
+
+
+#### 域注释
 
 
 
@@ -864,7 +1117,21 @@ JAR 文件使用 ZIP 格式组织文件和子目录。可以使用所有ZIP实�
 
 
 
+#### 注释的抽取
+
+
+
 ### 4.10 类设计技巧
+
+1. 一定要保证数据私有
+2. 一定要对数据初始化
+3. 不要在类中使用过多的基本类型
+4. 不是所有的域都需要独立的域访问器和域更改器
+5. 将职责过多的类进行分解
+6. 类名和方法名要能够体现它们的职责
+7. 优先使用不可变的类
+
+
 
 
 
@@ -874,9 +1141,13 @@ JAR 文件使用 ZIP 格式组织文件和子目录。可以使用所有ZIP实�
 
 ### 5.1 超类和子类
 
+#### 定义子类
+
 子类比超类拥有的功能更加丰富。
 
 应该将通用的方法放在超类中，将具有特殊用途的方法放在子类中。
+
+#### 重写（override）方法
 
 
 
@@ -884,7 +1155,19 @@ super不是一个对象的引用，不能将其赋给另一个对象变量，它
 
 
 
-#### 理解方法调用??
+#### 子类构造器
+
+
+
+#### 继承层次
+
+
+
+#### 多态
+
+
+
+#### 理解方法调用 🔖
 
 
 
@@ -898,7 +1181,11 @@ super不是一个对象的引用，不能将其赋给另一个对象变量，它
 
 `instanceof`
 
+
+
 #### 抽象类
+
+
 
 #### 受保护访问
 
@@ -914,7 +1201,7 @@ super不是一个对象的引用，不能将其赋给另一个对象变量，它
 
 
 
-#### 5.2.1 equals 方法？？
+#### equals 方法  🔖
 
 ```java
 Objects.equals
@@ -922,19 +1209,47 @@ Objects.equals
 
 
 
+#### 相等测试与继承
+
+
+
+#### hashCode方法
+
+
+
 #### toString()
 
 
 
-### 5.3  ArrayList
+### 5.3  泛型数组列表ArrayList
 
 
 
-### 5.4 Object Wrappers and Autoboxing
+#### 访问数组列表元素
+
+
+
+#### 类型化与原始数组列表的兼容性
+
+
+
+### 5.4 对象包装器与自动装箱
+
+
 
 
 
 ### 5.5 参数数量可变的方法
+
+```java
+public class PrintStream {}
+		public PrintStream printf(String format, Object ... args) {
+        return format(format, args);
+    }
+}
+```
+
+这里的省略号 . . . 是 Java 代码的一部分， 它表明这个方法可以接收任意数量的对象 (除 fmt 参数之外 )。
 
 
 
@@ -995,6 +1310,8 @@ Object m = Class.forName(s).newlnstance();
 
 #### 捕获异常
 
+
+
 #### 利用反射分析类
 
 `java.lang.reflect.*`
@@ -1024,6 +1341,18 @@ Object m = Class.forName(s).newlnstance();
 
 
 #### 调用任意方法
+
+
+
+### 5.8 继承的设计技巧
+
+1. 将公共操作和域放在超类
+2. 不要使用受保护的域
+3. 使用继承实现 isa 关系
+4. 除非所有继承的方法都有意义， 否则不要使用继承
+5. 在覆盖方法时， 不要改变预期的行为
+6. 使用多态， 而非类型信息
+7. 不要过多地使用反射
 
 
 
