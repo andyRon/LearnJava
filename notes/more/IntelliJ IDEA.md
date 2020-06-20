@@ -77,7 +77,8 @@ IntelliJ IDEA 没有类似 Eclipse 工作空间（workspace）的概念的。
 -javaagent:/Users/andyron/Library/Preferences/IntelliJIdea2019.3/jetbrains-agent.jar
 ```
 
-3. 重启 IDEA
+3.   `http://fls.jetbrains-agent.com`
+4. 重启 IDEA
 
 
 
@@ -90,3 +91,39 @@ IntelliJ IDEA 没有类似 Eclipse 工作空间（workspace）的概念的。
 #### 创建package
 
 在`src`上，右击创建
+
+
+
+---------------------
+
+#### target目录和out目录的区别
+
+`out`存放的是该项目下所有`Module(模块)`的编译结果。 
+`target`存放的是单个`Module`的编译结果。 
+
+
+
+
+
+### 快捷键
+
+⌘ Command
+
+⇧ Shift
+
+⌥ Option
+
+⌃ Control
+
+| 快捷键               | 说明                                     |
+| -------------------- | ---------------------------------------- |
+| ⌘ + N                | 再类新建                                 |
+| ⌘ + ⇧ + N            | 新建文件或资源                           |
+| ⌘ + ;                | 打开project structure                    |
+| ⌘ + O                | 搜索类                                   |
+| Command + Shift + O  | 查找所有类型文件                         |
+| Command + Option + O | 前往指定的变量 / 方法                    |
+| Command + E          | 显示最近记录                             |
+| Command + L          | 在当前文件跳转到某一行                   |
+| ⌘ + ⌥ + left/right   | 退回 / 前进到上一个操作的地方            |
+| ⌘ + B / ⌘ + Click    | 快速打开光标处的类或方法（跳转到定义处） |
