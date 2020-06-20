@@ -93,6 +93,8 @@ Eg：`create user 'andyron'@'localhost' identified by '123456';`
 
 `create  database  数据库名;`  		新建数据库   
 
+`source .../**.sql`    直接运行sql文件
+
 ### 4.检索数据
 
 `select distinct vend_id,prod_price from products;`   `DISTINCT` 关键字用来显示对应列不同数据。
@@ -527,7 +529,7 @@ where cust_id in(select cust_id from orders
 +----------------+--------------+
 ```
 
-子查询总是从内向外处理。
+**子查询总是从内向外处理。**
 
 在where子句中使用子查询，应该保证子句中select语句具有与where句中相同数目的列。（如上述代码中第二行中的cust_id和第三行的order_num）
 
@@ -535,9 +537,8 @@ where cust_id in(select cust_id from orders
 
 ```mysql
 Select cust_name,
-	   cust_state,
-        (Select count(*) From orders
-         Where orders.cust_id = customers.cust_id)  As order_num
+	     cust_state,
+       (Select count(*) From orders Where orders.cust_id = customers.cust_id) As order_num
 From customers 
 Order by cust_name;
 
@@ -558,23 +559,27 @@ Order by cust_name;
 
 ### 15.联结表
 
-SQL最强大的功能之一就是能在数据检索查询的执行中**联结(join)**. 
+SQL最强大的功能之一就是能在数据检索查询的执行中**联结(join)**表。
 
-相同数据**出现多次**决不是一件好事（关系数据库设计的基础）。关系表的设计就是要保证把信息分解成多个表，一类数据一个表。各表通过某些**常用的值（即关系）**互相关联。
+#### 关系表
 
-**外键**(foreign key) 某个表中的一列，它包含另一个表的主键值，定义了两个表之间的关系。 联结仅存在与查询的执行当中。
+ 相同数据**出现多次**决不是一件好事（关系数据库设计的基础）。关系表的设计就是要保证把信息分解成多个表，一类数据一个表。各表通过某些**常用的值（即关系）**互相关联。
 
-**可伸缩性**(scale) 能够适应不断增加的工作量而不失败。关系数据库的可伸缩性远比非关系数据库要好。
+**外键**(foreign key)为某个表中的一列，它包含另一个表的主键值，定义了两个表之间的关系。 
+
+联结仅存在与查询的执行当中。
+
+**可伸缩性**(scale)： 能够适应不断增加的工作量而不失败。关系数据库的可伸缩性远比非关系数据库要好。
 
 **联结**仅存在与查询的执行当中，联结时利用SQL的select能执行的最重要的操作。
 
 #### 创建联结
 
 ```mysql
-select vend_name, prod_name, prod_price
-from vendors, products
-where vendors.vend_id=products.vend_id
-order by vend_name, prod_name;
+Select vend_name, prod_name, prod_price
+From vendors, products
+Where vendors.vend_id=products.vend_id
+Order by vend_name, prod_name;
 
 +-------------+----------------+------------+
 | vend_name   | prod_name      | prod_price |
@@ -596,9 +601,13 @@ order by vend_name, prod_name;
 +-------------+----------------+------------+
 ```
 
-当没有where子句时就会产生笛卡尔积。
+##### WHERE子句的重要性
 
-**笛卡尔积**(cartesian product)  没有联结条件的表关系返回的结果为笛卡尔积。检索出的行的数目将是第一个表的行数乘以第二表的行数。
+在联结两个表时，实际上是将第一个表中的每一行与第二个表中的每一行配对。**当没有where子句时就会产生笛卡尔积。**
+
+**笛卡尔积**(cartesian product)：没有联结条件的表关系返回的结果为笛卡尔积。检索出的行的数目将是第一个表的行数乘以第二表的行数。
+
+##### 内部联结/**等值联结**
 
 上面的联结也叫**等值联结**(equijoin)或者**内部联结**，可用另外形式表示：(传递给ON的实际条件与where相同)
 
@@ -608,7 +617,7 @@ from vendors inner join products
 on vendors.vend_id = products.vend_ id；
 ```
 
-**联结多个表**
+##### **联结多个表**
 
 ```mysql
 select cust_name, cust_contact
@@ -652,7 +661,7 @@ where order_num in(select order_num from orderitems
 
 表别名能用于where子句，select列表，order by子句以及语句的其他部分。 `as`
 
-与列别名不一样，表别名只在查询执行中使用，不返回到客户机。
+与列别名不一样，表别名<u>只在查询执行中使用</u>，不返回到客户机。
 
 ```mysql
 Select cust_name, cust_contact
@@ -664,7 +673,7 @@ And prod_id = 'TNT2';
 
 #### 自联结
 
-自联结和同一张表中的子查询对比
+自联结和同一张表中的子查询对比。（一般自联结性能好于子查询）
 
 假如你发现某物品（其ID为DTNTR）存在问题，因此想知道生产该物品的供应商生产的其他物品是否也存在这些问题。
 
@@ -689,13 +698,13 @@ WHERE vend_id = (SELECT vend_id
 +---------+----------------+
 ```
 
-
+自联结：
 
 ```mysql
 SELECT p1.prod_id, p1.prod_name
 FROM products AS p1, products AS p2
 WHERE p1.vend_id = p2.vend_id
- AND p2.prod_id = 'DTNTR';
+AND p2.prod_id = 'DTNTR';
 +---------+----------------+
 | prod_id | prod_name      |
 +---------+----------------+
@@ -711,9 +720,9 @@ WHERE p1.vend_id = p2.vend_id
 
 #### 自然联结
 
-被联结的列：表联结时至少有一个列出现在不止一个表中。
+被联结的列：表联结时至少有一个列出现在不止一个表中。标准的联结（内部联结）返回所有数据，甚至相同的列多次出现。**自然联结排除多次出现，使每个列只返回一次。** 并且这个工作由开发者自己完成。
 
-一般内部联结都是自然联结
+一般内部联结都是自然联结。
 
 ```mysql
 select c.*, o.order_num, o.order_date,
@@ -726,11 +735,11 @@ and prod_id = 'FB';
 
 #### 外部联结
 
-外部联结，联结包含了那些在相关表中没有关联行的行。
+外部联结：联结包含了那些在相关表中没有关联行的行。
 
 对比内部联结和外部联结。
 
-内部联结：
+内部联结（检索所有客户及其订单）：
 
 ```mysql
 select customers.cust_id, orders.order_num 
@@ -748,7 +757,7 @@ on customers.cust_id=orders.cust_id;
 +---------+-----------+
 ```
 
-外部联结：
+外部联结（检索所有客户，包括那些没有订单的客户）：
 
 ```mysql
 select customers.cust_id, orders.order_num 
@@ -767,7 +776,7 @@ on customers.cust_id = orders.cust_id;
 +---------+-----------+
 ```
 
-外部联结包括了没有订单的客户Mouse House。 - `LEFT OUTER JOIN` 和 `RIGHT OUTER JOIN`
+ `LEFT OUTER JOIN` 和 `RIGHT OUTER JOIN`
 
 #### 使用带聚集函数的联结
 
@@ -819,17 +828,15 @@ order by vend_id, prod_price;
 +---------+---------+------------+
 ```
 
-组合查询和单个表中的多个where条件，工作是相同，但性能可能有差异。
+组合相同表查询和单个表中的多个where条件，工作是相同，但性能可能有差异。
 
-UNION中的每个查询必须包含相同的列、表达式或聚集函数（不过各个列不需要以相同的次序列出）
+UNION中的每个查询**必须包含相同的列、表达式或聚集函数**（不过各个列不需要以相同的次序列出）
 
 UNION自动去除重复的行，UNOIN ALL则不。
 
 组合查询中只能有一个order by子句对组合结果排序，不能对单个查询结果排序。
 
-组合查询可以组合不同的表
-
-
+组合查询可以组合不同的表。
 
 
 
@@ -838,13 +845,16 @@ UNION自动去除重复的行，UNOIN ALL则不。
 ### 18.全文搜索
 
 MYISAM支持全文搜索，InnoDB不支持。
-全文本搜索时，MySQL不需要分别查看每个行，不需要分别分析和处理每个词。
+
+全文搜索相对于通配符和正则表达式匹配的几个优势：
+
+- 性能
+- 明确控制
+- 智能化结果
 
 #### 使用全文本搜索
 
-启用全文本搜索支持 `FULLTEXT`
-
-执行全文本搜索 select 与`Match()`  , `Against()`
+**为了进行全文本搜索，必须索引被搜索的列，而且要随着数据的改变不断地重新索引。** `FULLTEXT KEY note_text (note_text)`。
 
 ```mysql
 Create Table: CREATE TABLE `productnotes` (
@@ -857,99 +867,159 @@ Create Table: CREATE TABLE `productnotes` (
 ) ENGINE=MyISAM AUTO_INCREMENT=115 DEFAULT CHARSET=latin1
 ```
 
-在定义全文本搜索后，mysql自动维护该索引，在增加，更新或删除行时，索引随之自动更新。
+> 不要在导入数据是使用FULLTEXT ，最好首先导入所有数据，然后再修改表，定义FULLTEXT。
 
-不要在导入数据是使用FULLTEXT 
+在索引之后，使用两个函数**Match()和Against()**执行全文本搜索，其中Match()指定被搜索的列，Against()指定要使用的搜索表达式。
 
 ```mysql
 select note_text 
 from productnotes 
 where Match(note_text) Against('rabbit');
-
-+-----------------------------------------------------------------------------------------------------------------------+
-| note_text                                                                                                             |
-+-----------------------------------------------------------------------------------------------------------------------+
-| Customer complaint: rabbit has been able to detect trap, food apparently less effective now.                          |
-| Quantity varies, sold by the sack load.
-All guaranteed to be bright and orange, and suitable for use as rabbit bait. |
-+-----------------------------------------------------------------------------------------------------------------------+
-
 ```
 
-Match()指定搜索的列，Ggainst()指定要使用的搜索表达式。
+结果：![](/Users/andyron/Library/Application Support/typora-user-images/image-20200320204028892.png)
 
-传递给Matchy()的值必须与FULLTEXT()定义中相同。
+使用Like子句：
 
-全文本搜索的等级由MySQL根据行中词的数目，唯一词的数目，整个索引中的总数以及包含该词的行的数目计算出来。
-
-使用查询扩展(放宽了所返回的全文本搜索结果的范围)
-
-```mysql
-select note_text 
-from productnotes 
-where Match(note_text) Against('anvils' WITH QUERY EXPANSION);
+```sql
+select note_text
+from productnotes
+WHERE note_text LIKE '%rabbit%';
 ```
 
-布尔文本搜索： select note_text from productnotes where Match(note_text) Against('heavy -rope*' IN BOOLEAN MODE); [不包含以rope开头的单词] select note_text from productnotes where Match(note_text) Against('+safe +(<combination)' IN BOOLEAN MODE);
+结果：![](/Users/andyron/Library/Application Support/typora-user-images/image-20200320204353690.png)
+
+结果的排序不同，全文搜索的结果排序是确定，二Like子句就不一定了。
+
+把`Match(note_text) Against('rabbit')`放在select中就知道全文搜索怎么排序的了
+
+```sql
+select note_text,
+			Match(note_text) Against('rabbit') as `rank`
+from productnotes;
+```
+
+结果：![](/Users/andyron/Library/Application Support/typora-user-images/image-20200320203823456.png)
+
+`rank`列是根据行中**词的数目、唯一词的数目、整个索引中词的总数以及包含该词的行的数目**计算出来。0就是不包含，越大表示匹配越高。
+
+##### 使用查询扩展
+
+
+
+##### 布尔文本搜索
+
+
 
 
 
 ### 19 插入数据
 
-INSERT 插入完整的行
+#### INSERT 插入完整的行
 
-*   编写依赖于特定列次序的SQL语句是很不安全的。
-*   mysql用单条INSERT语句处理多个插入比使用多条INSERT语句快。
+```sql
+INSERT INTO customers(cust_name, cust_address, cust_city, cust_state, cust_zip, cust_country, cust_contact, cust_email) 
+VALUES('Pep E. LaPew', '100 Main Street', 'Los Angeles', 'CA', '90046', 'USA', NULL, NULL);
+```
 
-插入检索出的数据（INSERT SELECT,两者的列名可以不一样）：
+`cust_id`作为自增字段可以给NULL或者省略。
+
+**省略列**，该列允许为NULL值或者已有默认值。
+
+**提高性能**，`INSERT LOW_PRIORITY INTO`，降低INSERT语句的优先级。
+
+#### 插入多个行
+
+```sql
+INSERT INTO customers(cust_name, cust_address, cust_city, cust_state, cust_zip, cust_country, cust_contact, cust_email) 
+VALUES('Pep E. LaPew', '100 Main Street', 'Los Angeles', 'CA', '90046', 'USA', NULL, NULL),
+('Bill Gates', '1 Main Street', 'Los Angeles', 'CA', '90046', 'USA', NULL, NULL);
+```
+
+
+
+#### 插入检索出的数据
+
+**INSERT SELECT**。不一个表的查询结果导入另一表中。
 
 ```mysql
-
-INSERT INTO customers (cust_id, cust_contact, cust_email, cust_name, cust_address, cust_city, cust_state, cust_zip, cust_country) SELECT cust_id, cust_contact, cust_email, cust_name, cust_address, cust_city, cust_state, cust_zip, cust_country
-
- FROM customers;
-
+INSERT INTO customers (cust_id, cust_contact, cust_email, cust_name, cust_address, cust_city, cust_state, cust_zip, cust_country) 
+SELECT cust_id, cust_contact, cust_email, cust_name, cust_address, cust_city, cust_state, cust_zip, cust_country
+FROM custnew;
 ```
+
+如果不能确保两个表中的cust_id不重复，可以省略cust_id，让MySQL自动递增。
+
+不一定要求两个表的列名匹配。事实上，MySQL甚至不关心SELECT返回的列名，只关心位置。
+
+
 
 ### 20.更新和删除数据
 
-UPDATE DELETE不要忘记过滤条件where。
+**UPDATE DELETE不要忘记过滤条件where。**
 
-错误发生前更新的所有行被恢复到它们原来的值，IGNORE？？ `UPDATE IGNORE customers
-SET cust_email = elmer@fudd.com
-WHERE cust_id = 10005;`
+错误发生前更新的所有行被恢复到它们原来的值，IGNORE？？
+
+```sql
+UPDATE IGNORE customers
+SET cust_name = 'The Fudds',
+cust_email = elmer@fudd.com
+WHERE cust_id = 10005;
+```
+
+
 
 DELETE 只删除行，不能删除表本身
 
-truncate tablename 更快的删除表中所有行（删除表后重新建）
+```sql
+DELETE FROM customers
+WHERE cust_id = 10006;
+```
 
-引用完整性
+**MySQL没有撤销（undo）按钮。应该非常小心地使用UPDATE和DELETE，否则你会发现自己更新或删除了错误的数据。**
 
-mysql没有撤销
+
+
+`truncate tablename` 更快的删除表中所有行（删除表后重新建）
+
+
 
 ### 21.创建和操纵表
 
+#### 创建表
+
 ```mysql
-CREATE TABLE productnotes
-(
-note_id int NOT NULL AUTO_INCREMENT,
-prod_id char(10) NOT NULL,
-note_date datetime NOT NULL,
-note_text text NULL ,
-PRIMARY KEY(note_id),
-FULLTEXT(note_text)
+CREATE TABLE productnotes (
+  note_id int NOT NULL AUTO_INCREMENT,
+  prod_id char(10) NOT NULL,
+  note_date datetime NOT NULL,
+  note_text text NULL ,
+  PRIMARY KEY(note_id),
+  FULLTEXT(note_text)
 ) ENGINE=MyISAM;
 ```
 
-获得AUTO_INCREMENT时的值 `select last_insert_id()`
+`IF NOT EXISTS`
 
-指定默认值 `quantity int NOT NULL DEFAULT 1 ,` ,默认值必须是常数不能是函数
+NULL值是没有值，它不是空串。
 
-引擎类型 
+每个表只允许一个AUTO_INCREMENT列，而且它必须被索引（通常就是主键）。
+
+
+
+获得AUTO_INCREMENT时的值 `select last_insert_id()`。 ??
+
+
+
+**指定默认值**： `quantity int NOT NULL DEFAULT 1 ,` ,默认值必须是常数不能是函数
+
+**引擎类型** 
 
 InnoDB 支持事务，不支持全文本搜索；
 
-MyISAM与之相反；每个MyISAM表在磁盘生产三个文件：
+MyISAM与之相反；
+
+每个MyISAM表在磁盘生产三个文件：
 
 tablename.frm --.frm文件是用来保存每个数据表的元数据(meta)信息，包括表结构的定义等，frm文件跟数据库存储引擎无关，也就是任何存储引擎的数据表都必须有.frm文件..frm文件可以用来在数据库崩溃时恢复表结构。
 
@@ -959,150 +1029,385 @@ tablename.frm --.frm文件是用来保存每个数据表的元数据(meta)信息
 
 MEMORY功能等价于MyISAM，但数据存储在内存中（适合临时表）；
 
-外键不能跨引擎
+**外键不能跨引擎**
 
+
+
+#### 更新表
+
+```sql
 ALTER TABLE vendors ADD vend_phone CHAR(20); [增加列]
 
 ALTER TABLE vendors DROP vend_phone CHAR(20); [删除列]
+```
 
-ALTER TABLE 可以用来定义外键。
+ALTER TABLE 可以用来定义外键:
 
-表的修改需要谨慎，备份。
+```mysql
+ALTER TABLE orderitems
+ADD CONSTRAINT `fk_orderitems_orders` 
+FOREIGN KEY (`order_num`) REFERENCES `orders` (`order_num`);
 
+ALTER TABLE orderitems
+ADD CONSTRAINT `fk_orderitems_products` 
+FOREIGN KEY (`prod_id`) REFERENCES `products` (`prod_id`);
+
+ALTER TABLE orders
+ADD CONSTRAINT `fk_orders_customers` 
+FOREIGN KEY (`cust_id`) REFERENCES `customers` (`cust_id`);
+
+
+ALTER TABLE products
+ADD CONSTRAINT `fk_products_vendors` FOREIGN KEY (`vend_id`) REFERENCES `vendors` (`vend_id`);
+```
+
+复杂的表结构更改一般需要手动删除过程，它涉及以下步骤：
+
+- 用新的列布局创建一个新表；
+- 使用INSERT SELECT语句从旧表复制数据到新表。如果有必要，可使用转换函数和计算字段；
+- 检验包含所需数据的新表； 
+- 重命名旧表（如果确定，可以删除它）；
+- 用旧表原来的名字重命名新表；
+- 根据需要，重新创建触发器、存储过程、索引和外键。
+
+表的修改需要谨慎，事前需要完整备份。
+
+#### 删除表
+
+```mysql
 DROP TABLE customers2;
+```
 
+#### 重命名表
+
+```mysql
 RENAME　TABLE customers2 TO customers;
+```
 
 
 
 ### 22 视图是虚拟的表
 
-隐藏长的sql(一次性编写基础的sql，多次使用) 
+#### 视图
+
+**视图是虚拟的表。与包含数据的表不一样，视图只包含使用时动态检索数据的查询。**
+
+ <u>为什么使用视图？</u>
+
+- 重用SQL语句。
+- 简化复杂的SQL操作。在编写查询后，可以方便地重用它而不必知道它的基本查询细节。
+- 使用表的组成部分而不是整个表。
+- 保护数据。可以给用户授予表的特定部分的访问权限而不是整个表的访问权限。
+- 更改数据格式和表示。视图可返回与底层表的表示和格式不同的数据。
+
+<u>视图的规则和限制</u>
+
+- 唯一命名
+- 数目没有限制
+- 必须具有足够的访问权限
+- 可以嵌套
+- ORDER BY
+- 视图不能索引，也不能有关联的触发器或默认值
+- 视图可以和表一起使用
+
+#### 使用视图
+
+视图用`CREATE VIEW`语句来创建。
+
+使用`SHOW CREATE VIEW viewname；`来查看创建视图的语句。
+
+用DROP删除视图，其语法为`DROP VIEW viewname;`。
+
+##### 利用视图简化复杂的联结
+
 ```mysql
-create view productcustomers as
-select cust_name, cust_contact, prod_id
-from customers, orders, orderitems
-where customers.cust_id = order.cust_id
-and orderitems.order_num = orders.order_num;
+CREATE VIEW productcustomers AS 
+SELECT cust_name, cust_contact, prod_id 
+FROM customers, orders, orderitems 
+WHERE customers.cust_id = orders.cust_id 
+AND orderitems.order_num = orders.order_num;
 ```
 
-重新格式化检索出的数据 
+##### 重新格式化检索出的数据 
+
 ```mysql
-create view vendorlocations as
-SELECT Concat(RTrim(vend_name), '(', RTrim(vend_country), ')') AS
-vend_title
+CREATE VIEW vendorlocations AS
+SELECT Concat(RTrim(vend_name), '(', RTrim(vend_country), ')') 
+AS vend_title
 FROM vendors
 ORDER BY vend_name;
 ```
 
-使用视图与计算字段 
-```create view orderitemsexpanded as
-select order_num,
-prod_id,
-quantity,
-item_price,
-quantity*item_price as expanded_price
-from orderitems;
+##### 用视图过滤不想要的数据
+
+```mysql
+CREATE VIEW customeremaillist AS
+SELECT cust_id, cust_name, cust_email
+FROM customers
+WHERE cust_email IS NOT NULL;
 ```
+
+##### 使用视图与计算字段 
+
+```mysql
+CREATE VIEW orderitemsexpanded AS 
+SELECT 
+		order_num,
+		prod_id,
+		quantity,
+		item_price,
+		quantity * item_price AS expanded_price 
+FROM orderitems;
+```
+
+##### 更新视图
 
 一般视图用于检索（select），不用于更新（insert，update，delete）。视图更新有很多限制。
 
+
+
 ### 23.存储过程
 
-*   `CALL productpricing(@pricelow,
- @pricehigh,
- @priceaverge);`
-*   创建存储过程 (临时更改命令行实用程序的语句分隔符) `DELIMITER //
+经常会有一个完整的操作需要多条语句才能完成。
+存储过程简单来说，就是**为以后的使用而保存的一条或多条MySQL语句的集合**。
+
+#### 为什么要使用存储过程
+
+- 封装
+
+- 数据的完整性
+
+- 简化对变动的管理
+
+- 提高性能
+
+#### 使用存储过程
+
+##### 执行存储过程
+
+存储过程的执行称为**调用（CALL）**。
+```mysql
+CALL productpricing(@pricelow,
+ 										@pricehigh,
+ 										@priceaverge);
+```
+执行名为productpricing的存储过程，它计算并返回产品的最低、最高和平均价格。
+
+##### 创建存储过程
+
+```mysql
 CREATE PROCEDURE productpricing()
 BEGIN
-SELECT Avg(prod_price) AS priceaverage
-FROM products;
-END //
-DELIMITER ;`
-*   调用存储过程： `CALL productpricing();`
-*   删除（注意没有括号） `drop procedure productpricing;`
-*   使用参数 
-    *   `create procedure productpricing(
-out pl decimal(8,2),
-out ph decimal(8,2),
-out pa decimal(8,2)
-)
-begin
-select min(prod_price)
-into pl
-from products;
-select max(prod_price)
-into ph
-from products;
-select avg(prod_price)
-into pa
-from products;
-end;` > 关键字 OUT(从存储过程传出)，IN(传递给存储过程)，INOUT > 一个参数不能返回多个列和行 > mysql变量以@开头 > 调用 `call productpricing(@pricelow,@pricehigh,@priceaverage);` 此 > 时存储过程的结果已经保存在这三个变量中。显示变量 `select @priceaverage;` `DELIMITER //
-create procedure ordertatals(
-IN onumber INT,
-OUT ototal decimal(8,2)
-)
-begin
-select sum(item_price*quantity)
-from orderitems
-where order_num = onumber
-into ototal;
-end //
-delimiter ;` 调用 `CALL ordertotal(2005, @total);` , `select @total;`
-*   建立智能存储过程 `-- Name: ordertotal
--- Parameters: onumber = oreder number
---    texable = 0 if not taxable, 1 if taxable
---    ototal = order total varible
-create procedure ordertotal(
-in onumber int,
-in taxable boolean,
-out ototal decimal(8, 2)
-) comment 'Obtain order total, optionally adding tax'
-begin
--- declare variable for total
-declare total decimal(8,2);
--- declare tax percentage
-declare taxrate int default 6;
--- get the order total
-select sum(item_price*quantity)
-from orderitems
-where order_num = onumber
-into total;
--- Is this taxable?
-if taxable then
--- yes, so add taxrate to the total
-select total+(total/100*taxrate) into total;
-end if;
--- and finally,save to out variable
-select total into ototal;
-end;` `call ordertotal(20005, 0, @total);
-select @total;` 
-    *   DECLARE语句定义局部变量；
-    *   COMMENT关键字非必须 ，结果在 `SHOW PROCEDURE STATUS;` 的结果中显示。
-    *   控制流语句：IF ELSEIF ELSE
-*   存储过程查询： 
-    *   直接查询 `SELECT SPECIFIC_NAME FROM MYSQL.PROC WHERE DB = 'your_db_name' AND TYPE = 'PROCEDURE';`
-    *   查看所有数据库里所有存储过程+内容 `SHOW PROCEDURE STATUS;`
-    *   查询当前数据库的 `SELECT SPECIFIC_NAME FROM MYSQL.PROC;`
-    *   查询某一个存储过程的具体内容 `SELECT BODY FROM MYSQL.PROC WHERE SPECIFIC_NAME = 'ordertotal'`
-*   删除存储过程： `DROP PROCEDURE you_proc_name;`
-*   创建存储过程： `SHOW CREATE PROCEDURE ordertotal;`
+	SELECT Avg(prod_price) AS priceaverage
+	FROM products;
+END;
+```
 
-### 游标
+如果使用MySQL命令行工具时，MySQL语句和MySQL命令行工具都使用`;`作为分隔符，可以使用`DELIMITER`临时更改命令行实用程序的语句分隔符：
 
-1.  定义 
-    *   cursor是select语句检索出来的结果集（浏览与滚动）
-    *   主要应用交互式应用
-    *   mysql游标只能用于存储过程（和函数）
+```mysql
+DELIMITER //
 
-2.  使用 声明 》打开 》使用 》 关闭 `CREATE PROCEDURE processorders()
+CREATE PROCEDURE productpricing()
 BEGIN
-DECLARE ordernumbers CURSOR
-FOR
-SELCET order_num FROM order;
-END;` `OPEN ordernumbers;` `CLOSE ordernumbers;` 释放内存和资源
-  
-    *   使用 `sql
+	SELECT Avg(prod_price) AS priceaverage
+	FROM products;
+END //
+
+DELIMITER ;
+```
+
+调用存储过程： 
+```mysql
+CALL productpricing();
+```
+
+
+##### 删除存储过程
+
+注意没有括号 
+```mysql
+DROP PROCEDURE productpricing;
+```
+
+##### 使用参数 
+
+```mysql
+CREATE PROCEDURE productpricing ( 
+	OUT pl DECIMAL ( 8, 2 ), 
+	OUT ph DECIMAL ( 8, 2 ), 
+	OUT pa DECIMAL ( 8, 2 ) 
+) 
+BEGIN
+	SELECT min( prod_price ) INTO pl 
+	FROM products;
+	SELECT max( prod_price ) INTO ph 
+	FROM products;
+	SELECT avg( prod_price ) INTO pa 
+	FROM products;
+END;
+```
+
+3个参数：pl存储产品最低价格，ph存储产品最高价格，pa存储产品平均价格。
+
+`OUT` ：从存储过程传出给调用者，
+
+`IN` ：传递给存储过程
+
+`INOUT` : 对存储过程传入和传出
+
+一系列SELECT语句，用来检索值，然后保存到相应的变量（通过指定`INTO`关键字）。
+
+
+
+调用此存储过程：（必须制定3个变量名，**mysql变量以@开头**）
+
+```mysql
+CAll productpricing(@pricelow, @pricehigh, @priceaverage);
+```
+
+这样，存储过程的结果就保存到三个参数中，可以通过SELECT语句查询。
+
+```mysql
+SELECT @pricelow, @pricehigh, @priceaverage;
+```
+
+输出：
+
+```
++-----------+------------+---------------+
+| @pricelow | @pricehigh | @priceaverage |
++-----------+------------+---------------+
+|      2.50 |      55.00 |         16.13 |
++-----------+------------+---------------+
+```
+
+
+
+另一个例子，ordertotal接受订单号并返回该订单的合计：
+
+```mysql
+CREATE PROCEDURE ordertotal ( 
+	IN onumber INT, 
+	OUT ototal DECIMAL ( 8, 2 ) 
+) 
+BEGIN
+	SELECT sum( item_price * quantity ) 
+	FROM orderitems 
+	WHERE order_num = onumber 
+	INTO ototal;
+END
+```
+
+调用 :
+
+```mysql
+CALL ordertotal ( 20005, @total );
+SELECT @total;
+```
+
+
+
+##### 建立智能存储过程 
+
+场景：需要获得与以前一样的订单合计，但需要对合计增加营业税，不过只针对某些顾客（或许是你所在州中那些顾客）。分步：
+
+- 获得合计（与以前一样）；
+- 把营业税有条件地添加到合计；
+- 返回合计（带或不带税）。
+
+```mysql
+-- Name: ordertotal
+-- Parameters: onumber = oreder number
+--    texable = 是否增加营业税
+--    ototal = order total varible
+CREATE PROCEDURE ordertotal ( 
+	IN onumber INT, 
+	IN taxable boolean, 
+	OUT ototal DECIMAL ( 8, 2 ) 
+) COMMENT 'Obtain order total, optionally adding tax' 
+BEGIN
+	-- declare variable for total
+	DECLARE total DECIMAL ( 8, 2 );
+	-- 定义变量税率
+	DECLARE taxrate INT DEFAULT 6;
+	
+	-- get the order total
+	SELECT sum( item_price * quantity ) 
+	FROM orderitems 
+	WHERE order_num = onumber INTO total;
+	
+	-- Is this taxable?
+	IF taxable THEN
+		-- yes, so add taxrate to the total
+		SELECT total + (total / 100 * taxrate ) INTO total;
+	END IF;
+	
+	-- and finally,save to out variable
+	SELECT total INTO ototal;
+END;
+```
+
+```mysql
+call ordertotal(20005, 0, @total);
+select @total;
+```
+
+##### 检查存储过程
+
+查看所有数据库里所有存储过程以及每个存储过程的创建者、创建时间等信息：
+
+```mysql
+SHOW PROCEDURE STATUS;
+
+-- 过滤
+SHOW PROCEDURE STATUS LIKE 'ordertotal'; 
+```
+
+显示用来创建一个存储过程的CREATE语句等信息：
+
+```mysql
+ SHOW CREATE PROCEDURE ordertotal;
+```
+
+
+
+
+
+### 24 游标
+
+定义 
+
+cursor是select语句检索出来的结果集（浏览与滚动）
+
+主要应用交互式应用
+
+mysql游标只能用于存储过程（和函数）
+
+
+
+#### 使用游标
+
+使用 声明 》打开 》使用 》 关闭
+
+```mysql
+CREATE PROCEDURE processorders()
+BEGIN
+	DECLARE ordernumbers CURSOR
+	FOR
+	SELCET order_num FROM order;
+END;
+```
+
+
+
+
+
+`OPEN ordernumbers;` `CLOSE ordernumbers;` 
+
+释放内存和资源
+
+  *   使用 `sql
 CREATE PROCEDURE processorders()
 BEGIN
 -- Declare local variables
@@ -1118,7 +1423,7 @@ FETCH ordernumbers INTO o;
 -- Close the cursor
 CLOSE ordernumbers;
 END;`
-    *   FETCH 在逐行处理 `sql
+  *   FETCH 在逐行处理 `sql
 CREATE PROCEDURE processorders()
 BEGIN
 -- Declare local variables
@@ -1141,11 +1446,11 @@ UNTIL done END REPEAT;
 -- Close the cursor
 CLOSE ordernumbers;
 END;`
-    *   CONTUE HANDLER ?
-    *   SQLSTATE '02000' [mysql错误代码][1]
-    *   DECLARE语句的次序 ? \``\`sql --对数据进行实际处理 CREATE PROCEDURE processorders() begin declare done boolean default 0; declare o int; declare t decimal(8,2); declare ordernumbers cursor for select order_num from orders; declare continue handler for sqlstate '02000' set done=1; create table if not exists ordertotals (order_num int, total decimal(8,2)); open ordernumbers;
-  
-    -- Loop through all rows repeat fetch ordernumbers into o; call ordertotal(o, 1, t); insert into ordertotals(order_num, total) values(o, t); until done end repeat; close ordernumbers; end; \``\` 调用这个存储过程就会建立一张表
+  *   CONTUE HANDLER ?
+  *   SQLSTATE '02000' [mysql错误代码][1]
+  *   DECLARE语句的次序 ? \``\`sql --对数据进行实际处理 CREATE PROCEDURE processorders() begin declare done boolean default 0; declare o int; declare t decimal(8,2); declare ordernumbers cursor for select order_num from orders; declare continue handler for sqlstate '02000' set done=1; create table if not exists ordertotals (order_num int, total decimal(8,2)); open ordernumbers;
+
+  -- Loop through all rows repeat fetch ordernumbers into o; call ordertotal(o, 1, t); insert into ordertotals(order_num, total) values(o, t); until done end repeat; close ordernumbers; end; \``\` 调用这个存储过程就会建立一张表
 
 ### 25 触发器
 
@@ -1229,6 +1534,8 @@ create table mytable ( columnn1 int, columnn2 varchar(10) )default character set
 ### 30 改善性能
 
 [1]: dev.mysql.com/doc/mysql/en/error-handling.html
+
+
 
 
 
