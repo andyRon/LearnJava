@@ -1,0 +1,8 @@
+
+spring:
+  datasource:
+    name: CrashCourse
+    url: jdbc:mysql://localhost:3306/CrashCourse
+    username: root
+    password: iop654321
+    driver-class-name: com.mysql.cj.jdbc.Driver
