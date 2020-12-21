@@ -15,8 +15,9 @@ public class TestDB {
         try {
             runTest();
         } catch (SQLException ex) {
-            for (Throwable t : ex)
+            for (Throwable t : ex) {
                 t.printStackTrace();
+            }
         }
     }
 
@@ -27,8 +28,9 @@ public class TestDB {
             stat.executeUpdate("INSERT INTO Greetings VALUES ('Hello, World!')");
 
             try (ResultSet result = stat.executeQuery("SELECT * FROM Greetings")) {
-                if (result.next())
+                if (result.next()) {
                     System.out.println(result.getString(1));
+                }
             }
             stat.executeUpdate("DROP TABLE Greetings");
         }
@@ -40,7 +42,9 @@ public class TestDB {
             props.load(in);
         }
         String drivers = props.getProperty("jdbc.drivers");
-        if (drivers != null) System.setProperty("jdbc.drivers", drivers);
+        if (drivers != null) {
+            System.setProperty("jdbc.drivers", drivers);
+        }
         String url = props.getProperty("jdbc.url");
         String username = props.getProperty("jdbc.username");
         String password = props.getProperty("jdbc.password");
