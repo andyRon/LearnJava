@@ -1,6 +1,8 @@
-https://www.runoob.com/servlet/servlet-intro.html
+
 
 ## Servlet教程
+
+https://www.runoob.com/servlet/servlet-intro.html
 
 Servlet 为创建基于 web 的应用程序提供了基于组件、独立于平台的方法，可以不受 CGI （Common Gateway Interface，公共网关接口）程序的性能限制。Servlet **有权限访问所有的 Java API，包括访问企业级数据库的 JDBC API**。
 
@@ -109,3 +111,16 @@ destroy() 只在 Servlet 生命周期结束时被调用一次。destroy() 方法
 
 
 ?? 尝试不要用IDEA
+
+
+
+
+
+## Servlet笔记
+
+尚硅谷    https://www.bilibili.com/video/av91909529?p=122
+
+### 1、Servlet技术
+
+
+
