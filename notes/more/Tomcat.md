@@ -40,11 +40,17 @@ Tomcat本身是JAVA程序
 
 ` $CATALINA_BASE`
 
-`bin/`
+`bin/`     可执行程序
 
-`/conf`
+`conf/`   Tomcat的配置文件，其中server.xml为服务器的主配置文件；web.xml为所有Web应用的配置文件；tomcat-users.xml用于定义Tomcat配置用户的权限与安全。
 
-`log/`
+`lib/`   存放Tomcat服务器和所有web应用都能访问的**JAR文件**。
+
+`logs/` 
+
+`temp`   临时数据
+
+`work/`   Tomcat工作是的目录，Tomcat解析JSP生成的Servlet文件放在这个目录中，session钝化的目录。
 
 `webapps/`   存放Web应用相关文件
 
@@ -208,3 +214,133 @@ Tomcat 可以使用 [Apache Portable Runtime](http://apr.apache.org/)（APR） �
 
 
 ### Tomcat安全性注意事项
+
+
+
+## Tomcat
+
+https://www.bilibili.com/video/av91909529?p=99
+
+### 1 Java Web概念
+
+JavaWeb是指所有通过Java语言编写可以通过浏览器访问的程序总称。
+
+### 2 **Web** 资源的分类
+
+静态资源: html、css、js、txt、mp4 视频 , jpg 图片 
+
+动态资源: jsp 页面、Servlet 程序
+
+### 3 常见的Web服务器
+
+**Tomcat**:由 Apache 组织提供的一种 Web 服务器，提供对 jsp 和 Servlet 的支持。它是一种轻量级的 javaWeb 容器(服务
+
+器)，也是当前应用最广的 JavaWeb 服务器(免费)。
+
+**Jboss**:是一个遵从 JavaEE 规范的、开放源代码的、纯 Java 的 EJB 服务器，它支持所有的 JavaEE 规范(免费)。
+
+**GlassFish**: 由 Oracle 公司开发的一款 JavaWeb 服务器，是一款强健的商业服务器，达到产品级质量(应用很少)。
+
+**Resin**:是 CAUCHO 公司的产品，是一个非常流行的服务器，对 servlet 和 JSP 提供了良好的支持， 性能也比较优良，resin 自身采用 JAVA 语言开发(收费，应用比较多)。
+
+**WebLogic**:是 Oracle 公司的产品，是目前（在收费中）应用最广泛的 Web 服务器，支持 JavaEE 规范， 而且不断的完善以适应新的开发要求，适合大型项目(收费，用的不多，适合大公司)。
+
+### 4 Tomcat与Servlet版本关系
+
+![](/Users/andyron/Library/Application Support/typora-user-images/image-20200309075514069.png)
+
+Servlet 程序从 2.5 版本是现在世面使用最多的版本(**xml** 配置) 
+
+到了 Servlet3.0 之后。就是**注解**版本的 Servlet 使用。
+
+
+
+
+
+### 5 Tomcat的使用
+
+#### 安装
+
+解压就好
+
+#### 目录介绍
+
+
+
+#### 如何启动Tomcat服务器
+
+- `./bin/starup.bat`  
+
+- `./bin/catalina.sh run`    可以看到启动信息
+
+常见的启动失败情况， JAVA_HOME
+
+#### 如何关闭Tomcat
+
+
+
+#### 如何修改Tomcat的端口号
+
+`conf/server.xml`
+
+```
+<Connector port=""   >
+```
+
+#### 如何部署web工程到Tomcat中
+
+`webapps`下每一个目录就是一个web工程。
+
+1. 第一种： 直接复制到webapps目录下即可。
+2. 第二种：在`conf/Catalina/localhost/`目录下配置xml文件
+
+```xml
+<!--
+Context表示一个工程上下文
+path表示工程在浏览器中的访问路径
+docBase表示工程的具体目录在那里
+-->
+
+<Context path="/abc" docBase="/User/andyron/Download/abc" />
+```
+
+
+
+#### Root的工程的访问
+
+就是默认访问`http://localhost:8080/`
+
+
+
+### 6 IDEA整合Tomcat
+
+![image-20200308233949531](/Users/andyron/Library/Application Support/typora-user-images/image-20200308233949531.png)
+
+
+
+### 7 IDEA中动态web工程的操作
+
+#### **a)IDEA** 中如何创建动态 **web** 工程
+
+1、创建一个新模块:
+
+![](/Users/andyron/Library/Application Support/typora-user-images/image-20200309080452154.png)
+
+2、选择你要创建什么类型的模块:
+
+![](/Users/andyron/Library/Application Support/typora-user-images/image-20200309080518958.png)
+
+3、输入你的模块名，点击【Finish】完成创建。
+
+4、创建成功如下图:
+
+![](/Users/andyron/Library/Application Support/typora-user-images/image-20200309080824982.png)
+
+#### **b)Web** 工程的目录介绍
+
+![](/Users/andyron/Library/Application Support/typora-user-images/image-20200309081125402.png)
+
+
+
+#### 给Tomcat添加第三方jar包
+
