@@ -2,23 +2,21 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 
 /**
- * 4.2
- * 打印当前月日历
  * @author Andy Ron
  */
-public class CalendarTest {
+public class CalendarTest2 {
     public static void main(String[] args) {
         LocalDate date = LocalDate.now();
         int month = date.getMonthValue();
         int today = date.getDayOfMonth();
 
-        // 把date设置成当前月的第一天
         date = date.minusDays(today - 1);
-        DayOfWeek weekday = date.getDayOfWeek();
-        int value = weekday.getValue();
+        DayOfWeek dw = date.getDayOfWeek();
+        int dwv = dw.getValue();
 
         System.out.println("Mon Tue Wed Thu Fri Sat Sun");
-        for (int i = 1; i < value; i++) {
+
+        for (int i = 1; i < dwv; i++) {
             System.out.print("    ");
         }
 
@@ -29,16 +27,13 @@ public class CalendarTest {
             } else {
                 System.out.print(" ");
             }
-            date = date.plusDays(1);
-            if (date.getDayOfWeek().getValue() == 1) {
+
+            if (date.getDayOfWeek().getValue() == 7) {
                 System.out.println();
             }
+
+            date = date.plusDays(1);
         }
 
-        // ??
-        if (date.getDayOfWeek().getValue() != 1) {
-            System.out.println();
-        }
     }
-
 }

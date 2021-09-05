@@ -1,4 +1,3 @@
-
 import static java.lang.Math.*;
 
 /**
@@ -8,35 +7,36 @@ import static java.lang.Math.*;
  */
 public class FirstSample {
 
-    public static final double CM_PER_INCH = 2.54;  // 类常量
+    /**
+     * 类常量
+     */
+    public static final double CM_PER_INCH = 2.54;
 
     public static void main(String[] args) {
         System.out.println("Hello, IntelliJ IDEA");
 
         int a = 0x3;
-        int b = 0245;
+        // 八进制
+        int b = 010;
         int c = 0b10001;
-        long l = 4000001l;
+        long l = 4000001L;
         int m = 1_000_000;
         float f = 3.14f;
         double d = 3.14d;
+        long num = 2^16;
 
-//        Double.POSITIVE_INFINITY;
-//        Double.NEGATIVE_INFINITY;
-//        Double.NaN;
-//        Float.POSITIVE_INFINITY;
-        Double.isNaN(d);
-
+        // 字符字面量
         char ch = 'A';
         char uni = '\u2122';
-        long num = 2^16;
+        // 判断字符ch是否属于Java的"字母"
         Character.isJavaIdentifierPart(ch);
 
         double salary;
         int vacationDays;
         boolean done;
 
-        final double PI = 3.1415161397;  // 常量
+        // 常量
+        final double PI = 3.1415161397;
 
         double y = Math.sqrt(4.0);
         double y2 = Math.pow(2, 5);
@@ -47,6 +47,10 @@ public class FirstSample {
 
         int nx = (int)round(x);
 
+        int fl = Math.floorMod(13, 12);
+
+
+
         String greeting = "Hello! ";
         String subS = greeting.substring(1, 3);
         String all = "S " + "M";
@@ -54,6 +58,13 @@ public class FirstSample {
 
         all.equals(subS);
         all.equalsIgnoreCase(subS);
+
+        if (greeting == "Hello! ") {
+            System.out.println("相同1");
+        }
+        if (greeting.substring(1,4) == "ell") {
+            System.out.println("相同2");
+        }
 
 
     }

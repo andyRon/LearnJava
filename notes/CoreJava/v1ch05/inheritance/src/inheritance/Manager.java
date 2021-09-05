@@ -4,6 +4,9 @@ package inheritance;
  * @author Andy Ron
  */
 public class Manager extends Employee {
+    /**
+     * 奖金
+     */
     private double bonus;
 
     public void setBonus(double bonus) {
