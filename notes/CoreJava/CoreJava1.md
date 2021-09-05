@@ -14,16 +14,38 @@ http://horstmann.com/corejava
 
 ### Java的11个关键术语
 
-1. 简单性
-2. 面向对象
+1. 简单性。C++语法的简洁版，没有头文件、指针、结构、联合、操作符重载、虚基类等。
+
+2. 面向对象。将重点放在数据（即对象）和对象的接口上。
+
 3. 分布式
-4. 健壮性
+
+4. 健壮性。早期的问题检测、后期动态的（运行时）检测。
+
 5. 安全性
+
 6. 体系结构中立
-7. 可移植性
-8. 解释型
+
+7. 可移植性。
+
+   数据类型固定大小，消除了代码移植时的主要问题；
+
+   二进制数据以固定的格式进行存储和传输，消除了字节顺序的困扰；
+
+   字符串用标准的Unicode格式存储；
+
+   除了与用户界面有关的部分外，所有其他Java库都能很好地支持平台独立性。
+
+8. 解释型。
+
+   Java解释器可以在任何移植了解释器的机器上执行**Java字节码**。
+
 9. 高性能
-10. 多线程
+
+10. 多线程。
+
+    多线程可以带来更好的交互响应和实时行为。
+
 11. 动态性
 
 
@@ -40,6 +62,8 @@ http://horstmann.com/corejava
 ## 2 Java程序设计环境
 
 ### 2.1 安装Java开发工具包
+
+![](../images/java-043.jpg)
 
 #### 下载JDK
 
@@ -62,6 +86,8 @@ java Welcome
 
 编译器需要一个**文件名**(Welcomejava)，而运行程序时，只需要指定**类名**(Welcome)，不要带扩展名 .java 或 .class。
 
+`System.out.print()`与`System.out.println()`的区别是前者不换行，后者换行。
+
 ### 2.3 使用集成开发环境
 
 
@@ -74,37 +100,56 @@ java Welcome
 
 我的系统没有 `appletviewer`
 
+
+
 ## 3.Java的基本程序设计结构
 
 
 
 ### 3.1 一个简单的Java应用程序
 
-源代码的文件名必须与公共类的名字相同。
-
-Java虚拟机将从指定类中的main方法开始执行。
-
-[java bug数据库](http://bugs.java.com/bugdatabase/index.jsp   )，通过bug号（例如 4252539），来查询。
-
- Sun公司在 Java 开源很久以前就把 bug 报 告及其解决方案放到网站上让所有人监督检查， 这是一种非常了不起的举动。
-
-
-
-每个 Java 应用程序都必须有一个 main 方法：
-
 ```java
+public class FirstSample
+{
+  public static void main(String[] args)
+  {
+    System.out.println("We will not use 'Hello World!'");
+  }
+}
+
 public class ClassName {
-	public static void main(String[] args) {	
+	public static void main(String[] args) 
+  {	
     program statements
 	} 
 }
 ```
 
+关键字`public`称为**访问修饰符（access modifier）**，用于控制程序的其它部分对这段代码的访问级别；
+
+关键字`class`表明Java程序中的全部内容包含在类中，可以将类作为一个加载**程序逻辑**（应用程序的行为）的容器；
+
+`class`后紧跟**类名**，类名以大写字母开头，长度没有限制，不能使用Java保留字，采用骆驼命名法；源代码的文件名必须与公共类的名字相同，用`.java`作为扩展名（如`FirstSample.java`），编译后在同目录下生成一个包含这个类字节码以`.class`为扩展名的文件（`FirstSample.class`）。
+
+
+
+运行已编译的程序时，Java虚拟机将从指定类中的main方法开始执行，也就是说，每个Jav 应用程序都必须有一个 main 方法：
+
 >  Java 中的所有函數都属于某个类的方法。
 >
 >  Java 中的 main 方法必须有一个外壳类。
 >
-> Java 中的 main 方法必须是静态的。 void 表示这个方法没有返回值。
+>  Java 中的 main 方法必须是静态的。 void 表示这个方法没有返回值。
+>
+>  根据[Java语言规范](https://docs.oracle.com/javase/specs/)，main方法必须声明为public。
+
+
+
+> [Java bug数据库](http://bugs.java.com/bugdatabase/index.jsp   )，通过bug号（例如 4252539），来查询。
+>
+> Sun公司在 Java 开源很久以前就把 bug 报 告及其解决方案放到网站上让所有人监督检查， 这是一种非常了不起的举动。
+
+
 
 ### 3.2 注释
 
@@ -116,28 +161,25 @@ public class ClassName {
 
 /**
  */
-
 ```
+
+第三种注释可用来自动生成文档。
 
 
 
 ### 3.3 数据类型
 
-8中基本类型，其中4种整型：`int`，`short`，`long`，`byte`；2种浮点类型：`float`，`double`；表示Unicode编码的`char`；`boolean`。
+Java是**强类型语言**，必须为每一个变量声明一种类型。
+
+Java共有8中基本类型，其中4种整型：`int`，`short`，`long`，`byte`；2种浮点类型：`float`，`double`；表示Unicode编码的`char`；`boolean`。
+
+
 
 #### 整型
 
 在Java中，整型的范围与运行的机器无关；没有无符号类型。
 
-
-
-`int`      4字节；
-
-`short`    2字节；
-
-`long`   8字节；
-
-`byte`    1字节；
+![](../images/java-044.jpg)
 
 ```java
 400000000000L;
@@ -148,23 +190,46 @@ public class ClassName {
 
 建议不要使用八进制常数，易混淆。
 
+
+
 #### 浮点数
 
-`float`    4字节；
+![](../images/java-045.jpg)
 
-`double`     8字节；
+三个特殊浮点数（实际应用中很少遇到）：
 
-`NaN`
+`Double.NaN`
 
 `Double.POSITIVE_INFINITY`
 
 `Double.NEGATIVE_INFINITY`
 
+
+
 #### char
 
 有些Unicode字符可以用一个char值描述，另外一些Unicode字符则需要两个char值。
 
-char类型的字面量值要用**单引号**括起来。`'A'`   `'\u03C0'`
+char类型的字面量值要用**单引号**括起来，如`'A'` ，  `'\u03C0'`。
+
+所有转义序列都可以出现在家引号的字符字面量或字符串中，如`'\u2122'`，`"Hello\n"`；转义序列`\u`还可以出现在加引号的字符常量或字符串外，如：
+
+```java
+// \u005B， \u005D分别表示[， ]
+public static void mian(String\u005B \u005D args)
+```
+
+特殊字符的转义序列：
+
+| 转义序列 | 名称   | Unicode值 |
+| -------- | ------ | --------- |
+| `\b`     | 退格   | \u0008    |
+| `\t`     | 制表   | \u0009    |
+| `\n`     | 换行   | \u000a    |
+| `\r`     | 回车   | \u000d    |
+| `\"`     | 双引号 | \u0022    |
+| `\'`     | 单引号 | \u0027    |
+| `\\`     | 反斜杠 | \u005c    |
 
 
 
@@ -174,29 +239,49 @@ char类型的字面量值要用**单引号**括起来。`'A'`   `'\u03C0'`
 
 强烈建议不要使用char类型。
 
-#### Unicode 和 char
 
-**code point**（码点）是指与一个编码表中的某个字符对应的代码值。a code value that is associated with a character in an encoding scheme.
+
+#### Unicode 和 char 
+
+**code point**（**码点**）是指与一个编码表中的某个字符对应的代码值。a code value that is associated with a character in an encoding scheme.
 
 在 Unicode 标准中， 码点采用十六进制书写，并加上前缀U+, 例如**U+0041**就是拉丁字母A的码点。
 
-UTF 16 编码采用不同长度的编码表示所有 Unicode 码点。在基本的多语言级别中， 每个字符用16位表示，通常被称为代码单元(**code unit**)。
+UTF 16 编码采用不同长度的编码表示所有 Unicode 码点。在基本的多语言级别中， 每个字符用16位表示，通常被称为**代码单元**(**code unit**)。
+
+> 强烈建议不要在程序中使用char类型。
+
+#### boolean类型
+
+
 
 ### 3.4 变量
 
-`Character.isJavaIdentifierPart()` `Character.isJavaIdentifierStart()`
-
-
+Java中**字母**和**数字**范围很大，字母包括`'A'` ~ `'Z'`、`'a'` ~ `'z'`、`_`、`'$'`及其在某种语言中表示字母的任何Unicode字符，数字包括'0' ~ '9'及其在某种语言中表示数字的任何Unicode字符。下面两个方法可用力啊判断哪些Unicode字符属于Java中的字母：`Character.isJavaIdentifierPart()`、 `Character.isJavaIdentifierStart()`。
 
 逐一声明每一个变量可以提高程序的可读性。
 
+
+
+#### 变量初始化
+
+声明一个变量之后，必须用赋值语句对变量进行显示初始化，不能使用未初始化的变量。
+
 变量的声明尽可能地靠近变量第一次使用的地方。
+
+> 在Java中，不区分变量的声明和定义。
+
+
 
 #### 常量
 
-关键字`final`指示**常量**。习惯上，常量名使用全大写。
+关键字`final`指示**常量**（只能被赋值一次）。习惯上，常量名使用全大写。
 
 使用关键字`static final`设置**类常量**。 
+
+常量定义在方法内；类常量定义在方法外，给一个类中的多个方法使用。
+
+`const`是Java保留关键字，还未使用。
 
 
 
@@ -205,8 +290,6 @@ UTF 16 编码采用不同长度的编码表示所有 Unicode 码点。在基本�
 #### 数学函数与常量
 
 ```java
-
-
 Math.sin 
 Math.cos 
 Math.tan
@@ -219,28 +302,40 @@ Math.log1O
   
 Math.sqrt(x)
 Math.pow(x, a)
+
+// 
+Math.floorMod()
+  
+Math.PI
+Math.E
 ```
 
-不必在数学方法名和常量名前添加前缀”Math“：`import static java.lang.Math.*`。
+不必在数学方法名和常量名前添加前缀`Math`：`import static java.lang.Math.*`。
+
+> 注：在Math类中，为了达到最快的性能，所有方法都使用计算机浮点单元中的例程。如果得到一个完全可预测的结果比运行速度更重要的话，那么就应该使用`StrictMath`类。
+
+
 
 #### 数值类型之间的转换
+
+![](../images/java-036.jpg)
+
+实心箭头表示无信息丢失，虚箭头表示可能有精度损失。如int包含的位数就比float多：
 
 ```java
 int n = 123456789;
 float f = n; // f is 1.23456792E8
 ```
 
-![](../images/java-036.jpg)
-
 
 
 #### 强制类型转换(cast)
 
 ```java
-double x * 9.997; 
+double x = 9.997; 
 int nx = (int) x;
 
-double x z 9.997;
+double x = 9.997;
 int nx = (int) Math.round(x);
 ```
 
@@ -261,6 +356,8 @@ x %= 4;
 ```java
 n++;
 ++n;
+n--;
+--n;
 ```
 
 #### 关系和 boolean 运算符
@@ -280,6 +377,8 @@ condition ? expression1 : expression2
 
 #### 位运算符
 
+处理整型类型时，可以直接对组成整型数值的各个位完成操作。
+
 ```java
 &
 |
@@ -298,6 +397,8 @@ condition ? expression1 : expression2
 
 #### 枚举类型
 
+有时候，变量的取值只在一个有限的集合内。
+
 ```java
 enum Size {SMALL, MEDIUM, LARGE, EXTRA_LARCE};
 Size s = Size.MEDIUM;
@@ -305,15 +406,17 @@ Size s = Size.MEDIUM;
 
 
 
-
-
 ### 3.6 字符串
 
 从概念上讲，Java字符串就是**Unicode字符序列**。
 
+Java没有内置的字符串类型，而是在标准Java类库中提供了一个预定义类（`String`）。
+
 #### 子串
 
 `substring(0, 3)`
+
+
 
 #### 拼接
 
@@ -321,21 +424,38 @@ Size s = Size.MEDIUM;
 
 `String.join()`  
 
+
+
 #### 不可变字符串
 
-`String`
+`String`是不可变字符串。
 
 不可变字符串的优点：编译器可以让字符串**共享**。
 
-Java的设计者认为共享带来的高效率远远胜过于提取、拼接字符串所带来的低效率。
+**Java的设计者认为共享带来的高效率远远胜过于提取、拼接字符串所带来的低效率。**
+
+
 
 #### 检测字符串是否相等
 
-`equals()`
+```java
+s.equals(t);
+s.equalsIgnoreCase(t);
+```
 
-`equalsIgnoreCase()`
+`==`不能检测两个字符串是否相等，只能确定两个字符串是否放置在同一个位置上：
 
-`==`只能确定两个字符串是否放置在同一个位置上。
+```java
+String greeting = "Hello";
+if (greeting == "Hello")
+  // 可能为 true
+if (greeting.substring(0, 3) == "Hel")
+  // 可能为 false
+```
+
+实际中虚拟机可能只有字符串常量是共享的，而+或substring等操作产生的结果并不是共享的。
+
+
 
 #### 空串与Null串
 
@@ -347,7 +467,9 @@ if (str != null && str.length() != 0)
 
 
 
-#### Code Points(码点) and Code Units（代码单元）
+#### Code Units（代码单元）和Code Points(码点) 🔖
+
+char类型时一个采用UTF-16编码表示Unicode码点的代码单元。
 
 `length()`是计算**Code Units**个数。(有时两个或几个代码单元组成一个码点)
 
@@ -407,7 +529,7 @@ System.out.println(lengthP);        // 3个code points
 `String`有50+有用的方法
 
 ```java
-//  java.lang.string 
+//  java.lang.String 
 
 char charAt(int index)
 返回给定位置的代码单元。除非对底层的代码单元感兴趣， 否则不需要调用这个方法。
@@ -463,11 +585,9 @@ String join(CharSequence delimiter, CharSequence... elements)
 
 
 
+#### 构建字符串（StringBuilder）
 
-
-#### StringBuilder
-
-每次连接字符串， 都会构建一个新的`String`对象，既耗时又浪费空间 。使用`StringBuilde`可以避免。
+每次连接字符串， 都会构建一个新的`String`对象，既耗时又浪费空间 ，使用`StringBuilde`可以避免。
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -505,13 +625,31 @@ String toString()
 
 
 
-### 3.7 IO
+### 3.7 输入输出（IO）
 
 #### 读取输入
 
-`Scanner`  
+打印输出到”标准输出流“（即控制台窗口）是容易的事，只要调用`System.out.println`即可；然而，读取”标准输入流“`System.in`就不容易了。
 
-`console`来处理控制台输入
+`java.util.Scanner`  
+
+```java
+Scanner in = new Scanner(System.in);
+
+// 第一个输出
+System.out.println("What is your name?");
+String name = in.nextLine();
+
+// 第二个输出
+System.out.println("How old are you?");
+int age = in.nextInt();
+
+System.out.println("Hello, " + name + ". Next year, you'll be " + (age + 1));
+```
+
+
+
+``java.io.Console`用来从控制台读取密码：
 
 ```java
 Console cons = System.console();
@@ -552,15 +690,44 @@ static String readLine(String prompt, Object...args)
 
 #### 格式化输出
 
+Java沿用C语言库函数printf方法。
+
 ```java
 System.out.printf("Hello, %s, Next year, you'll be %d", name, age);
+
+// 用8个字符的宽度和小数点后两个字符的精度打印，下面结果也就是输出一个空格和7个字符。
+System.out.printf("%8.2f", 10000.0 / 3.0);
+// 3333.33
 ```
 
-![image-20200606105658847](/Users/andyron/myfield/github/LearnJava/images/java-038.jpg)
+![](../images/java-038.jpg)
 
-!!
+```java
+System.out.printf("%,.2f", 10000.0 / 3.0);
+// 3,333.33
 
-#### 文件输入与输出
+// 可以使用多个标志
+System.out.printf("%,(.2f", 10000.0 / -3.0);
+// (3,333.33)
+```
+
+![](../images/java-047.jpg)
+
+
+
+可以使用静态的`String.format`方法可以创建一个格式化的字符串，而不打印输出：
+
+```java
+String message = String.format("Hello, %s. Next year, you'll be %d", name, age);
+```
+
+
+
+printf方法也有日期与时间的格式化选项，不过Date类已经被`java.time`包取代了。
+
+
+
+#### 文件输入与输出 🔖
 
 `Paths`
 
@@ -578,15 +745,37 @@ Scanner in = new Scanner(Paths.get("niyflle.txt"), "UTF-8");
 
 #### 块作用域
 
+块（即复合语句）是指由一对大括号括起来的若干条简单的Java语句。
+
+块确定了变量的作用域。
+
+一个块可以嵌套在另一个块中，但不能再嵌套的两个块中声明同名的变量。
+
 #### 条件语句
+
+
 
 #### 循环 while
 
+```java
+while (condition) statement
+  
+do statement while (condition);
+```
+
+
+
 #### 确定循环 for
+
+`for`语句的第1部分通常用于对**计数器初始化**；第2部分给出每次新一轮循环执行前要检测的**循环条件**；第3部分指示如何**更新计数器**。
+
+> 程序 LotteryOdds/LotteryOdds.java
 
 #### 多重选择 switch
 
-#### 中断
+
+
+#### 中断控制流程语句
 
 ```java
 
@@ -601,13 +790,12 @@ continue;
 
 ### 3.9 大数值
 
-`BigInteger`
+java.math中提供了两个可以处理任意长度数字序列的数值的类：
 
-`BigDecimal`
-
-任意长度
+`BigInteger`，`BigDecimal`， 它们不能使用常规的算术运算符（如：+、*等）。
 
 ```java
+// 返回值等于x的大整数
 BigInteger a = BigInteger.valueOf(100);
 BigInteger c = a.add(b);
 BigInteger d = c.multiply(b.add(BigInteger.valueOf(2)));  // d = c * (b + 2)
@@ -617,13 +805,15 @@ BigInteger d = c.multiply(b.add(BigInteger.valueOf(2)));  // d = c * (b + 2)
 
 
 
-### 3.10 数组
+### 3.10 数组 🔖
+
+数组用来存储同一类型值的集合。
 
 #### for each循环
 
 
 
-#### 数组初始化
+#### 数组初始化以及匿名数组
 
 ```java
 int[] a;
@@ -702,21 +892,31 @@ Arrays.sort(arr);
 
 ## 4.对象与类
 
-
-
 ### 4.1 面向对象程序设计概述
+
+面向对象的程序是由对象组成的，每个对象包含用户公开的特定功能部分和隐藏的实现部分。
+
+传统的结构化程序设计，算法第一，数据结构第二；而OOP将数据放第一，然后在考虑操作数据的算法。
+
+![](../images/java-048.jpg)
 
 #### 类
 
-由类**构造**(construct) 对象的过程称为创建类的**实例**(instance)。
+类（class）是构造对象的**模板或蓝图**。由类**构造**(construct) 对象的过程称为创建类的**实例**(instance)。
 
-**封装**（encapsulation，也称**数据隐藏**）
+**封装**（encapsulation，也称**数据隐藏**），形式上封装将数据和行为组合在一个包中，并对对象的使用者隐藏了数据的实现方式。
 
 对象中的数据称为**实例域（instance field）**， 操纵数据的过程 称为**方法**（method）。
 
+对于每个特定的**类实例（对象）**都有一组特定的实例域值，这些值的集合就是这个对象的当前**状态（state）**。
+
 通过扩展一个类来建立另外一个类的过程称为**继承 (inheritance)**。 
 
+
+
 #### 对象
+
+对象的三个特征：
 
 - **对象的行为 (behavior )**     可以对对象施加哪些操作，或可以对对象施加哪些方法? 
 
@@ -726,50 +926,92 @@ Arrays.sort(arr);
 
 对象状态的改变必须通过调用方法实现。
 
+对象的状态并不能完全描述一个对象，每个对象都有一个唯一的身份（identity）。
+
+
+
 #### 识别类
+
+学习OOP从设计类开始，然后再往每个类中添加方法。
 
 识别类的简单规则是在**分析问题的过程中寻找<font color=#FF8C00>名词</font>，而方法对应着<font color=#FF8C00>动词</font>**。
 
+> 例如：订单处理系统中，有一些名词：商品（Item）、订单（Order）、送货地址（Shipping address）、付款（Payment）、账户（Account）。
+
+
+
 #### 类之间的关系
 
-**依赖**（“users-a）
+1. **依赖**（“users-a“，dependence）
 
-**聚合**（”has-a“）
+如果一个类的方法操作另一个类的对象，就说一个类依赖于另一个类。
 
-**继承**（”is-a“）
+应该尽可能地将相互依赖的类减至最少（耦合度最小）。
 
-应该尽可能地将相互依赖的类减至最少(在软件工程中，就是让类之间的耦合度最小)。
+
+
+2. **聚合**（”has-a“，aggregation）
+
+聚合关系意味着类A的对象包含类B的对象。
+
+
+
+3. ** 继承**（”is-a“，inheritance）
+
+表示特殊与一般关系。
+
+![](../images/java-046.jpg)
+
+
 
 ### 4.2 使用预定义类
 
 #### 对象与对象变量
 
-构造器的名字应该与类名相同。
+**构造器（constructor）**是一种特殊的方法，用来构造并初始化对象。构造器的名字应该与类名相同。在构造器前面加上new操作符就可以构造一个对象：
+
+```java
+new Date();
+// 此处是Date类的特殊方法Date的实现，所以要加上括号
+```
 
 一个对象变量并没有实际包含一个对象，而仅仅引用一个对象。
 
+在Java中，任何对象变量的值都是怼存储在另外一个地方的一个对象的引用。new操作符的返回值也是一个引用。
+
+可以显式地将对象变量设置为null，表明这个对象变量目前没有引用任何对象。
+
+
+
 #### LocalDate
 
-类库设计者决定将**保存时间**与**给时间点命名**分开。所以标准 Java 类库分别包含了两个类: 一个是用来表示时间点的 **Date** 类(表示距离一个固定时间点UTC的毫秒数); 另一个是用来表示大家熟悉的日历表示法的 **LocalDate** 类。
+类库设计者决定将**保存时间**与**给时间点命名**分开。所以标准 Java 类库分别包含了两个类: 
 
+一个是用来表示时间点的 **Date** 类(表示距离一个固定时间点UTC的毫秒数); 
 
+另一个是用来表示大家熟悉的日历表示法的 **LocalDate** 类。
 
 ```java
-LocalDate.now(); 		// LocalDate不使用构造器，使用静态工厂方法
+// LocalDate不使用构造器，使用静态工厂方法
+LocalDate.now(); 		
 LocalDate newYearsEve = LocalDate.of(1999, 12, 31);
+
 int year = newYearEve.getYear();
 int month = newYearEve.getMonthValue();
 int day = newYearsEve.getDayOfMonth();
 
 // 距离当前对象指定天数的一个日期
-LocalDate aThousandDaysLater = newYearsEve.piusDays(1000): year = aThousandDaysLater.getYearO;	// 2002
+LocalDate aThousandDaysLater = newYearsEve.piusDays(1000): 
+year = aThousandDaysLater.getYearO;	// 2002
 month = aThousandDaysLater.getMonthValueO; 	// 09
 day = aThousandDaysLater.getDayOfMonth(); 	// 26
 ```
 
 > Date类也有getDay、getMonth等方法，但已经不推荐使用了。
 >
-> 当类库设计者意识到某个方法不应该存在时， 就把它标记为不鼓励使用（被加上@Deprecated注解）。
+> 当类库设计者意识到某个方法不应该存在时， 就把它标记为不鼓励使用（被加上**@Deprecated**注解）。
+
+
 
 #### 更改器方法与访问器方法
 
@@ -784,15 +1026,15 @@ month = someDay.get(Calendar.MONTH) + 1; // 09
 day = someDay.ge(t Ca1endar.DAY_0F_M0NTH); // 26
 ```
 
- GregorianCalendar.add 方法是一个**更改器方法 ( mutator method )** 。
+ GregorianCalendar.add 方法是一个**更改器方法 ( mutator method )** ，调用这个方法后，对象状态会改变。
 
 正因如此，将变量命名为 someDay 而不是 newYearsEve 调用这个更改 器方法之后， 它不再是新年前夜。
 
-相 反， 只访问对象而不修改对象的方法有时称为**访 问 器 方 法** 。例 如， LocalDate.getYear 和 GregorianCalendar.get 就是访问器方法。
+相 反， 只访问对象而不修改对象的方法有时称为**访问器方法（accessor method）** 。例 如， LocalDate.getYear 和 GregorianCalendar.get 就是访问器方法。
 
 >  C++：带有const后缀的方法是访问器方法，默认是更改器方法 。 
 >
->  Java： 访问器方法与更改器方法在语法上没有明显的区别。
+>  Java： 访问器方法与更改器方法在语法上**没有明显的区别**。
 
 ```java
 // 使用LocalDate来显示当前月的日历
@@ -829,6 +1071,13 @@ day = someDay.ge(t Ca1endar.DAY_0F_M0NTH); // 26
         }
     }
 ```
+
+```java
+// java.time.LocalDate
+
+```
+
+
 
 
 
@@ -926,7 +1175,7 @@ $ java EmployeeTest
 
    Java编译器会自动地搜索对应java类文件（Employee.java）。
 
-
+强烈建议将实例域都标记为private。
 
 #### 构造器
 
@@ -935,6 +1184,9 @@ $ java EmployeeTest
 - 构造器可以有 0 个、1 个或多个参数 
 - 构造器没有返回值 
 - 构造器总是伴随着 new 操作一起调用
+- 不要在构造器中定义与实例域重名的局部变量
+
+
 
 #### 隐式参数与显式参数
 
@@ -942,7 +1194,7 @@ $ java EmployeeTest
 
 #### 封装的优点
 
-
+🔖
 
 #### 基于类的访问权限
 
@@ -950,21 +1202,25 @@ $ java EmployeeTest
 
 #### 私有方法
 
+在实现一个类时，由于公有数据非常危险，所以应该所有的数据域都设置为私有的。
 
 
-#### **final实例域**
 
-构建对象时必须初始化这样的域。也就是说， 必须确保在每 一个构造器执行之后， 这个域的值被设置， 并且在后面的操作中， 不能够再对它进行修改。
+#### **final实例域**（常量）
+
+构建对象时必须初始化这样的域。也就是说，必须确保在每 一个构造器执行之后， 这个域的值被设置，并且在后面的操作中，不能够再对它进行修改。
 
 
 
 ### 4.4 静态域和静态方法
 
-#### 静态域
+#### 静态域（静态变量）
 
 ```java
 private static int nextld = 1;
 ```
+
+> 大多数OOP语言中，静态域也成为类域，”static“只是沿用了C++的叫法，并无实际意义。
 
 #### 静态常量
 
@@ -976,21 +1232,38 @@ public static final double PI = 3.14159265358979323846;
 
 不能向对象实施操作的方法。
 
+👇两种情况下使用静态方法：
+
+- 一个方法不需要访问对象状态，其所需参数都是通过显式参数提供（如：Math.pow）
+- 一个方法只需要访问类的静态域
+
+
+
 #### 工厂方法
 
 静态方法还有另外一种常见的用途。 类似 LocalDate 和 NumberFormat 的类使用静态工 厂方法 ( factory methocd） 来构造对象。 
+
+🔖
 
 
 
 #### main方法
 
+main方法也是一个静态方法，它不对任何对象进行操作。事实上，在启动程序是还没有任何一个对象。
+
+> 每一个类可以有一个main方法，常用于对类进行单元测试。
+
 
 
 ### 4.5 方法参数
 
-Java程序设计语言总是采用**按值调用**。
+Java程序设计语言总是采用**按值调用**（call by value），方法得到的是参数值的一个拷贝，方法不能修改传递给它的任何参数变量的内容。
+
+按**引用调用**（call by reference）表示方法接收的是调用者提供的变量地址。
 
 **方法得到的是对象引用的拷贝，对象引用以及其他的拷贝同时引用同一个对象。**
+
+🔖
 
 
 
@@ -1000,17 +1273,57 @@ Java程序设计语言总是采用**按值调用**。
 
 #### 重载(overloading)
 
-方法的签名（signature）
+一个类有多个构造器的特征叫做重载。Java中是可以重载任何方法。
+
+方法的签名（signature）：指出方法名和参数类型，能完整地描述一个方法。
+
+
 
 #### 默认域初始化（Default Field Initialization）
+
+如果在构造器中没有显示地给域赋予初始值，它们就会被自动赋予默认值：数值为0、布尔值为false、对象引用为null。（建议我们设计类是不要出现）
+
+> 域和局部变量的主要区别就是局部变量必须明确初始化。
 
 
 
 #### 无参数的构造器
 
+一个类没有编写构造器，系统会默认提供一个无参数构造器。
+
+如果类中至少有一个构造器，但是没有提供无参数的构造器，则在构造对象时如果没有提供参数就会被视为不合法。
+
 
 
 #### 显式域初始化
+
+确保不管怎样调用构造器，每个实例域都可以被设置为一个有意义的初始值，这是一个很好的设计习惯。
+
+可以在类定义中个，直接将一个值赋给任何域：
+
+```java
+class Employee
+{
+  private String name = "";
+}
+
+```
+
+当一个类的所有构造器都希望把相同的值赋予某个特定的实例域，可以像上面那样在执行构造器之前，先执行赋值操作。
+
+初始值不一定是常量值，也可以调用方法：
+
+```java
+class Employee
+{
+  private int id = assignId();
+  
+  private static int assignId()
+  {
+    
+  }
+}
+```
 
 
 
@@ -1024,7 +1337,13 @@ Java程序设计语言总是采用**按值调用**。
 
 
 
-#### 初始化块
+#### 初始化块(intialization block)
+
+三种初始化数据域的方法：
+
+1. 在构造器中设置
+2. 在声明中赋值
+3. 初始化块
 
 首先运行初始化块， 然后才运行构造器的主体部分。
 
@@ -1038,6 +1357,8 @@ Java程序设计语言总是采用**按值调用**。
 
 ### 4.7 包
 
+所有标准的Java包都处于java和javax包层次中。
+
 使用包的主要原因是**确保类名的唯一性**。
 
 从编译器的角度来看，嵌套的包之间没有任何关系。
@@ -1046,7 +1367,7 @@ Java程序设计语言总是采用**按值调用**。
 
 <font color=#FF8C00>**一个类可以使用所属包中的所有类，以及其他包中的公有类。**</font>
 
-
+import
 
 #### **静态导入**
 
@@ -1065,9 +1386,11 @@ exit(0); //i.e., System.exit
 
 #### 将类放入包中
 
+`package`
+
 将包中的文件放到与完整的包名匹配的子目录中。
 
-
+> 🔖 PackageTest/
 
 #### 包作用域
 
@@ -1083,21 +1406,39 @@ JAR 文件使用 **ZIP 格式组织文件和子目录**。可以使用所有ZIP�
 
 #### 设置类路径
 
-`java -classpath /home/user/dassdir:.:/home/user/archives/archive.jar HyProg`
+```shell
+java -classpath /home/user/dassdir:.:/home/user/archives/archive.jar HyProg
+```
 
-### 4.9 文档注释 🔖
+
+
+
+
+### 4.9 文档注释 
 
 由于文档注释与源代码在同一个文件中， 在修改源代码的同时， 重新运 行 javadoc 就可以轻而易举地保持两者的一致性。
 
 #### 注释的插入
 
+*自由格式文本（free-form text）*：第一句是概要性的句子；可以用使用HTML；等宽代码使用`{@code ...}`
+
+*@ *
+
 
 
 #### 类注释
 
+没有必要每一行开始用星号。
+
 
 
 #### 方法注释
+
+@param
+
+@return
+
+@throws
 
 
 
@@ -1107,13 +1448,25 @@ JAR 文件使用 **ZIP 格式组织文件和子目录**。可以使用所有ZIP�
 
 #### 通用注释
 
+@author
+
+@version
+
+@since
+
+@deprecated
+
+@see
+
+
+
 `@see com.andyron.com.corejava.Employee#raiseSalary(double)`
 
 
 
 #### 包与概述注释
 
-包注释需要在每个包目录中添加一个单独的文件。
+包注释需要在每个包目录中添加一个单独的文件（`package.html`或`package-info.java`）。
 
 
 
@@ -1133,9 +1486,13 @@ JAR 文件使用 **ZIP 格式组织文件和子目录**。可以使用所有ZIP�
 
 
 
-
-
 ## 5 继承
+
+面向对象三个基本特征：封装、继承、多态。
+
+继承已存在的类是复用（继承）这些类的方法和域。
+
+**反射（reflection）**是指在程序运行期间发现更多的类及其属性的能力，在开发软件工具时应用较多。
 
 
 
@@ -1143,27 +1500,88 @@ JAR 文件使用 **ZIP 格式组织文件和子目录**。可以使用所有ZIP�
 
 #### 定义子类
 
+超类（superclass）也叫基类（base class）、父类（parent class）；
+
+子类（subclass）也叫派生类（derived class）、孩子类（child class）。
+
 子类比超类拥有的功能更加丰富。
 
-应该将通用的方法放在超类中，将具有特殊用途的方法放在子类中。
+设计类时，应该将通用的方法放在超类中，将具有特殊用途的方法放在子类中。
+
+
 
 #### 重写（override）方法
 
+```java
+@Override
+public double getSalary() {
+  return super.geSalary() + bonus;
+}
+```
 
-
-super不是一个对象的引用，不能将其赋给另一个对象变量，它只是一个指示编译器调用超类方法的**特殊关键字**。
+`super`不是一个对象的引用（与`this`不是类似的概念），不能将其赋给另一个对象变量，它只是一个指示编译器调用超类方法的**特殊关键字**。
 
 
 
 #### 子类构造器
 
+```java
+public Manager(String name, double salary, int year, int month, int day) {
+        super(name, salary, year, month, day);
+        bonus = 0;
+    }
+```
+
+由于Manager类的构造器不能访问Employee类的私有域，所以必须利用Employee类的构造器对这部分私有域进行初始化；通过`super`实现对超类构造器的调用，而且它必须是子类构造器的第一条语句。
+
+如果子类构造器没有显式调用超类构造器，则将自动地抵用超类默认（没有参数）的构造器；如果超类没有默认构造器，编译器就会报错。
+
+> `this`用途：
+>
+> 1. 引用隐式参数
+> 2. 调用该类其他的构造器
+>
+> `super`用途：
+>
+> 1. 调用超类的方法
+> 2. 调用超类的构造器
+
+```java
+Manager boss = new Manager("Jack Ma", 100000000, 1965, 8,18);
+        boss.setBonus(50000);
+
+        Employee[] staff = new Employee[3];
+
+        staff[0] = boss;
+        staff[1] = new Employee("Pony Ma", 55000, 1993, 11,2);
+        staff[2] = new Employee("Robin Li", 25000, 1994, 4,12);
+
+        for (Employee e: staff) {
+            System.out.println("name=" + e.getName() + ", salary=" + e.getSalary());
+        }
+```
+
+一个对象变量（如，上面的e）可以指示多种实际类型的现象称为**多态（polymorphism）**；在运行时能够自动选择调用哪个方法的现象称为**动态绑定（dynamic binding）**。
+
 
 
 #### 继承层次
 
+由一个公共超类派生出来的所有类的集合被称为**继承层次（inheritance hierarchy）**；从某个特定的类到期祖先的路径被称为**继承链（inheritance chain）**。
+
 
 
 #### 多态
+
+```java
+Employee e;
+e = new Employee(...);
+e = new Manager(...);
+```
+
+在Java中，对象变量是多态的；一个Employee变量既可以引用一个Employee类对象，也可以引用一个Employee类的任何一个子类对象。
+
+`ArrayStoreException`🔖
 
 
 
@@ -1172,6 +1590,14 @@ super不是一个对象的引用，不能将其赋给另一个对象变量，它
 
 
 #### 阻止继承：final类和方法
+
+**final类**：不允许扩展的类。final类中的方法自动地成为final方法，但不包括域。
+
+**final方法**：子类不能覆盖的方法。
+
+**final域**：构造对象之后就不允许改变。
+
+方法和类声明为final的主要目的：确保它们不会在子类中改变语义。
 
 
 
@@ -1217,7 +1643,7 @@ Objects.equals
 
 
 
-#### toString()
+#### toString()方法
 
 
 

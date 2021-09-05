@@ -18,15 +18,21 @@ public class EmployeeTest {
 
         for (Employee e: staff) {
             System.out.println("name=" + e.getName() + ", salary=" + e.getSalary() + ", hireDay=" + e.getHireDay());
-            System.out.printf()
         }
 
     }
 }
 
 class Employee {
+
     private String name;
+    /**
+     * 薪水
+     */
     private double salary;
+    /**
+     * 上岗时间
+     */
     private LocalDate hireDay;
 
     public Employee(String n, double s, int year, int month, int day) {

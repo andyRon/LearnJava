@@ -2,21 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="95635e07-0f4b-47d2-8566-c1994062c0c3" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../../v2ch02/randomAccess/src/randomAccess/Employee.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../v2ch02/randomAccess/src/randomAccess/RandomAccessTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../v2ch04/mail/src/mail/MailTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../v2ch04/socket/src/SocketTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../CoreJava1.md" beforeDir="false" afterPath="$PROJECT_DIR$/../../CoreJava1.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../CoreJava2.md" beforeDir="false" afterPath="$PROJECT_DIR$/../../CoreJava2.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FirstSample.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/FirstSample.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../MyArray/src/MyArray.java" beforeDir="false" afterPath="$PROJECT_DIR$/../MyArray/src/MyArray.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../Eclipse教程/Eclipse教程.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../IntelliJ IDEA.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../Nginx/Nginx.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../../../README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../Redis/Redis.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../more/MySQLCrashCourse.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../../../../README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../more/MVN/Maven.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../more/MVN/project/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../more/MVN/project/target/maven-archiver/pom.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../../more/MVN/project/target/project-1.0.jar" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +21,7 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../../.." />
   </component>
   <component name="ProjectId" id="1XiDoyo63Rv79USYa1T7uEY2st8" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -45,6 +35,9 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
   </component>
   <component name="RunManager">
     <configuration name="FirstSample" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
@@ -72,6 +65,7 @@
       <updated>1581520199644</updated>
       <workItem from="1581520203819" duration="149000" />
       <workItem from="1582338870239" duration="1020000" />
+      <workItem from="1630650401108" duration="3610000" />
     </task>
     <servers />
   </component>
@@ -79,29 +73,33 @@
     <option name="version" value="1" />
   </component>
   <component name="WindowStateProjectService">
-    <state width="1238" height="70" key="GridCell.Tab.0.bottom" timestamp="1582340892591">
+    <state width="1238" height="69" key="GridCell.Tab.0.bottom" timestamp="1630655615244">
       <screen x="0" y="0" width="1280" height="800" />
     </state>
-    <state width="1238" height="70" key="GridCell.Tab.0.bottom/0.0.1280.800/-1920.-676.1920.1057@0.0.1280.800" timestamp="1582340892591" />
-    <state width="1238" height="70" key="GridCell.Tab.0.bottom/0.0.1280.800/-1920.-699.1920.1080@0.0.1280.800" timestamp="1582339328345" />
-    <state width="1238" height="70" key="GridCell.Tab.0.center" timestamp="1582340892588">
+    <state width="1238" height="69" key="GridCell.Tab.0.bottom/0.0.1280.800@0.0.1280.800" timestamp="1630655615244" />
+    <state width="1238" height="69" key="GridCell.Tab.0.center" timestamp="1630655615243">
       <screen x="0" y="0" width="1280" height="800" />
     </state>
-    <state width="1238" height="70" key="GridCell.Tab.0.center/0.0.1280.800/-1920.-676.1920.1057@0.0.1280.800" timestamp="1582340892588" />
-    <state width="1238" height="70" key="GridCell.Tab.0.center/0.0.1280.800/-1920.-699.1920.1080@0.0.1280.800" timestamp="1582339328342" />
-    <state width="1238" height="70" key="GridCell.Tab.0.left" timestamp="1582340892587">
+    <state width="1238" height="69" key="GridCell.Tab.0.center/0.0.1280.800@0.0.1280.800" timestamp="1630655615243" />
+    <state width="1238" height="69" key="GridCell.Tab.0.left" timestamp="1630655615242">
       <screen x="0" y="0" width="1280" height="800" />
     </state>
-    <state width="1238" height="70" key="GridCell.Tab.0.left/0.0.1280.800/-1920.-676.1920.1057@0.0.1280.800" timestamp="1582340892587" />
-    <state width="1238" height="70" key="GridCell.Tab.0.left/0.0.1280.800/-1920.-699.1920.1080@0.0.1280.800" timestamp="1582339328341" />
-    <state width="1238" height="70" key="GridCell.Tab.0.right" timestamp="1582340892589">
+    <state width="1238" height="69" key="GridCell.Tab.0.left/0.0.1280.800@0.0.1280.800" timestamp="1630655615242" />
+    <state width="1238" height="69" key="GridCell.Tab.0.right" timestamp="1630655615243">
       <screen x="0" y="0" width="1280" height="800" />
     </state>
-    <state width="1238" height="70" key="GridCell.Tab.0.right/0.0.1280.800/-1920.-676.1920.1057@0.0.1280.800" timestamp="1582340892589" />
-    <state width="1238" height="70" key="GridCell.Tab.0.right/0.0.1280.800/-1920.-699.1920.1080@0.0.1280.800" timestamp="1582339328343" />
-    <state x="17" y="22" key="new project wizard" timestamp="1581520350326">
+    <state width="1238" height="69" key="GridCell.Tab.0.right/0.0.1280.800@0.0.1280.800" timestamp="1630655615243" />
+    <state x="128" y="0" key="SettingsEditor" timestamp="1630652937662">
       <screen x="0" y="0" width="1280" height="800" />
     </state>
-    <state x="17" y="22" key="new project wizard/0.0.1280.800/-1920.-699.1920.1080@0.0.1280.800" timestamp="1581520350326" />
+    <state x="128" y="0" key="SettingsEditor/0.0.1280.800@0.0.1280.800" timestamp="1630652937662" />
+    <state x="426" y="321" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1630652916538">
+      <screen x="0" y="0" width="1280" height="800" />
+    </state>
+    <state x="426" y="321" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1280.800@0.0.1280.800" timestamp="1630652916538" />
+    <state x="43" y="101" key="new project wizard" timestamp="1630654914790">
+      <screen x="0" y="0" width="1280" height="800" />
+    </state>
+    <state x="43" y="101" key="new project wizard/0.0.1280.800@0.0.1280.800" timestamp="1630654914790" />
   </component>
 </project>
