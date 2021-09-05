@@ -63,7 +63,7 @@ http://horstmann.com/corejava
 
 ### 2.1 安装Java开发工具包
 
-![](../images/java-043.jpg)
+![](../../images/java-043.jpg)
 
 #### 下载JDK
 
@@ -179,7 +179,7 @@ Java共有8中基本类型，其中4种整型：`int`，`short`，`long`，`byte
 
 在Java中，整型的范围与运行的机器无关；没有无符号类型。
 
-![](../images/java-044.jpg)
+![](../../images/java-044.jpg)
 
 ```java
 400000000000L;
@@ -194,7 +194,7 @@ Java共有8中基本类型，其中4种整型：`int`，`short`，`long`，`byte
 
 #### 浮点数
 
-![](../images/java-045.jpg)
+![](../../images/java-045.jpg)
 
 三个特殊浮点数（实际应用中很少遇到）：
 
@@ -318,7 +318,7 @@ Math.E
 
 #### 数值类型之间的转换
 
-![](../images/java-036.jpg)
+![](../../images/java-036.jpg)
 
 实心箭头表示无信息丢失，虚箭头表示可能有精度损失。如int包含的位数就比float多：
 
@@ -393,7 +393,7 @@ condition ? expression1 : expression2
 
 #### 括号与运算符级别
 
-![](../images/java-037.jpg)
+![](../../images/java-037.jpg)
 
 #### 枚举类型
 
@@ -700,7 +700,7 @@ System.out.printf("%8.2f", 10000.0 / 3.0);
 // 3333.33
 ```
 
-![](../images/java-038.jpg)
+![](../../images/java-038.jpg)
 
 ```java
 System.out.printf("%,.2f", 10000.0 / 3.0);
@@ -711,7 +711,7 @@ System.out.printf("%,(.2f", 10000.0 / -3.0);
 // (3,333.33)
 ```
 
-![](../images/java-047.jpg)
+![](../../images/java-047.jpg)
 
 
 
@@ -836,7 +836,7 @@ intQ luckyNumbers = smallPrimes;
 1uckyNumbers[5] = 12;  // now smallPrimes[5] is also 12
 ```
 
-![](../images/java-039.jpg)
+![](../../images/java-039.jpg)
 
 将 一个数组的所有值拷贝到一个新的数组中去：
 
@@ -898,7 +898,7 @@ Arrays.sort(arr);
 
 传统的结构化程序设计，算法第一，数据结构第二；而OOP将数据放第一，然后在考虑操作数据的算法。
 
-![](../images/java-048.jpg)
+![](../../images/java-048.jpg)
 
 #### 类
 
@@ -960,7 +960,7 @@ Arrays.sort(arr);
 
 表示特殊与一般关系。
 
-![](../images/java-046.jpg)
+![](../../images/java-046.jpg)
 
 
 
@@ -1880,7 +1880,7 @@ clone方法是 Object 的一个 protected 方法。
 
 **浅拷贝**：没有克隆对象中引用的其他对象。默认拷贝是浅拷贝，还会共享信息。
 
-![浅拷贝](../images/java-032.jpg)
+![浅拷贝](../../images/java-032.jpg)
 
 `Cloneable`   
 
@@ -2047,7 +2047,7 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 #### 异常分类
 
-![](../images/java-028.jpg)
+![](../../images/java-028.jpg)
 
 
 
@@ -2508,7 +2508,7 @@ Object口 toArray()
 
 #### 集合框架中的接口
 
-![集合框架中的接口](../images/java-021.jpg)
+![集合框架中的接口](../../images/java-021.jpg)
 
 两个基本接口 `Collection`  `Map`
 
@@ -2520,11 +2520,11 @@ Object口 toArray()
 
 ### 9.2 具体的集合
 
-![](../images/java-022.jpg)
+![](../../images/java-022.jpg)
 
 集合框架中的类：
 
-![集合框架中的类](../images/java-023.jpg)
+![集合框架中的类](../../images/java-023.jpg)
 
 
 
@@ -2568,7 +2568,7 @@ ListIterator<String> iter = staff.listlterator(); iter.next();// skip past first
 iter.add("Juliet") ;
 ```
 
-![将一个元素添加到链表中](../images/java-033.jpg)
+![将一个元素添加到链表中](../../images/java-033.jpg)
 
 
 
@@ -2690,7 +2690,7 @@ IdentityHashMap
 
 ### 9.6 遗留的集合
 
-![](../images/java-024.jpg)
+![](../../images/java-024.jpg)
 
 #### Hashtable类
 
@@ -2779,7 +2779,7 @@ static Thread currentThread()
 - Timed waiting (计时等待)
 - Terminated (被终止)
 
-![线程状态](../images/java-034.jpg)
+![线程状态](../../images/java-034.jpg)
 
 #### 新创建线程
 

@@ -393,7 +393,7 @@ void flush()
 
 输入流与输出流的层次结构：
 
-![输入流与输出流的层次结构](../images/java-029.jpg)
+![输入流与输出流的层次结构](../../images/java-029.jpg)
 
 `InputStream`和`OutputStream`用于读写单个字节或字节数组。
 
@@ -403,13 +403,13 @@ void flush()
 
 Reader和Writer的层次结构：
 
-![Reader和Writer的层次结构](../images/java-030.jpg)
+![Reader和Writer的层次结构](../../images/java-030.jpg)
 
 
 
 Closeable,Flushable,Readable,Appendable接口：
 
-![Closeable,Flushable,Readable,Appendable接口](../images/java-031.jpg)
+![Closeable,Flushable,Readable,Appendable接口](../../images/java-031.jpg)
 
 #### 组合输入/输入流过滤器
 
@@ -912,7 +912,7 @@ JDBC
 
 传统方式：
 
-![](../images/java-041.jpg)
+![](../../images/java-041.jpg)
 
 三层模式：客户端不直接调用数据库，而是调用服务器上的**中间体层**，由中间体层完成查询数据库查询操作。
 
@@ -920,7 +920,7 @@ JDBC
 
 达到的效果：可以从不同的客户端（Java桌面应用、浏览器或移动APP等）来访问相同的数据和相同的业务规则。
 
-![](../images/java-042.jpg)
+![](../../images/java-042.jpg)
 
 
 
@@ -978,7 +978,7 @@ https://www.runoob.com/java/java-mysql-connect.html
 
 
 
-![SQL异常类型](../images/java-040.jpg)
+![SQL异常类型](../../images/java-040.jpg)
 
 
 
