@@ -35,17 +35,32 @@ public class Employee {
         salary += raise;
     }
 
-
+    @Override
     public  boolean equals(Object otherObject) {
 
-        if (this == otherObject) return true;
+        if (this == otherObject) { return true; }
 
-        if (otherObject == null) return false;
+        if (otherObject == null) { return false; }
 
-        if (getClass() != otherObject.getClass()) return false;
+        if (getClass() != otherObject.getClass()) { return false; }
 
         Employee other = (Employee) otherObject;
 
-        return Objects.equals(name, other.name) && salary == other.salary && Objects.equals(hireDay, other.hireDay);
+        return Objects.equals(name, other.name)
+                && salary == other.salary
+                && Objects.equals(hireDay, other.hireDay);
+    }
+
+    public int hasCode() {
+        return Objects.hash(name, salary, hireDay);
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getName()
+                + "[name=]" + name
+                + ",salary=]" + salary
+                + ",hireDay=" + hireDay
+                + "]";
     }
 }

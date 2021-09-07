@@ -4,6 +4,10 @@ package abstractClasses;
  * @author Andy Ron
  */
 public abstract class Person {
+    /**
+     *
+     * @return
+     */
     public abstract String getDescription();
 
     private String name;

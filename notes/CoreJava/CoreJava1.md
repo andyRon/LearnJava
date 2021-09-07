@@ -1212,6 +1212,26 @@ $ java EmployeeTest
 
 
 
+> final修饰的方法，不允许被子类覆盖（重写）。
+>
+> final修饰的类，不能被继承。
+>
+> final修饰的变量，不能改变值，等同于常量。
+>
+> final修饰的引用类型，不能再指向别的东西，但是可以改变其中的内容。
+>
+>  final 不能修饰抽象类。
+>
+> final修饰的成员变量在赋值时可以有三种方式：
+>
+> 1、在声明时直接赋值。
+>
+> 2、在构造器中赋值。
+>
+> 3、在初始代码块中进行赋值。
+
+
+
 ### 4.4 静态域和静态方法
 
 #### 静态域（静态变量）
@@ -1603,51 +1623,214 @@ e = new Manager(...);
 
 #### 强制类型转换
 
-`ClassCastException`
+基本类型转换：
 
-`instanceof`
+```java
+double x = 3.405;
+int nx = (int) x;
+```
+
+对象引用转换：
+
+```java
+Manager boss = (Manager) staff[0];
+```
+
+将一个子类的引用赋给一个超类变量，编译器是允许的；但讲一个超类的引用赋给一个子类变量，必须进行类型转换，这样才能通过运行时的检查。如果转换失败，就会产生`ClassCastException` 异常。
+
+为了避免出现上面的异常，转换前通过`instanceof`操作符进行判断一下：
+
+```java
+if (staff[1] instanceof Manager) {
+  ...
+}
+```
 
 
 
 #### 抽象类
 
+在继承层次结构中，位于上层的类更具有通用性、更加抽象。
+
+为了提高程序的清晰度，包含一个或多个抽象方法的类本身必须被声明为抽象的：
+
+```java
+public abstract class Person {
+  public abstract String getDescription();
+}
+```
+
+除了抽象方法之外，抽象类还可以包含具体数据和具体方法。
+
+抽象类不能被实例化。
+
+注意，可以定义一个抽象类的额对象变量，但是它只能引用非抽象子类的对象：
+
+```java
+Person p = new Student("Andy Ron", "Programmer");
+```
+
 
 
 #### 受保护访问
 
-`protected`
+`private`，仅对本类可见。
 
+`protected`，对本包和所有子类可见。
 
+`public`，对所有类可见。
 
-
+没有修饰符（默认情况），对本包可见。
 
 
 
 ### 5.2 Object：所有类的超类
 
+在Java中每个类都是由Object扩展来的。Java中只有基本数据类型不是对象。所有数组类型，不管是对象数组还是基本类型的数组都扩展了Object类。
 
 
-#### equals 方法  🔖
+
+#### equals 方法  
+
+检测一个对象是否等于另外一个对象（判断两个对象是否具有相同的引用）。
+
+多数情况下，判断引用是否相等没有什么意义。如果两个对象的状态相等，就认为这两个对象时相等。
 
 ```java
-Objects.equals
+public class Employee {
+  public boolean equals(Object otherObject) {
+    if (this == otherObject) return ture;
+    
+    if (otherObject == null) return false;
+    
+    if (getClass() != otherObject.getClass()) return flase;
+    
+    Employee other = (Employee) otherObject;
+    
+    // return name.equals(other.name) && salary == other.salary && hireDay.equals(other.hireDay);
+    return Objects.equals(name, other.name) && salary == other.salary && Objects.equals(hireDay, other.hireDay);
+  }
+}
 ```
+
+为了防止name、hireDay为null的情况，改用`Objects.equals`方法，如果两个参数都为null，结果为true；如果一个为null，结果为false；如果两个参数都不为null，则调用a.equals(b)。
 
 
 
 #### 相等测试与继承
 
+Java语言规范要求equals方法具有的特性：
+
+1. 自反性
+2. 对称性
+3. 传递性
+4. 一致性
+5. 对于任意非空引用x，x.equals(null)应该返回false。
+
+
+
+`AbstractSet.equals`并没有被声明为final，这样可以让子类选择更加有效的算法对集合进行是否相等的检查。
+
+🔖
+
 
 
 #### hashCode方法
+
+散列码（hash code）是由对象导出的一个整型值。
+
+```java
+String s = "Ok";
+        StringBuilder sb = new StringBuilder(s);
+        System.out.println(s.hashCode() + " " + sb.hashCode());
+        String t = new String("Ok");
+        StringBuilder tb = new StringBuilder(t);
+        System.out.println(t.hashCode() + " " + tb.hashCode());
+```
+
+结果是s和t的散列码相同，因为字符串的散列码是由内容导出的；
+
+sb和tb的散列码不同，因为StringBuilder类中没有定义hashCode方法，它的的散列码是有Object类的默认hashCode方法导出的**对象存储地址**。
+
+可以重新定义hashCode方法。🔖
 
 
 
 #### toString()方法
 
+用于返回表示对象值的字符串。一般格式都是：类的名字，随后是一对方括号括起来的域值。如Point类的toString方法返回字符串：
+
+```java
+java.awt.Point[x=10,y=20]
+```
+
+自定义类中的实现如：
+
+```java
+public String toString() {
+  return getClass().getName()
+    + "[name=]" + name
+    + ",salary=]" + salary
+    + ",hireDay=" + hireDay
+    + "]";
+}
+```
+
+子类中只需要先调用一下`super.toString()`即可。
+
+下面情况都会直接调用toString()方法：
+
+```java
+Point p = new Point(10, 20);
+String message = "The current position is " + p;
+
+System.out.println(p);
+```
 
 
-### 5.3  泛型数组列表ArrayList
+
+`Object`定义了toString方法，返回的是对象所属类名和散列码，如
+
+```java
+System.out.println(System.out);
+```
+
+结果为：
+
+```java
+java.io.PrintStream@38af3868
+```
+
+这是因为`PrintStream`类的设计者没有覆盖toString方法。
+
+
+
+数组也继承了Object类的toString方法，因此要使用静态方法`Arrays.toString()`，如果要打印多维数组，就要`Arrays.deepToString()`：
+
+```java
+int[] luckyNumbers = {2, 3, 5, 9, 11};
+System.out.println(luckyNumbers);
+System.out.println(Arrays.toString(luckyNumbers));
+```
+
+```
+[I@38af3868
+[2, 3, 5, 9, 11]
+```
+
+`[I`表示整型数组。
+
+
+
+toString方法是一种非常有用的调试工具。在标准类库中，许多类都定义了。**强烈建议为自定义的每个类添加toString方法**。
+
+
+
+> Code: equals 🔖
+
+
+
+### 5.3  泛型数组列表ArrayList🔖
 
 
 
@@ -1661,7 +1844,9 @@ Objects.equals
 
 ### 5.4 对象包装器与自动装箱
 
+有时需要将基本类型转换对象。所有基本类型都有一个与之对应的类，如Integer、Long、Float、Double、Short、Byte、Character、Void、BOOlean，这些类称为**包装器（wrapper）**。
 
+🔖
 
 
 
@@ -1675,15 +1860,17 @@ public class PrintStream {}
 }
 ```
 
-这里的省略号 . . . 是 Java 代码的一部分， 它表明这个方法可以接收任意数量的对象 (除 fmt 参数之外 )。
+这里的省略号 `. . .` 是 Java 代码的一部分， 它表明这个方法可以接收任意数量的对象 (除 fmt 参数之外 )。
 
 
 
 ### 5.6 枚举类
 
+🔖
 
 
-### 5.7 反射
+
+### 5.7 反射 🔖
 
 **反射库**(reflection library，`java.lang.reflect.*`) 提供了一个非常丰富且精心设计的工具集， 以便编写能够动态操纵 Java 代码的程序。
 
@@ -1736,6 +1923,8 @@ Object m = Class.forName(s).newlnstance();
 
 #### 捕获异常
 
+抛出异常比终止程序要灵活得多，这是因为可以提供一个“捕获”异常的**处理器（handler）**对异常情况进行处理。
+
 
 
 #### 利用反射分析类
@@ -1758,15 +1947,25 @@ Object m = Class.forName(s).newlnstance();
 
 
 
+> Code: reflection
+
 #### 在运行时使用反射分析对象
 
 
+
+> Code: objectAnalyzer
 
 #### 使用反射编写泛型数组代码
 
 
 
+> Code: arrays
+
+
+
 #### 调用任意方法
+
+> Code: methods
 
 
 
@@ -1784,9 +1983,11 @@ Object m = Class.forName(s).newlnstance();
 
 ## 6.接口、lambda表达式与内部类
 
-接口是用来描述类**具有**什么功能。
+接口是用来描述类**具有**什么功能，并不给出每个功能的具体实现。
 
 lambda表达式是一种表示可以在将来某个时间点执行的代码块的简洁方法。
+
+
 
 ### 6.1 接口（interface）
 
@@ -1850,17 +2051,33 @@ public interface Powered extends Moveable {
 
 **接口中的方法和常量不需要加任何修饰符号。**
 
+
+
 #### 接口与抽象类
 
 接口可以提供多重继承的大多数好处， 同时还能避免多重继承的复杂性和低效性。
 
+
+
 #### 静态方法
 
-标准库中，成对的接口和实用工具类，如Collection/Collections、Path/Paths。
+接口中增加静态方法理论上是可以，但这有违于将接口作为抽象规范的初衷。通常的做法都是将静态方法放在伴随类中，列如，标准库中，成对的接口和实用工具类，如Collection/Collections、Path/Paths。
+
+
 
 #### 默认方法
 
 可以为接口方法提供一个默认实现。需要`default`修饰符。
+
+```java
+public interface Comparable<T> {
+  default int compareTo(T other) { return 0; }
+}
+```
+
+大部分时候这种默认实现没有多大用，因为每个具体实现时都会覆盖这个方法。
+
+
 
 #### 解决默认方法冲突
 
@@ -1869,6 +2086,10 @@ public interface Powered extends Moveable {
 ### 6.2 接口实例
 
 #### 接口与回调
+
+**回调（callback）**
+
+
 
 #### Comparator接口
 
@@ -1885,6 +2106,10 @@ clone方法是 Object 的一个 protected 方法。
 `Cloneable`   
 
 重写clone方法实现深拷贝。
+
+> Code: clone
+
+
 
 ### 6.3 lambda表达式
 
@@ -1986,6 +2211,8 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 内部类既可以访问自身的数据域， 也 可以访问创建它的外围类对象的数据域。
 
+
+
 #### 内部类的特殊语法规则
 
 
@@ -1996,9 +2223,13 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 #### 局部内部类
 
-在某个代码块中。
+局部类不能用public或private访问说明符进行声明，它的作用域限定在声明这个局部类的块中。
+
+
 
 #### 由外部方法访问变量
+
+
 
 #### 匿名内部类
 
@@ -2049,6 +2280,28 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 ![](../../images/java-028.jpg)
 
+`Error`描述Java运行时系统的内部错误和资源耗尽错误。应用程序不应该抛出这种类型的对象。
+
+`Exception`包含两个分支：`RuntimeException`；其它异常。
+
+由程序错误导致的异常属于`RuntimeException`；而程序本身没问题，由于像I/O错误这类问题导致的异常属于其它异常。
+
+`RuntimeException`包含：
+
+1. 错误的类型转换
+2. 数组访问越界
+3. 访问null指针
+
+其它异常包含：
+
+1. 试图在文件尾部后面读取数据
+2. 试图打开一个不存在的文件
+3. 试图根据给定的字符串查找Class对象，而这个字符串表示的类并不存在
+
+> "如果出现RuntimeException异常，那么一定是你的问题了。"
+
+派生于Error类或RuntimeException类的所有异常称为**非受查（unchecked）异常**，所有其他异常称为**受查（checked）异常**。
+
 
 
 #### 声明受查异常
@@ -2057,7 +2310,7 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 #### 如何抛出异常
 
-EOFException异常描述的是“在输入过程中，遇到了一个未预期的EOF后的信号”。
+`EOFException`异常描述的是“在输入过程中，遇到了一个未预期的EOF后的信号”。
 
 
 
@@ -2087,6 +2340,8 @@ EOFException异常描述的是“在输入过程中，遇到了一个未预期�
 
 不管是否有异常被捕获， finally 子句中的代码都被执行。 
 
+
+
 #### 带资源的 try 语句
 
 ```java
@@ -2099,7 +2354,9 @@ try (Resource res = ...) {
 
 #### 分析堆栈轨迹元素
 
-**堆栈轨迹（stack trace）**
+**堆栈轨迹（stack trace）**是一个方法调用过程的列表，它包含了程序执行过程中方法调用的特定位置。
+
+
 
 ### 7.3 使用异常机制的技巧
 
@@ -2118,11 +2375,42 @@ try (Resource res = ...) {
 
 
 
+#### 启用和禁用断言
+
+
+
+#### 使用断言完成参数检查
+
+Java中的3中处理系统错误的机制：
+
+1. 抛出异常
+2. 日志
+3. 使用断言
+
+什么时候使用断言：
+
+- 断言失败是致命的、不可恢复的错误
+- 断言检查只用于开发和测试阶段
+
+
+
+#### 为文档假设使用断言
+
+
+
+
+
 ### 7.5 记录日志
 
 
 
 #### 基本日志
+
+全局日志记录器（global logger）：
+
+```java
+Logger.getGloal().info("File->Open menu item selected");
+```
 
 
 
@@ -2140,6 +2428,10 @@ try (Resource res = ...) {
 
 #### 处理器
 
+`ConsoleHandler`
+
+`System.err`
+
 
 
 #### 过滤器
@@ -2154,7 +2446,7 @@ try (Resource res = ...) {
 
 
 
-
+> code: logging
 
 ### 7.6 调试技巧
 
@@ -2207,7 +2499,9 @@ ArrayList<String> files = new ArrayList<String>();
 ArrayList<String> files = new ArrayList<>();
 ```
 
-#### 谁想成为泛型程序员🔖
+
+
+#### 谁想成为泛型程序员
 
 一个泛型程序员的任务就是**预测出所有类的未来可能有的所有用途**。
 
@@ -2713,6 +3007,8 @@ IdentityHashMap
 
 
 
+
+------
 
 
 
