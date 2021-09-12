@@ -5,11 +5,13 @@ import java.lang.reflect.*;
 import java.util.*;
 
 /**
+ * 5.7 用反射打印出一个类的容貌
  * @author Andy Ron
  */
 public class ReflectionTest {
     public static void main(String[] args) {
 
+        // 类完整名称，包括包名
         String name;
         if (args.length > 0) {
             name = args[0];
@@ -112,5 +114,7 @@ public class ReflectionTest {
             }
             System.out.println(type.getName() + " " + name + ";");
         }
+
+
     }
 }

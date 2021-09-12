@@ -69,6 +69,16 @@ http://horstmann.com/corejava
 
 Mac中JDK安装位置一般为：`/Library/Java/JavaVirtualMachines/jdk-13.0.2.jdk/Contents/Home/`
 
+它包一些目录：
+
+`bin/`
+
+`include/`，Java本身是C++编写，这个目录包含了一些C语言文件
+
+`jre/`，Java运行环境，包含各种jar包。`jre/lib/rt.jar`是java的核心jar包，可以解压查看到标准库编译后的各种`.class`文件，`src.zip`是与其对应的`.java`文件。
+
+
+
 #### 设置JDK
 
 
@@ -252,6 +262,10 @@ UTF 16 编码采用不同长度的编码表示所有 Unicode 码点。在基本�
 > 强烈建议不要在程序中使用char类型。
 
 #### boolean类型
+
+false
+
+true
 
 
 
@@ -751,6 +765,8 @@ Scanner in = new Scanner(Paths.get("niyflle.txt"), "UTF-8");
 
 一个块可以嵌套在另一个块中，但不能再嵌套的两个块中声明同名的变量。
 
+
+
 #### 条件语句
 
 
@@ -778,7 +794,6 @@ do statement while (condition);
 #### 中断控制流程语句
 
 ```java
-
 break;
 
 continue;
@@ -805,40 +820,87 @@ BigInteger d = c.multiply(b.add(BigInteger.valueOf(2)));  // d = c * (b + 2)
 
 
 
-### 3.10 数组 🔖
+### 3.10 数组 
 
-数组用来存储同一类型值的集合。
+数组用来存储**同一类型**值的集合。
+
+在声明数组变量时，需要指出数组类型（数据元素类型后紧跟[]）和数组变量的名字。如声明整型数组a：
+
+```java
+int[] a;
+```
+
+也可以：
+
+```java
+int a[];
+```
+
+数组变量声明并初始化：
+
+```java
+// 创建了一个可以存储100个整数的数组
+int[] a = new int[100];
+```
+
+可通过循环为给数组元素赋值：
+
+```java
+for (int i = 0; i < 100; i++) {
+  a[i] = i;
+}
+```
+
+默认数字数组所有元素初始化0，boolean数组为false，对象数组为null。
+
+数组创建后，就不能再改变它的大小。如果需要扩展数组大小，可以使用数组列表。
+
+
 
 #### for each循环
+
+**for each循环**可以依次数组（或者实现了Iterable接口的类对象如ArrayList）中的每个元素而不必指定下标：
+
+```java
+for (variable: collcection) {
+  statement
+}
+```
 
 
 
 #### 数组初始化以及匿名数组
 
+创建数组对象并同时赋予初始值的简化书写形式：
+
 ```java
-int[] a;
-
-int[] a = new int[100];
-
 int[] smallPrimes = {2, 3, 5};
+```
 
+还可以初始化一个匿名数组：
+
+```java
 new int[]{17, 19, 31};
 
 smallPrimes = new int[]{17, 19, 31};
 ```
 
+> 数组长度为0与null不同
+
+
+
 #### 数组拷贝
 
-将一个数组变量拷贝给另一个数组变量：
+将一个数组变量拷贝给另一个数组变量（引用同一个数组，hashCode()相同）：
 
 ```java
-intQ luckyNumbers = smallPrimes;
-1uckyNumbers[5] = 12;  // now smallPrimes[5] is also 12
+int[] luckyNumbers = smallPrimes;
+luckyNumbers[5] = 12;  // now smallPrimes[5] is also 12
 ```
 
 ![](../../images/java-039.jpg)
 
-将 一个数组的所有值拷贝到一个新的数组中去：
+通过`Arrays.copyOf`可以将一个数组的所有值拷贝到一个新的数组中去（引用不同）：
 
 ```java
 int[] copiedLuckyNumbers = Arrays.copyOf(luckyNumbers, luckyNumbers.length);
@@ -870,6 +932,8 @@ args[1]: "cruel"
 args[2]: "world"
 ```
 
+Message是对应的类名，没有存储在args数组中。
+
 
 
 #### 数组排序
@@ -878,15 +942,71 @@ args[2]: "world"
 Arrays.sort(arr);
 ```
 
-!!
+> code: LotteryDrawing
+
+
 
 #### 多维数组
 
-!!
+声明二维数组：
+
+```java
+double[][] balances;
+```
+
+初始化：
+
+```java
+balances = new double[NYEARS][NRATES];
+```
+
+数组元素初始化：
+
+```java
+int[][] magicSquare = {
+  {16, 3, 2, 13},
+  {5, 10, 11, 8},
+  ...
+}
+```
+
+访问：
+
+```java
+balances[i][j];
+```
+
+也可通过两个for each嵌套来处理二维数组：
+
+```java
+for (double[] row: a) {
+  for (double value: row) {
+    ...
+  }
+}
+```
+
+快速打印二维数组：
+
+```java
+System.out.println(Arrays.deepToString(a));
+```
+
+> Code: CompoundInterest
+
+
 
 #### 不规则数组
 
-!!
+“不规则”数组，即数组的每一行有不同的长度。
+
+Java实际上没有多维数组，只有一维数组。多维数组被解释为“数组的数组。”前面的balances数组实际上是一个包含10个元素的数组，而每个元素又是一个由6个浮点数组成的数组：
+
+![](../../images/java-049.jpg)
+
+
+
+> Code: LotteryArray
 
 
 
@@ -894,7 +1014,7 @@ Arrays.sort(arr);
 
 ### 4.1 面向对象程序设计概述
 
-面向对象的程序是由对象组成的，每个对象包含用户公开的特定功能部分和隐藏的实现部分。
+面向对象的程序是由对象组成的，每个对象包含用户**公开的特定功能部分和隐藏的实现部分**。
 
 传统的结构化程序设计，算法第一，数据结构第二；而OOP将数据放第一，然后在考虑操作数据的算法。
 
@@ -906,7 +1026,7 @@ Arrays.sort(arr);
 
 **封装**（encapsulation，也称**数据隐藏**），形式上封装将数据和行为组合在一个包中，并对对象的使用者隐藏了数据的实现方式。
 
-对象中的数据称为**实例域（instance field）**， 操纵数据的过程 称为**方法**（method）。
+对象中的数据称为**实例域（instance field）**， 操纵数据的过程称为**方法**（method）。
 
 对于每个特定的**类实例（对象）**都有一组特定的实例域值，这些值的集合就是这个对象的当前**状态（state）**。
 
@@ -956,7 +1076,7 @@ Arrays.sort(arr);
 
 
 
-3. ** 继承**（”is-a“，inheritance）
+3. **继承**（”is-a“，inheritance）
 
 表示特殊与一般关系。
 
@@ -977,7 +1097,7 @@ new Date();
 
 一个对象变量并没有实际包含一个对象，而仅仅引用一个对象。
 
-在Java中，任何对象变量的值都是怼存储在另外一个地方的一个对象的引用。new操作符的返回值也是一个引用。
+在Java中，任何对象变量的值都是对存储在另外一个地方的一个对象的引用。new操作符的返回值也是一个引用。
 
 可以显式地将对象变量设置为null，表明这个对象变量目前没有引用任何对象。
 
@@ -1015,7 +1135,7 @@ day = aThousandDaysLater.getDayOfMonth(); 	// 26
 
 #### 更改器方法与访问器方法
 
-上面的plusDays 方法会生成一个新的 LocalDate 对象。另一个日历类**GregorianCalendar**就不一样了：
+上面的plusDays 方法会生成一个新的LocalDate对象。另一个日历类**GregorianCalendar**就不一样了：
 
 ```java
 CregorianCalendar someDay = new CregorianCalendar(1999, 11, 31); 
@@ -1190,11 +1310,39 @@ $ java EmployeeTest
 
 #### 隐式参数与显式参数
 
+```java
+number007.raiseSalary(5);
+```
+
+`number007`这个类对象就是raiseSalary方法的隐式参数，5就是显式参数。
+
 
 
 #### 封装的优点
 
-🔖
+不要编写返回引用可变对象的访问器方法。如果需要返回一个可变对象的引用，应该首先对它进行克隆。
+
+```java
+class Employee {
+  private Date hireDay;
+  public Date getHireDay() {
+    return hireday;
+  }
+}
+```
+
+更改为：
+
+```java
+class Employee {
+  private Date hireDay;
+  public Date getHireDay() {
+    return (Date)hireday.clone();
+  }
+}
+```
+
+
 
 #### 基于类的访问权限
 
@@ -1293,9 +1441,11 @@ Java程序设计语言总是采用**按值调用**（call by value），方法�
 
 #### 重载(overloading)
 
-一个类有多个构造器的特征叫做重载。Java中是可以重载任何方法。
+一个类有多个构造器的特征叫做**重载**。Java中是可以重载任何方法。
 
-方法的签名（signature）：指出方法名和参数类型，能完整地描述一个方法。
+重载函数方法名必须相同，看参数列表即可，无关返回值。
+
+**方法的签名（signature）**：指出方法名和参数类型，能完整地描述一个方法。
 
 
 
@@ -1303,7 +1453,7 @@ Java程序设计语言总是采用**按值调用**（call by value），方法�
 
 如果在构造器中没有显示地给域赋予初始值，它们就会被自动赋予默认值：数值为0、布尔值为false、对象引用为null。（建议我们设计类是不要出现）
 
-> 域和局部变量的主要区别就是局部变量必须明确初始化。
+> 域和局部变量的主要区别就是**局部变量必须明确初始化**。
 
 
 
@@ -1317,7 +1467,7 @@ Java程序设计语言总是采用**按值调用**（call by value），方法�
 
 #### 显式域初始化
 
-确保不管怎样调用构造器，每个实例域都可以被设置为一个有意义的初始值，这是一个很好的设计习惯。
+<u>确保不管怎样调用构造器，每个实例域都可以被设置为一个有意义的初始值</u>，这是一个很好的设计习惯。
 
 可以在类定义中个，直接将一个值赋给任何域：
 
@@ -1387,7 +1537,7 @@ class Employee
 
 <font color=#FF8C00>**一个类可以使用所属包中的所有类，以及其他包中的公有类。**</font>
 
-import
+`import`
 
 #### **静态导入**
 
@@ -1432,11 +1582,9 @@ java -classpath /home/user/dassdir:.:/home/user/archives/archive.jar HyProg
 
 
 
-
-
 ### 4.9 文档注释 
 
-由于文档注释与源代码在同一个文件中， 在修改源代码的同时， 重新运 行 javadoc 就可以轻而易举地保持两者的一致性。
+由于文档注释与源代码在同一个文件中， 在修改源代码的同时， 重新运行`javadoc`就可以轻而易举地保持两者的一致性。
 
 #### 注释的插入
 
@@ -1664,11 +1812,23 @@ public abstract class Person {
 
 抽象类不能被实例化。
 
-注意，可以定义一个抽象类的额对象变量，但是它只能引用非抽象子类的对象：
+类即使不含抽象方法，也可以将类声明为抽象类。
+
+注意，可以定义一个抽象类的对象变量，但是它只能引用非抽象子类的对象：
 
 ```java
 Person p = new Student("Andy Ron", "Programmer");
 ```
+
+##### 抽象类和普通类的区别
+
+1. 抽象方法必须为public或者protected（因为如果为private，则不能被子类继承，子类便无法实现该方法），缺省情况下默认为public。
+
+2. 抽象类不能用来创建对象；
+
+3. 如果一个类继承于一个抽象类，则子类必须实现父类的抽象方法。如果子类没有实现父类的抽象方法，则必须将子类也定义为为abstract类。
+
+
 
 
 
@@ -1676,11 +1836,17 @@ Person p = new Student("Andy Ron", "Programmer");
 
 `private`，仅对本类可见。
 
+没有修饰符（默认情况），对本包可见。
+
 `protected`，对本包和所有子类可见。
 
 `public`，对所有类可见。
 
-没有修饰符（默认情况），对本包可见。
+
+
+![img](https://uploadfiles.nowcoder.com/files/20170518/6589111_1495116648005_163162-20160121105831078-570590712.png)
+
+public>protected>默认(包访问权限)>private。protected除了可以被同一包访问，还可以被包外的子类所访问。
 
 
 
@@ -1715,7 +1881,15 @@ public class Employee {
 
 为了防止name、hireDay为null的情况，改用`Objects.equals`方法，如果两个参数都为null，结果为true；如果一个为null，结果为false；如果两个参数都不为null，则调用a.equals(b)。
 
+##### equals与==
 
+1. 基础类型比较只能使用`==`；
+
+2. 对于引用类型
+
+   如果重写了equals方法的，比如基本类型的包装类型（Boolean、Character、Byte、Shot、Integer等）、String等，==比较地址，equals比较内容；
+
+   没有重写equals方法的，两者是相同的，都是比较地址；
 
 #### 相等测试与继承
 
@@ -1866,17 +2040,39 @@ public class PrintStream {}
 
 ### 5.6 枚举类
 
-🔖
+定义枚举类型：
+
+```java
+public enum Size { SMALL, MEDIUM, LARGE, EXTRA_LARGE };
+```
+
+实际上，此处就是定义了一个类`Size`，然后还有其四个实例。（**所有的枚举类型都是Enum类的子类**）
+
+> 在比较两个枚举类型的值时，永远不需要调用equals，而直接使用“==”就可以了。
+
+可以在枚举类型中添加一些构造器、方法和域。
+
+Enum类中有一些方法：
+
+toString能够返回枚举常量名。例`Size.SMALL.toString()`将返回字符串“SMALL”`。
+
+toString的逆方法是静态方法valueOf。例如`Size s = Enum.valueOf(Size.class, "SMALL")`将s设置成Size.SMALL。
+
+静态方法values返回一个包含全部枚举值的数组。
+
+ordinal方法返回enum声明中枚举常量的位置，位置从0开始计数。例如：`Size.MEDIUM.ordinal()`返回1。
 
 
 
-### 5.7 反射 🔖
+
+
+### 5.7 反射 
 
 **反射库**(reflection library，`java.lang.reflect.*`) 提供了一个非常丰富且精心设计的工具集， 以便编写能够动态操纵 Java 代码的程序。
 
 能够分析类能力的程序称为**反射**(reflective )。 
 
-反射主要使用人员是**工具构造者**，它的用途:
+反射主要使用人员是**工具构造者**，而不是应用程序员。它的用途:
 
 - 在运行时分析类的能力。
 
@@ -1892,27 +2088,51 @@ Java运行时系统始终为所有的对象维护一个被称为**运行时的�
 
 三种获得Class类对象的方法：
 
+1. Object类中的getClass方法
+
 ```java
-Random generator = new Random0:
+Random generator = new Random():
 Class cl = generator.getClass();
-String name = cl.getName(); // name is set to "java.util .Random"
+String name = cl.getName(); // 结果为"java.util.Random"，包名也在其中
+```
 
+2. Class的静态方法forName。它的参数必须是类名或接口名，否者会抛出受查异常。
 
-String dassName = "java.util .Random";
+```java
+String dassName = "java.util.Random";
 Class cl = Class.forName(dassName);
+```
 
+3. `T.class`
+
+```java
 
 Class dl = Random.class; // if you import java.util
 Gass cl2 = int.class;
 Class cl3 = Double[].class;
-
 ```
 
+一个Class对象实际上表示的是一个类型，而这个类型未必一定是一种类，例如上面`int`就不是类。
 
+> Class类实际上是泛型类。例如，`Employee.class`的类型是`Class<Employee>`。
 
-Class类实际上是泛型类。例如，`Employee.class`的类型是`Class<Employee>`。
+虚拟机为每个类型管理一个Class对象。因此，可以利用==运算符实现两个类对象比较的操作。
 
-另外一创建Class类实例的方法：
+```java
+if (e.getClass() == Employee.class) ...
+```
+
+##### newInstance方法
+
+newInstance方法可以用来动态地创建一个类的实例，例如：
+
+```java
+e.getClass().newInstance();
+```
+
+创建了一个与e具有相同类类型的实例。newInstance方法调用默认的构造器（没有参数的构造器）初始化新创建的对象。如果这个类没有默认的构造器，就会抛出一个异常。
+
+将forName与newInstance配合起来使用，可以根据存储在字符串中的类名创建一个对象：
 
 ```java
 String s = "java.util.Random";
@@ -2001,7 +2221,7 @@ public interface Comparable {
 
 **接口中所有方法自动地属于public**。在实现接口时，必须把方法声明为public。
 
-接口绝不能含有实例域。可以将接口看成是没有实例域的抽象类。
+接口绝不能含有实例域。可以将接口看成是没有实例域的抽象类。接口可以定义常量。
 
 类实现接口的步骤：
 
@@ -2199,7 +2419,9 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 
 
-### 6.4 内部类(inner class)🔖
+### 6.4 内部类(inner class)
+
+**内部类（inner class）**是定义在另一个类中的类。
 
 使用内部类的原因：
 
@@ -2209,7 +2431,11 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 
 
-内部类既可以访问自身的数据域， 也 可以访问创建它的外围类对象的数据域。
+内部类既可以访问自身的数据域， 也可以访问创建它的外围类对象的数据域。
+
+
+
+#### 使用内部类访问对象状态
 
 
 
@@ -2241,6 +2467,8 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 ### 6.5 代理
 
+
+
 #### 何时使用代理
 
 
@@ -2253,34 +2481,57 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 
 
-
 ## 7.异常、断言和日志
 
-向用户通告错误;
+如果用户在运行程序期间，由于程序的错误或一些外部环境的影响造成用户数据的丢失，可能就不再使用这个程序了。为了避免这种情况，至少应该做到：
 
-保存所有的工作结果; 
+- 向用户通告错误;
 
-允许用户以妥善的形式退出程序。
+- 保存所有的工作结果; 
+
+- 允许用户以妥善的形式退出程序。
 
 
 
 ### 7.1 处理错误
 
+如果由于出现错误而使得某些操作没有完成，程序应该：
+
+- 返回到一种安全状态，并能够让用户执行一些其他命令；
+- 或者允许用户保存所有操作的结果，并以妥善的方式终止程序。
+
+要做到这些并不容易。原因是检<u>测（或引发）错误条件的代码通常离那些能够让数据恢复到安全状态，或者能够保存用户的操作结果，并正常地退出程序的代码很远。</u>
+
+异常处理的任务就是**将控制权从错误产生的地方转移给能够处理这种情况的错误处理器**。
+
+有哪些错误和问题：
+
 1. 用户输入错误
-
 2. 设备错误
-
 3. 物理限制
-
 4. 代码错误
 
+
+
 在 Java 中， 如果某个方法不能够采用正常的途径完整它的任务， 就可以通过另外一个路径**退出**方法。 在这种情况下， 方法并**不返回任何值**， 而是抛出 (throw) 一个封装了错误信息的对象。 异常处理机制开始搜索能够处理这种异常状况的**异常处理器** (exception handler )。
+
+
 
 #### 异常分类
 
 ![](../../images/java-028.jpg)
 
-`Error`描述Java运行时系统的内部错误和资源耗尽错误。应用程序不应该抛出这种类型的对象。
+![img](http://uploadfiles.nowcoder.com/images/20151113/140047_1447376765880_373DC390B08E99ABC340DB1F78F35FCB)
+
+**Exception（异常）** :是程序本身可以处理的异常。
+
+**Error（错误）:** 是程序无法处理的错误。描述Java运行时系统的内部错误和资源耗尽错误。一般不需要程序处理。
+
+**受查（checked）异常（编译器要求必须处置的异常）** ： 除了Error，RuntimeException及其子类以外，其他的Exception类及其子类都属于可查异常。这种异常的特点是Java编译器会检查它，也就是说，当程序中可能出现这类异常，<u>要么用try-catch语句捕获它，要么用throws子句声明抛出它，否则编译不会通过</u>。
+
+**非受查（unchecked）异常(编译器不要求处置的异常):** 包括运行时异常（RuntimeException与其子类）和错误（Error）。
+
+
 
 `Exception`包含两个分支：`RuntimeException`；其它异常。
 
@@ -2300,11 +2551,19 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 > "如果出现RuntimeException异常，那么一定是你的问题了。"
 
-派生于Error类或RuntimeException类的所有异常称为**非受查（unchecked）异常**，所有其他异常称为**受查（checked）异常**。
+> RuntimeException这个名字容易让人混淆。实际上，现在讨论的所有错误都发生在运行时。
 
 
 
 #### 声明受查异常
+
+一个方法不仅需要告诉编译器将要返回什么值，还要告诉编译器可能发生的错误。
+
+方法应该在其首部声明所有可能抛出的受查异常（多个异常类之前用逗号隔开），而非受查异常要么不可控制（Error），要么就应该避免发生（RuntimeException）。
+
+```java
+public FileInputStream(String name) throws FileNotFoundException
+```
 
 
 
@@ -2312,27 +2571,102 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 `EOFException`异常描述的是“在输入过程中，遇到了一个未预期的EOF后的信号”。
 
+对于一个已经存在的异常类，抛出步骤：
+
+1. 找到一个合适的异常类
+2. 创建这个类的一个对象
+3. 将对象抛出
+
 
 
 #### 创建异常类
+
+遇到任何标准异常类都没有能够充分地描述清楚的问题，就要创建自己的异常类，只需要定义一个派生于Exception及其子类的类即可。
 
 
 
 ### 7.2 捕获异常
 
-
-
 #### 捕获异常
 
-如果某个异常发生的时候没有在任何地方进行捕获， 那程序就会终止执行， 并在控制台上打印出异常信息， 其中包括异常的类型和堆栈的内容。
+如果某个异常发生的时候没有在任何地方进行捕获， 那程序就会终止执行， 并在控制台上打印出异常信息， 其中包括**异常的类型和堆栈的内容**。
+
+```java
+try {
+  ....
+} catch (ExceptionType e) {
+  handler for this type
+}
+```
+
+如果try中任何代码抛出一个在catch子句中说明的异常类；那么程序将跳过try的其余代码，将执行catch中的处理球代码。
+
+如果try中没有抛出任何异常，那么程序跳过catch子句。
+
+如果方法中的任何代码抛出了一个在catch子句中没有声明的异常，那么这个方法就会立刻退出。
+
+```java
+public void read(String filename) {
+  try {
+    InputSteam in = new FileInputStream(filename);
+    int b;
+    while ((b = in.read()) != -1) {
+      process input
+    }
+  } catch (IOException exception) {
+    exception.printStackTrace();
+  }
+}
+```
+
+```java
+public void read(String filename) throws IOException {
+  InputStream in = new FileInputStream(filename);
+  int b ;
+  while ((b = in.read()) != -1) {
+    process input
+  }
+}
+```
 
 
 
 #### 捕获多个异常
 
+e.getMessage()
+
+e.getClass().getName()
+
 
 
 #### 再次抛出异常与异常链
+
+在catch子句中可以抛出一个异常，这样可以改变异常的类型。
+
+```java
+try {
+  
+} catch (SQLException e) {
+  throw new ServletException("database error: " + e.getMessage());
+}
+```
+
+得到原始异常：
+
+```java
+Throwable e = se.getCause();
+```
+
+有时只想记录一个异常，然后再重新抛出：
+
+```java
+try {
+  
+} catch (Exception e) {
+  logger.log(level, message, e);
+  throw e;
+}
+```
 
 
 
@@ -2356,6 +2690,54 @@ try (Resource res = ...) {
 
 **堆栈轨迹（stack trace）**是一个方法调用过程的列表，它包含了程序执行过程中方法调用的特定位置。
 
+```java
+		public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        System.out.print("Enter n: ");
+        int n = in.nextInt();
+        factorial(n);
+    }
+
+    public static int factorial(int n) {
+        System.out.println("factorial(" + n + "):");
+        Throwable t = new Throwable();
+        StackTraceElement[] frames = t.getStackTrace();
+        for (StackTraceElement f : frames) {
+            System.out.println(f);
+        }
+
+        int r;
+        if (n <= 1) {
+            r = 1;
+        } else {
+            r = n * factorial(n - 1);
+        }
+        System.out.println("return " + r);
+        return r;
+     }
+```
+
+结果：
+
+```java
+Enter n: 3
+factorial(3):
+stackTrace.StackTraceTest.factorial(StackTraceTest.java:20)
+stackTrace.StackTraceTest.main(StackTraceTest.java:15)
+factorial(2):
+stackTrace.StackTraceTest.factorial(StackTraceTest.java:20)
+stackTrace.StackTraceTest.factorial(StackTraceTest.java:30)
+stackTrace.StackTraceTest.main(StackTraceTest.java:15)
+factorial(1):
+stackTrace.StackTraceTest.factorial(StackTraceTest.java:20)
+stackTrace.StackTraceTest.factorial(StackTraceTest.java:30)
+stackTrace.StackTraceTest.factorial(StackTraceTest.java:30)
+stackTrace.StackTraceTest.main(StackTraceTest.java:15)
+return 1
+return 2
+return 6
+```
+
 
 
 ### 7.3 使用异常机制的技巧
@@ -2372,6 +2754,22 @@ try (Resource res = ...) {
 
 
 ### 7.4 使用断言
+
+
+
+#### 断言的概念
+
+
+
+```java
+assert 条件;
+
+assert 条件 : 表达式;
+```
+
+```java
+AssertionError
+```
 
 
 
@@ -2402,11 +2800,19 @@ Java中的3中处理系统错误的机制：
 
 ### 7.5 记录日志
 
+记录日志API的有点：
 
+- 可以很容易地取消全部日志记录，或者仅仅取消某个级别的日志，而且打开和关闭这个操作也很容易。
+- 可以很简单地禁止日志记录的输出
+- 日志记录可以被定向到不同的处理器，用于在控制台中显示，用于存储在文件中等。
+- 日志记录器和处理器都可以对记录进行过滤。过滤器可以根据过滤实现器制定的标准丢弃那些无用的记录项。
+- 日志记录可以采用不同的方式格式化，例如，纯文本或XML。
+- 应用程序可以使用多个日志记录器，它们使用类似包名的这种具有层次结构的名字，例如，com.mycompany.myapp。
+- 在默认情况下，日志系统的配置由配置文件控制。如果需要的话，应用程序可以替换这个配置。
 
 #### 基本日志
 
-全局日志记录器（global logger）：
+全局日志**记录器**（global logger）：
 
 ```java
 Logger.getGloal().info("File->Open menu item selected");
@@ -2416,9 +2822,33 @@ Logger.getGloal().info("File->Open menu item selected");
 
 #### 高级日志
 
+不要将所有的日志都记录到一个全局日志记录器中，而是自定义日志记录器，调用getLogger方法创建或获取记录器：
+
+```java
+private static final Logger myLogger = Logger.getLogger("com.mycompany.myapp");
+```
+
+7个日志记录器级别：
+
+- SEVERE
+- WARNING
+- INFO
+- CONFIG
+- FINE
+- FINER
+- FINEST
+
+默认只记录前三个级别。
+
 
 
 #### 修改日志管理器配置
+
+可以通过编辑配置文件来修改日志系统的各种属性，默认配置文件位于：
+
+```
+jre/lib/logging.propertis
+```
 
 
 
@@ -2428,13 +2858,13 @@ Logger.getGloal().info("File->Open menu item selected");
 
 #### 处理器
 
-`ConsoleHandler`
-
-`System.err`
+默认情况，日志记录器将记录发送到`ConsoleHandler`中，并由它输出到`System.err`流中。
 
 
 
 #### 过滤器
+
+在默认情况下，过滤器根据日志记录的级别进行过滤。每个日志记录器和处理器都可以有一个可选的过滤器来完成附加的过滤。另外，可以通过实现Filter接口并定义下列方法来自定义过滤器。
 
 
 
@@ -2448,11 +2878,15 @@ Logger.getGloal().info("File->Open menu item selected");
 
 > code: logging
 
-### 7.6 调试技巧
+### 7.6 调试技巧🔖
 
 
 
 ## 8.泛型程序设计🔖
+
+使用泛型机制编写的程序代码要比那些杂乱地使用Object变量，然后再进行强制类型转换的代码具有更好的安全性和可读性。
+
+泛型对于集合类尤其有用。
 
 
 
@@ -2510,6 +2944,8 @@ ArrayList<String> files = new ArrayList<>();
 
 
 ### 8.2 定义简单泛型类
+
+一个泛型类（generic class）就是具有一个或多个类型变量的类。
 
 ```java
 public class Pair<T> {
@@ -2586,6 +3022,24 @@ class ArrayAlg {
 
 
 ### 8.3 泛型方法
+
+```java
+class ArrayAlg {
+  public static <T> T getMiddle(T...a) {
+    ...
+  }
+}
+```
+
+类型变量放在修饰符（这里是public static）的后面，返回类型的前面。
+
+泛型方法可以定义在普通类中，也可以定义在泛型类中。
+
+当调用一个泛型方法时，在方法名前的尖括号中放入具体的类型：
+
+```java
+String middle = ArrayAlg.<String>getMiddle("John", "Q.", "Public");
+```
 
 
 
@@ -2671,7 +3125,7 @@ class ArrayAlg {
 
 
 
-#### 使用Class<T>参数进行类型匹配
+#### 使用`Class<T>`参数进行类型匹配
 
 
 
@@ -2691,19 +3145,21 @@ class ArrayAlg {
 
 以队列为例子看是如何分离的。
 
-队列接口：
+队列接口简单形式：
 
 ```java
-public interface Queue<E> { // a simplified form of the interface in the standard library
-void add(E element); E remove();
-int size();
+public interface Queue<E> { 
+  // a simplified form of the interface in the standard library
+	void add(E element); 
+  E remove();
+	int size();
 }  
 ```
 
-队列通常有两种实现方式：循环数组；链表。
+队列通常有两种实现方式：**循环数组**，**链表**。两种实现都可以通过一个实现了Queue接口的类表示：
 
 ```java
-public class Ci cularAr ayQueue<E> implements Queue<E> { // not an actual library class
+public class CicularArayQueue<E> implements Queue<E> { // not an actual library class
   private int head;
   private int tail;
   CircularArrayQueue(int capacity) { . . . } 
@@ -2736,14 +3192,19 @@ expessLane.add(new Customer("Harry"));
 一旦改变了想法， 可以轻松地使用另外一种不同的实现：
 
 ```java
-Queue<Custoaer> expressLane = new LinkedListQueue<>(); expressLane.add(new Custonier("Harry"));
+Queue<Custoaer> expressLane = new LinkedListQueue<>(); 
+expressLane.add(new Custonier("Harry"));
 ```
+
+接口本身并不能说明哪种实现的效率究竟如何。
+
+类库中还有些以Abstract开头的类，例如，`AbstractQueue`等，这些类是为类库实现者而设计的。如果想要实现自己的队列类（也许不太可能），会发现扩展AbstractQueue类要比实现Queue接口中的所有方法轻松得多。
 
 
 
 #### Collection接口
 
-基本接口 `Collection`
+Java中集合类的基本接口是 `Collection`，它有两个基本方法：
 
 ```java
 public interface Collection<E> {
@@ -2753,9 +3214,13 @@ public interface Collection<E> {
 }
 ```
 
+iterator方法返回一个实现了`Iterator`接口的对象，可以使用这个迭代器对象依次访问集合中的元素。
+
 
 
 #### 迭代器 Iterator
+
+Iterator接口包含4个方法：
 
 ```java
 public interface Iterator<E> {
@@ -2766,13 +3231,28 @@ public interface Iterator<E> {
 }
 ```
 
+通过反复调用next方法，可以依次访问集合中的每个元素，到达末尾，将抛出`NoSuchElementException`。
 
+```java
+Collection<String> c= ...;
+Iterator<String> iter = c.iterator();
+while (iter.hasNext()) {
+	String element = iter.next();
+  ....
+}
+```
 
-`Iterator`
+“for each”也可以：
 
-`Iterable`   **for each**
+```java
+for (String element: c) {
+  ....
+}
+```
 
-`iterator.forEachRemaining()`
+“for each”循环可以和任何实现了Iterable接口的对象一起工作。Collection接口扩展了Iterable接口，因此标准类库中的任何集合都可以使用“for each”。
+
+forEachRemaining方法提供一个lambda表达式🔖
 
 
 
@@ -2804,9 +3284,43 @@ Object口 toArray()
 
 ![集合框架中的接口](../../images/java-021.jpg)
 
-两个基本接口 `Collection`  `Map`
+集合有两个基本接口 `Collection` 和 `Map`。
 
-`List` 是有序集合。
+集合中插入元素的方法：
+
+```java
+boolean add(E element)
+```
+
+映射（Map）包含键/值对，所以用put方法插入：
+
+```java
+V put(K key, V value)
+```
+
+可以用迭代器从集合中读取元素，不过，映射用get方法：
+
+```java
+V get(K key)
+```
+
+
+
+`List` 是有序集合。元素会增加到容器中的特定位置。可以使用两种方式访问元素：
+
+1. 迭代器访问或整数索引
+2. 随机访问（可以任意顺序访问，而迭代器必须顺序访问）
+
+List接口定义多个用于随机访问的方法：
+
+```java
+void add(int index, E element)
+void remove(int index)
+E get(int index)
+E set(int index, E element)
+```
+
+
 
 `SortedSet`  `SortedMap`
 
@@ -2822,9 +3336,11 @@ Object口 toArray()
 
 
 
-#### 链表 Linkedlist
+#### 链表（Linkedlist）
 
 `Linkedlist`
+
+从数组的中间位置删除一个元素要付出很大的代价。
 
 在 Java 程序设计语言中， 所有链表实际上都是**双向链接**的。
 
@@ -2866,23 +3382,47 @@ iter.add("Juliet") ;
 
 
 
-#### 数组列表 ArrayList
+> Code: linkedList 🔖
+
+
+
+#### 数组列表（ArrayList）
 
 动态数组
 
-#### 散列集  HashSet
+不需要同步时使用ArrayList，需要同步时使用Vector。
 
 
 
-#### 树集  TreeSet
+#### 散列集（HashSet）
+
+**散列表（hash table）**可以快速地查找所需要的对象。散列表为每个对象计算一个整数，称为**散列码（hash code）**(通过hashCode方法获得)。
+
+自定义hasCode时，要与equals方法兼容，即如果a.equals（b）为true，a与b必须具有相同的散列码。
+
+Java中，散列表用链表数组实现。
+
+**散列集（HashSet）**是基于散列表的集。
+
+
+
+
+
+#### 树集（TreeSet）
+
+树集（TreeSet）与散列集类似，并有所改进，它是一个有序集合（sorted collection）。可以以任意顺序插入元素。在对集合进行遍历时，每个值将自动地按照排序后的顺序呈现。
 
 
 
 #### 队列与双端队列
 
+Deque
+
+ArrayDeque  LinkedList
 
 
-#### 优先级队列
+
+#### 优先级队列（priority queue）
 
 
 
@@ -2890,11 +3430,13 @@ iter.add("Juliet") ;
 
 #### 基本映射操作
 
+接口Map
+
+两个通用的实现：`HashMap`和`TreeMap`。
+
 
 
 #### 更新映射项
-
-
 
 
 
@@ -2904,25 +3446,27 @@ iter.add("Juliet") ;
 
 #### 弱散列映射
 
-WeakHashMap
+`WeakHashMap`
 
 
 
 #### 链接散列集与映射
 
-LinkedHashSet 和 LinkedHashMap
+`LinkedHashSet` 和 `LinkedHashMap`
 
 
 
 #### 枚举集与映射
 
-EmimSet
+`EmimSet`
 
-EnumMap
+`EnumMap`
+
+
 
 #### 标识散列映射
 
-IdentityHashMap
+`IdentityHashMap`
 
 
 
@@ -3002,7 +3546,7 @@ IdentityHashMap
 
 
 
-#### 位集
+#### 位集（BitSet）
 
 
 
@@ -3015,6 +3559,28 @@ IdentityHashMap
 ## 13.部署Java应用程序
 
 ### 13.1 Jar文件
+
+#### 创建JAR文件
+
+jar命令格式：
+
+```shell
+jar options File1 File2 ...
+```
+
+```shell
+jar cvf CalculatorClasses.jar *.class icon.gif
+```
+
+jar命令可选项，类似于Unix的tar命令选项：
+
+![](../../images/java-050.jpg)
+
+
+
+#### 清单文件
+
+除了类文件、图像和其他资源外，每个JAR文件还包含一个用于描述归档特征的**清单文件（manifest）**，它被命名为**MANIFEST.MF**，一般位于**META-INF**下。
 
 
 

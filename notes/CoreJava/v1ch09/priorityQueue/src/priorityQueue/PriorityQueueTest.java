@@ -1,6 +1,7 @@
 package priorityQueue;
 
 import java.time.LocalDate;
+import java.util.AbstractQueue;
 import java.util.PriorityQueue;
 
 /**
@@ -17,11 +18,13 @@ public class PriorityQueueTest {
         pq.add(LocalDate.of(1910, 6, 22));
 
         System.out.println("Iterating over elements...");
-        for (LocalDate date : pq)
+        for (LocalDate date : pq) {
             System.out.println(date);
+        }
 
         System.out.println("Removing elements...");
-        while (!pq.isEmpty())
+        while (!pq.isEmpty()) {
             System.out.println(pq.remove());
+        }
     }
 }
