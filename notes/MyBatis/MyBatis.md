@@ -572,7 +572,7 @@ logImpl
 
 生命周期和作用域是至关重要的，因为错误的使用会导致非常严重的**并发问题**。
 
-![](/Users/andyron/myfield/github/LearnJava/images/java-061.jpg)
+![](../../images/java-061.jpg)
 
 **SqlSessionFactoryBuilder**：
 
@@ -594,7 +594,7 @@ logImpl
 
 - 用完之后需要赶紧关闭，否则资源被占用！
 
-![](/Users/andyron/myfield/github/LearnJava/images/java-062.jpg)
+![](../../images/java-062.jpg)
 
 这里的每个Mapper，就代表一个具体的业务。
 
@@ -895,13 +895,13 @@ Select * from user limit startIndex, pageSize;
 
 底层：动态代理！
 
-![](/Users/andyron/myfield/github/LearnJava/images/java-063.jpg)
+![](../../images/java-063.jpg)
 
 
 
 ### MyBatis的详细执行流程
 
-![MyBatis的详细执行流程](/Users/andyron/myfield/github/LearnJava/images/java-064.jpg)
+![MyBatis的详细执行流程](../../images/java-064.jpg)
 
 
 
