@@ -1,6 +1,7 @@
 import com.andyron.dao.TeacherMapper;
 import com.andyron.pojo.Teacher;
 import com.andyron.utils.MyBatisUtils;
+import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.session.SqlSession;
 import org.junit.Test;
 
@@ -33,5 +34,6 @@ public class MyTest {
         Teacher teacherPlus = sqlSession.getMapper(TeacherMapper.class).getTeacherPlus2(1);
         System.out.println(teacherPlus);
         sqlSession.close();
+
     }
 }
