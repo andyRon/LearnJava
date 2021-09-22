@@ -332,21 +332,39 @@ List<Locale> englishLocales = englishAndOtherLocales.get(true);
 
 ### 1.14 并行流
 
+流使得并行处理块操作变得容易。可以用`Collection.paralleStream()`方法从任何集合获取一个并行流：
+
+```java
+Stream<String> paralleWords = words.parallelStream();
+```
+
+`parallel`方法可以将任意的顺序流转换为并行流：
+
+```java
+Stream<String> paralleWords = Stream.of(wordArray).parallel();
+```
 
 
 
 
-## 2 输入与输出
 
 
+
+## 2 输入/输出（I/O）
 
 ### 2.1 输入/输出流
 
-与上一章中的流没有任何关系。
+> 与上一章中的流没有任何关系。
 
-**输入流**：可以读入一个字节序列的对象
+**输入流**：可以读入一个字节序列的对象；
 
-**输出流**：可以写入一个字节序列的对象
+**输出流**：可以写入一个字节序列的对象。
+
+这些字节序列的来源地和目的地可以是**文件**，**网络连接**，**内存块**。
+
+抽象类**InputStream**和**OutputStream**构成I/O类层次结构的基础。
+
+
 
 #### 读写字节
 
@@ -438,7 +456,7 @@ Closeable,Flushable,Readable,Appendable接口：
 
 
 
-#### 字符编码方式
+#### 字符编码方式 🔖
 
 
 
@@ -490,6 +508,10 @@ void writeUTF(String s)
 
 ### 2.4 对象输入/输出流与序列化
 
+**对象序列化（object serialization）**可以将任何对象写出到输出流中，并在之后将其读回。
+
+
+
 #### 保存和加载序列化对象
 
 `ObjectOutputStream`
@@ -498,7 +520,7 @@ void writeUTF(String s)
 
 
 
-#### 理解对象序列化的文件格式!!
+#### 理解对象序列化的文件格式🔖
 
 
 
@@ -521,6 +543,8 @@ void writeUTF(String s)
 
 
 ### 2.5 操作文件
+
+**Path**和**Files**类封装了在用户机器上处理文件系统所需的所有功能。
 
 #### Path
 
@@ -589,9 +613,9 @@ java.nio.file.FileSystem
 
 
 
-
-
 ### 2.6 内存映射文件
+
+大多数操作系统都可以利用虚拟内存实现来将一个文件或者文件的一部分”映射“到内存中。然后这个文件就可以当作是内存数组一样地访问。
 
 #### 内存映射文件的性能
 
@@ -608,6 +632,10 @@ java.ni.CharBuffer
 
 
 #### 缓存区数据结构
+
+**缓冲区**是由具有相同类型的数值构成的数组，**Buffer**是一个抽象类，它有很多子类：**ByteBuffer**、**CharBuffer**、**DoubleBuffer**等。
+
+![](../../images/java-057.jpg)
 
 
 
@@ -631,11 +659,61 @@ java.util.regex.Matcher
 
 
 
+## 3 XML 
+
+### 3.1 XML概述
+
+https://www.xml.com/axml/axml.html
 
 
 
+### 3.2 解析XML文档
+
+**DocumentBuilder**
+
+**Document**
+
+![](../../images/java-058.jpg)
 
 
+
+### 3.3 验证XML文档
+
+
+
+#### 文档类型定义
+
+
+
+#### XML Schema
+
+
+
+### 3.4 使用XPath来定位信息
+
+
+
+### 3.5 使用命名空间
+
+
+
+### 3.6 流机制解析器
+
+#### SAX解析器
+
+
+
+#### StAX解析器
+
+
+
+### 3.7 生成XML文档
+
+
+
+### 3.8 XSL转换
+
+XSL转换（XSLT）机制可以将XML文档转换为其它格式。
 
 
 
@@ -645,8 +723,10 @@ java.util.regex.Matcher
 
 ### 4.1 连接到服务器
 
-```
-telnet time-a.nist.gov 13
+#### 使用Telnet
+
+```shell
+$ telnet time-a.nist.gov 13
 ```
 
 获得铯原子钟的计量时间：
@@ -657,24 +737,41 @@ telnet time-a.nist.gov 13
 
 
 
+```shell
+$ telnet horstmann.com 80
+Trying 204.44.192.29...
+Connected to horstmann.com.
+Escape character is '^]'.
+GET / HTTP/1.1
+Host: horstmann.com
+
+
+
 ```
-telnet horstmann.com 80
-```
 
 
 
-##### 用Java连接到服务器
+#### 用Java连接到服务器
 
 ```java
-				try (Socket s = new Socket("time-a.nist.gov", 13);
-             Scanner in = new Scanner(s.getInputStream(), "UTF-8")){
-
-            while (in.hasNextLine()) {
-                String line = in.nextLine();
-                System.out.println(line);
-            }
-        }
+public static void main(String[] args) throws IOException {
+  try (Socket s = new Socket("time-a.nist.gov", 13);
+       Scanner in = new Scanner(s.getInputStream(), "UTF-8")) {
+    while (in.hasNextLine()) {
+      String line = in.nextLine();
+      System.out.println(line);
+    }
+  }
+}
 ```
+
+将远程地址和端口号传递给套接字的构造器，如果连接失败，将抛出`UnknownHostException`异常，它是`IOException`的子类，此处就没有另外捕获异常处理。
+
+`java.net.Socket`类的`getInputStream`返回一个流对象`InputStream`。
+
+java.net包提供的编程接口与操作文件时所使用的接口基本相同。
+
+
 
 #### socket超时
 
@@ -698,7 +795,7 @@ s.connect(new InetSocketAddress(host, port), timeout);
 
 #### IP地址
 
-可通过`InetAddress`类把域名转换为IP地址。
+可通过`InetAddress`类把域名和IP地址相互转换。
 
 获得单个主机IP地址：
 
@@ -859,7 +956,7 @@ class ThreadEchoHandler implements Runnable {
 
 ### 4.3 可中断套接字
 
-🔖
+`java.nio`包的`SocketChannel`类
 
 
 
@@ -899,9 +996,13 @@ java.net.URLDecoder
 
 ## 5 数据库编程
 
+The Java Database Connectivity (JDBC) API可以连接到数据库，并使用SQL完成对数据库的查找与更新。
+
+
+
 ### 5.1 JDBC的设计
 
-ODBC模式    微软  C语言
+ODBC模式是微软为C语言访问数据库提供了一套编程接口。
 
 JDBC
 
@@ -911,7 +1012,7 @@ JDBC
 
 #### JDBC的典型用法
 
-传统方式：
+传统模式：
 
 ![](../../images/java-041.jpg)
 
@@ -929,8 +1030,6 @@ JDBC
 
 JDBC包可以看作是一个用于**将SQL语句传递给数据库的应用编程接口**（API ）。
 
-对表格进行连接操作的好处是，**能够避免在数据库表中出现不必要的重复数据**。
-
 在关系模型中，将数据分步到多个表中，是为了使得所有信息都不会出现不必要的重复。
 
 
@@ -941,7 +1040,9 @@ JDBC包可以看作是一个用于**将SQL语句传递给数据库的应用编�
 
 一般语法：
 
-*jdbc:subprotocol:other stuff*
+```
+jdbc:subprotocol:other stuff
+```
 
 **subprotocol**是连接到数据库的具体驱动程序。
 
@@ -957,9 +1058,21 @@ jdbc:postgresql:COREJAVA
 jdbc:mysql://localhost:3030/COREJAVA
 ```
 
-
-
 https://www.runoob.com/java/java-mysql-connect.html
+
+#### 驱动程序JAR文件
+
+
+
+#### 启动数据库
+
+
+
+#### 注册驱动器类
+
+
+
+#### 连接到数据库
 
 
 
@@ -968,6 +1081,12 @@ https://www.runoob.com/java/java-mysql-connect.html
 ### 5.4 使用JDBC语句
 
 #### 执行SQL语句
+
+`Statement`
+
+`Connection`
+
+`ResultSet`
 
 
 
@@ -995,6 +1114,8 @@ https://www.runoob.com/java/java-mysql-connect.html
 
 #### 读写LOB
 
+在SQL中，二进制大对象称为**BLOB**，字符型大对象称为**CLOB**。
+
 
 
 #### SQL转义
@@ -1013,11 +1134,23 @@ https://www.runoob.com/java/java-mysql-connect.html
 
 
 
-### 5.7 行集
+### 5.7 行集（RowSet）
+
+**RowSet**接口扩展自**ResultSet**接口，它无需始终保持与数据库的连接。
+
+#### 构建行集
+
+
+
+#### 被缓存的行集
 
 
 
 ### 5.8 元数据
+
+在SQL中，描述数据库或其组成部分的数据称为**元数据**。
+
+`DatabaseMetaData`
 
 
 
@@ -1026,6 +1159,8 @@ https://www.runoob.com/java/java-mysql-connect.html
 
 
 ### 5.10 高级SQL类型
+
+![](../../images/java-056.jpg)
 
 
 
@@ -1156,7 +1291,7 @@ Java提供三种安全机制：
 
 类的生命周期包括：加载、链接、初始化、使用和卸载，其中加载、链接、初始化，属于类加载的过程。
 
-![Java类的生命周期](/Users/andyron/Downloads/Java类的生命周期.jpeg)
+![Java类的生命周期](/Users/andyron/myfield/github/LearnJava/beta/JVM/Java类的生命周期.png)
 
 #### 类加载系统架构图
 
@@ -1337,17 +1472,53 @@ jvm对class文件采用的是按需加载的方式，当需要使用该类时，
 
 **本地方法：**本地方法是由其他语言（如C、C++ 或其他汇编语言）编写，编译成和处理器相关的代码。本地方法保存在动态连接库中，格式是各个平台专用的，运行中的java程序调用本地方法时，虚拟机装载包含这个本地方法的动态库，并调用这个方法。
 
+三种情况可以使用本地代码：
+
+- 应用需要访问的系统特性和设备通过Java平台是无法实现的
+- 已经有了大量的测试过河调试过的用另一种语言编写的代码，并且知道如何将其导出到所有的目标平台上。
+- 通过基准测试，发现所编写的Java代码比用其它语言编写的等价代码要慢得多。
+
+Java本地接口（Java Native Interface，**JNI**）：Java和本地C代码进行互操作的API。
+
 
 
 ### 12.1 从Java程序中调用C函数
+
+```java
+class HelloNative {
+  public static native void greeting();
+}
+```
+
+`native`提醒编译器该方法将在外部定义。看上去和抽象方法声明类似。
+
+`UnsatisfiedLinkError`
+
+`javah`   用于生成C的头文件
+
+![](../../images/java-052.jpg)
+
+将一个本地方法链接到Java程序的步骤：
+
+1. 在Java类中声明一个本地方法
+2. 运行`javah`获得包含该方法的C声明的头文件
+3. 用C实现该本地方法
+4. 将代码置于共享类库中
+5. 在Java程序中加载该类库
 
 
 
 ### 12.2 数值参数与返回值
 
+当在C和Java之间传递数字时，应该知道它们彼此之间的对应类型。
+
+![](../../images/java-053.jpg)
+
 
 
 ### 12.3 字符串参数
+
+Jav中的字符串是UTF-16编码的序列，而C的字符串是以null结尾的字节序列。
 
 
 
@@ -1365,6 +1536,10 @@ jvm对class文件采用的是按需加载的方式，当需要使用该类时，
 
 ### 12.7 访问数组元素
 
+![](../../images/java-054.jpg)
+
+![](../../images/java-055.jpg)
+
 
 
 ### 12.8 错误处理
@@ -1373,7 +1548,7 @@ jvm对class文件采用的是按需加载的方式，当需要使用该类时，
 
 ### 12.9 使用调用API
 
-
+调用API（invocation API）能够把Java虚拟机嵌入到C/C++程序中。
 
 
 
