@@ -1207,5 +1207,178 @@ public class Teacher {
 
 ## 13、缓存
 
+### 13.1 简介
+
+一次查询的结果，暂时存在一个可以直接取到的地方（内存），这就是缓存。
+
+三高：高并发、高可用、高性能
+
+为什么使用缓存？
+
+减少和数据库的交互，减少系统开销，提高系统效率。
+
+什么样的数据能使用缓存？
+
+经常查询并且不经常改变的数据。
 
 
+
+### 13.2 MyBatis缓存
+
+MyBatis默认定义了两级缓存：**一级缓存**和**二级缓存**
+
+- 默认，只有一级缓存开启。（SqlSession级别的缓存，也叫本地缓存，也就是在SQLSession.close()之前都被缓存）
+- 二级缓存需要主动开启，它基于namespace级别的缓存。（也就是一个Mapper或接口）
+- 为了提高扩展性，MyBatis定义了缓存接口`Cache`，让用户自定义二级缓存。
+
+
+
+### 13.3 一级缓存
+
+SqlSession
+
+与数据库同一次会话期间查询到的数据会放在本地缓存中。
+
+
+
+测试步骤：
+
+1. 开启日志
+2. 测试在一个session中查询两次相同的记录
+
+```java
+SqlSession sqlSession = MyBatisUtils.getSqlSession();
+UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+
+User user1 = mapper.queryUserById(1);
+System.out.println(user1);
+
+System.out.println("==========");
+
+User user2 = mapper.queryUserById(1);
+System.out.println(user2);
+
+
+System.out.println(user1 == user2);
+sqlSession.close();
+```
+
+结果：
+
+```
+Opening JDBC Connection
+Created connection 1873859565.
+==>Preparing: select * from user where id = ?; 
+==> Parameters: 1(Integer)
+<==		 Columns:id, name, pwd
+<==				 Row: 1,andy, 123456
+<==			 Total:1
+User(id=1,name=andy, pwd=123456)
+=====================
+User(id=1, name=andy, pwd=123456)
+true
+CLosing JDBC Connection [com.mysql.jdbc.JDBC4Connection@6fb0d3ed] 
+Returned connection 1873859565 to pool.
+```
+
+
+
+缓存失效的情况：
+
+- 增删改操作，可能会改变原来的数据，所以必定会刷新缓存
+- 手动清理(`sqlSession.clearCache() `)
+
+
+
+### 13.4 二级缓存
+
+- 一级缓存作用域太低
+
+- 基于namespace
+- 一个会话查询一条数据，保存在当前会话的一级缓存中
+- 如果当前会话关闭，对应一级缓存就没了；如果开启二级缓存，会话关闭，一级缓存中数据会被保存到二级缓存中
+
+
+
+步骤：
+
+1. 开启全局缓存
+
+   ```xml
+   <!-- 显式的开启全局缓存 -->
+   <setting name="cacheEnabled" value="true"/>
+   ```
+
+   
+
+2. 在要使用二级缓存的Mapper中开启
+
+   ```xml
+   <!-- 在当前Mapper.xml中使用二级缓存 -->
+   <cache/>
+   ```
+
+   也可以自定义参数：
+
+   ```xml
+   <cache
+     eviction="FIFO"
+     flushInterval="60000"
+     size="512"
+     readOnly="true"/>
+   ```
+
+3. 测试
+
+   ```java
+   SqlSession sqlSession = MyBatisUtils.getSqlSession();
+   SqlSession sqlSession2 = MyBatisUtils.getSqlSession();
+   
+   UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+   User user = mapper.queryUserById(1);
+   System.out.println(user);
+   sqlSession.close();
+   
+   System.out.println("================");
+   
+   UserMapper mapper2 = sqlSession2.getMapper(UserMapper.class);
+   User user2 = mapper2.queryUserById(1);
+   System.out.println(user2);
+   sqlSession2.close();
+   
+   System.out.println(user == user2);
+   ```
+
+   
+
+问题：需要将实体类序列化，否则可能会报错：
+
+```java
+java.io.NotSerializableException
+```
+
+
+
+小结：
+
+- 只要开启了二级缓存，在同一个Mapper下就有效
+- 所有数据都会先放在一级缓存中
+- 只有当会话提交或关闭的时候，才会提交到二级缓存中
+
+### 13.5 缓存原理
+
+缓存查询顺序：
+
+1. 先看二级缓存中有没有
+2. 再看一级缓存
+3. 数据库
+
+
+
+### 13.6 自定义缓存EhCache
+
+EhCache 是一个纯Java的进程内缓存框架，具有快速、精干等特点。
+
+
+
+## 练习
