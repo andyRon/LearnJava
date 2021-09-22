@@ -1,5 +1,4 @@
-《Java核心技术卷一第10版》笔记
-
+《Java核心技术第10版卷一》
 ------
 
 http://horstmann.com/corejava
@@ -206,6 +205,8 @@ Java共有8中基本类型，其中4种整型：`int`，`short`，`long`，`byte
 
 ![](../../images/java-045.jpg)
 
+大部分情况都是用double。
+
 三个特殊浮点数（实际应用中很少遇到）：
 
 `Double.NaN`
@@ -341,7 +342,17 @@ int n = 123456789;
 float f = n; // f is 1.23456792E8
 ```
 
+自动类型转换总结：
 
+1. 若参与运算的数据类型不同，则先转换成同一类型，然后进行运算。
+
+2. 转换按数据长度增加的方向进行，以保证精度不降低。例如int型和long型运算时，先把int量转成long型后再进行运算。
+
+3. 所有的浮点运算都是以双精度进行的，即使仅含float单精度量运算的表达式，也要先转换成double型，再作运算。
+
+4. char型和short型参与运算时，必须先转换成int型。 
+
+5. 在赋值运算中，赋值号两边的数据类型不同时，需要把右边表达式的类型将转换为左边变量的类型。如果右边表达式的数据类型长度比左边长时，将丢失一部分数据，这样会降低精度。
 
 #### 强制类型转换(cast)
 
@@ -789,7 +800,7 @@ do statement while (condition);
 
 #### 多重选择 switch
 
-
+switch()的参数类型int，char， short， byte，long，String， Enum，不能是float，double和boolean类型。
 
 #### 中断控制流程语句
 
@@ -1008,7 +1019,11 @@ Java实际上没有多维数组，只有一维数组。多维数组被解释为�
 
 > Code: LotteryArray
 
+#### 数组总结
 
+java中,数组是一个对象, 不是一种**原生类**（8种基础类型）；
+
+数组大小不可变且连续存储在堆中
 
 ## 4.对象与类
 
@@ -1695,14 +1710,14 @@ public double getSalary() {
 
 ```java
 public Manager(String name, double salary, int year, int month, int day) {
-        super(name, salary, year, month, day);
-        bonus = 0;
-    }
+  super(name, salary, year, month, day);
+  bonus = 0;
+}
 ```
 
 由于Manager类的构造器不能访问Employee类的私有域，所以必须利用Employee类的构造器对这部分私有域进行初始化；通过`super`实现对超类构造器的调用，而且它必须是子类构造器的第一条语句。
 
-如果子类构造器没有显式调用超类构造器，则将自动地抵用超类默认（没有参数）的构造器；如果超类没有默认构造器，编译器就会报错。
+如果子类构造器没有显式调用超类构造器，则将自动地调用超类默认（没有参数）的构造器；如果超类没有默认构造器，编译器就会报错。
 
 > `this`用途：
 >
@@ -1716,17 +1731,17 @@ public Manager(String name, double salary, int year, int month, int day) {
 
 ```java
 Manager boss = new Manager("Jack Ma", 100000000, 1965, 8,18);
-        boss.setBonus(50000);
+boss.setBonus(50000);
 
-        Employee[] staff = new Employee[3];
+Employee[] staff = new Employee[3];
 
-        staff[0] = boss;
-        staff[1] = new Employee("Pony Ma", 55000, 1993, 11,2);
-        staff[2] = new Employee("Robin Li", 25000, 1994, 4,12);
+staff[0] = boss;
+staff[1] = new Employee("Pony Ma", 55000, 1993, 11,2);
+staff[2] = new Employee("Robin Li", 25000, 1994, 4,12);
 
-        for (Employee e: staff) {
-            System.out.println("name=" + e.getName() + ", salary=" + e.getSalary());
-        }
+for (Employee e: staff) {
+  System.out.println("name=" + e.getName() + ", salary=" + e.getSalary());
+}
 ```
 
 一个对象变量（如，上面的e）可以指示多种实际类型的现象称为**多态（polymorphism）**；在运行时能够自动选择调用哪个方法的现象称为**动态绑定（dynamic binding）**。
@@ -1881,7 +1896,7 @@ public class Employee {
 
 为了防止name、hireDay为null的情况，改用`Objects.equals`方法，如果两个参数都为null，结果为true；如果一个为null，结果为false；如果两个参数都不为null，则调用a.equals(b)。
 
-##### equals与==
+##### equals vs ==
 
 1. 基础类型比较只能使用`==`；
 
@@ -2062,6 +2077,24 @@ toString的逆方法是静态方法valueOf。例如`Size s = Enum.valueOf(Size.c
 
 ordinal方法返回enum声明中枚举常量的位置，位置从0开始计数。例如：`Size.MEDIUM.ordinal()`返回1。
 
+例子:下面代码输出是？
+
+```java
+enum AccountType {
+    SAVING, FIXED, CURRENT;
+    private AccountType() {
+        System.out.println(“It is a account type”);
+    }
+}
+class EnumOne {
+    public static void main(String[]args) {
+  System.out.println(AccountType.FIXED);
+    }
+}
+```
+
+枚举类有三个实例，故调用三次构造方法，打印三次It is a account type，然后是"FIXED"
+
 
 
 
@@ -2122,6 +2155,19 @@ Class cl3 = Double[].class;
 if (e.getClass() == Employee.class) ...
 ```
 
+> Class类是Object的派生类。
+>
+> Class类中的forName()方法返回与带有给定字符串名的类或接口相关联的Class对象（**装载**其他类）。
+>
+> ```java
+> public static Class<?> forName​(String className)
+>                         throws ClassNotFoundException
+> ```
+>
+> 
+
+
+
 ##### newInstance方法
 
 newInstance方法可以用来动态地创建一个类的实例，例如：
@@ -2149,25 +2195,209 @@ Object m = Class.forName(s).newlnstance();
 
 #### 利用反射分析类
 
-`java.lang.reflect.*`
+在`java.lang.refect`包中有三个类Field、Method和Constructor分别用于描述类的域、方法和构造器。
 
-`Field`
+- 它们都有getName的方法，用来返回名称；
+- Field类有一个getType方法，用来返回描述域所属类型的Class对象；
+- Method和Constructor类有能够报告参数类型的方法，Method类还有一个可以报告返回类型的方法；
+- 它们都有getModifiers的方法，返回一个整型数值，用不同的位开关描述public和static这样的修饰符使用状况。
 
-`Method`
+`java.lang.refect`包中的Modifier类的静态方法isPublic、isPrivate或isFinal判断方法或构造器是否是public、private或final；Modifier.toString方法可将修饰符打印出来。
 
-`Constructor`
+Class类中的getFields、getMethods和getConstructors方法将分别返回类提供的public域、方法和构造器数组，其中包括超类的公有成员；
 
-`Modifier`   
+Class类的getDeclareFields、getDeclareMethods和getDeclaredConstructors方法将分别返回类中声明的全部域、方法和构造器，其中包括私有和受保护成员，但不包括超类的成员。
 
-`.getName()`
+```java
+package reflection;
 
-`.getType()`
+import java.io.ObjectInputStream;
+import java.lang.reflect.*;
+import java.util.*;
 
-...
+/**
+ * 5.7 用反射打印出一个类的容貌
+ * @author Andy Ron
+ */
+public class ReflectionTest {
+    public static void main(String[] args) {
+
+        // 类完整名称，包括包名
+        String name;
+        if (args.length > 0) {
+            name = args[0];
+        } else {
+            Scanner in = new Scanner(System.in);
+            System.out.println("Enter class name (e.g. java.util.Date): ");
+            name = in.nextLine();
+        }
+
+        try {
+            Class cl = Class.forName(name);
+            Class supercl = cl.getSuperclass();
+            String modifiers = Modifier.toString(cl.getModifiers());
+            if (modifiers.length() > 0) {
+                System.out.print(modifiers + " ");
+            }
+            System.out.print("class " + name);
+            if (supercl != null && supercl != Object.class) {
+                System.out.print(" extends " + supercl.getName());
+            }
+            System.out.print(" {\n");
+
+            printConstructors(cl);
+            System.out.println();
+            printMethods(cl);
+            System.out.println();
+            printFields(cl);
+            System.out.println("}");
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        System.exit(0);
+    }
+
+    /**
+     * 打印类的所有构造器
+     * @param cl
+     */
+    public static void printConstructors(Class cl) {
+        Constructor[] constructors = cl.getDeclaredConstructors();
+
+        for (Constructor c : constructors) {
+            String name = c.getName();
+            System.out.print("    ");
+            String modifiers = Modifier.toString(c.getModifiers());
+            if (modifiers.length() > 0) {
+                System.out.print(modifiers + " ");
+            }
+            System.out.print(name + "(");
+
+            Class[] paramTypes = c.getParameterTypes();
+            for (int j = 0; j < paramTypes.length; j++) {
+                if (j > 0) {
+                    System.out.print(", ");
+                }
+                System.out.print(paramTypes[j].getName());
+            }
+            System.out.println(");");
+        }
+    }
+
+    public static void printMethods(Class cl) {
+        Method[] methods = cl.getDeclaredMethods();
+
+        for (Method m : methods) {
+            Class retType = m.getReturnType();
+            String name = m.getName();
+
+            System.out.print("    ");
+
+            String modifiers = Modifier.toString(m.getModifiers());
+            if (modifiers.length() > 0) {
+                System.out.print(modifiers + " ");
+            }
+            System.out.print(retType.getName() + " " + name + "(");
+
+            Class[] paramTypes = m.getParameterTypes();
+            for (int j = 0; j < paramTypes.length; j++) {
+                if (j > 0) {
+                    System.out.print(", ");
+                }
+                System.out.print(paramTypes[j].getName());
+            }
+            System.out.println(");");
+        }
+    }
+
+    public static void printFields(Class cl) {
+        Field[] fields = cl.getDeclaredFields();
+
+        for (Field f : fields) {
+            Class type = f.getType();
+            String name = f.getName();
+            System.out.print("    ");
+            String modifiers = Modifier.toString(f.getModifiers());
+            if (modifiers.length() > 0) {
+                System.out.print(modifiers + " ");
+            }
+            System.out.println(type.getName() + " " + name + ";");
+        }
+    }
+}
+```
+
+结果("java.util.Date")：
+
+```
+
+public class java.util.Date {
+    public java.util.Date(java.lang.String);
+    public java.util.Date(int, int, int, int, int, int);
+    public java.util.Date(int, int, int, int, int);
+    public java.util.Date();
+    public java.util.Date(long);
+    public java.util.Date(int, int, int);
+
+    public boolean equals(java.lang.Object);
+    public java.lang.String toString();
+    public int hashCode();
+    public java.lang.Object clone();
+    public int compareTo(java.util.Date);
+    public volatile int compareTo(java.lang.Object);
+    public static java.util.Date from(java.time.Instant);
+    private void readObject(java.io.ObjectInputStream);
+    private void writeObject(java.io.ObjectOutputStream);
+    private final sun.util.calendar.BaseCalendar$Date normalize();
+    private final sun.util.calendar.BaseCalendar$Date normalize(sun.util.calendar.BaseCalendar$Date);
+    public boolean before(java.util.Date);
+    public boolean after(java.util.Date);
+    public static long parse(java.lang.String);
+    public int getMonth();
+    public int getSeconds();
+    public java.time.Instant toInstant();
+    public static long UTC(int, int, int, int, int, int);
+    public int getYear();
+    public long getTime();
+    public void setTime(long);
+    private static final sun.util.calendar.BaseCalendar getCalendarSystem(sun.util.calendar.BaseCalendar$Date);
+    private static final sun.util.calendar.BaseCalendar getCalendarSystem(long);
+    private static final sun.util.calendar.BaseCalendar getCalendarSystem(int);
+    private final long getTimeImpl();
+    private static final java.lang.StringBuilder convertToAbbr(java.lang.StringBuilder, java.lang.String);
+    private static final synchronized sun.util.calendar.BaseCalendar getJulianCalendar();
+    public int getDate();
+    public int getDay();
+    public java.lang.String toLocaleString();
+    public java.lang.String toGMTString();
+    public int getTimezoneOffset();
+    static final long getMillisOf(java.util.Date);
+    public void setDate(int);
+    private final sun.util.calendar.BaseCalendar$Date getCalendarDate();
+    public void setHours(int);
+    public int getHours();
+    public int getMinutes();
+    public void setMonth(int);
+    public void setMinutes(int);
+    public void setSeconds(int);
+    public void setYear(int);
+
+    private static final sun.util.calendar.BaseCalendar gcal;
+    private static sun.util.calendar.BaseCalendar jcal;
+    private transient long fastTime;
+    private transient sun.util.calendar.BaseCalendar$Date cdate;
+    private static int defaultCenturyStart;
+    private static final long serialVersionUID;
+    private static final [Ljava.lang.String; wtb;
+    private static final [I ttb;
+}
+
+Process finished with exit code 0
+
+```
 
 
-
-> Code: reflection
 
 #### 在运行时使用反射分析对象
 
@@ -2209,19 +2439,19 @@ lambda表达式是一种表示可以在将来某个时间点执行的代码块�
 
 
 
-### 6.1 接口（interface）
+### 6.1 接口
 
-接口不是类，而是对类的一组需求描述。
+接口（interface）不是类，而是对类的一组需求描述。
 
 ```java
-public interface Comparable {
-  int compareTo(Object other);
+public interface Comparable<T> {
+  int compareTo(T other);
 }
 ```
 
 **接口中所有方法自动地属于public**。在实现接口时，必须把方法声明为public。
 
-接口绝不能含有实例域。可以将接口看成是没有实例域的抽象类。接口可以定义常量。
+接口绝不能含有实例域。可以将接口看成是没有实例域的抽象类。<u>接口可以定义常量。</u>
 
 类实现接口的步骤：
 
@@ -2277,6 +2507,36 @@ public interface Powered extends Moveable {
 
 接口可以提供多重继承的大多数好处， 同时还能避免多重继承的复杂性和低效性。
 
+**抽象类**特点:
+
+1. 抽象类中可以构造方法。自己不能直接调用，只能供其子类调用
+
+2. 抽象类中可以存在普通属性，方法，静态属性和方法。
+
+3. 抽象类中可以存在抽象方法。
+
+4. 如果一个类中有一个抽象方法，那么当前类一定是抽象类；抽象类中不一定有抽象方法。
+
+5. 抽象类中的抽象方法，需要有子类实现，如果子类不实现，则子类也需要定义为抽象的。
+
+**接口**特点：
+
+1. 在接口中只有方法的声明，没有方法体。
+
+2. 在接口中只有常量，因为定义的变量，在编译的时候都会默认加上`public static final`
+
+3. 在接口中的方法，永远都被public来修饰。
+
+4. 接口中没有构造方法，也不能实例化接口的对象。
+
+5. 接口可以实现多继承
+
+6. 接口中定义的方法都需要有实现类来实现，如果实现类不能实现接口中的所有方法则实现类定义为抽象类。
+
+
+
+
+
 
 
 #### 静态方法
@@ -2297,13 +2557,9 @@ public interface Comparable<T> {
 
 大部分时候这种默认实现没有多大用，因为每个具体实现时都会覆盖这个方法。
 
-
-
 #### 解决默认方法冲突
 
-
-
-### 6.2 接口实例
+### 6.2 接口实例 🔖
 
 #### 接口与回调
 
@@ -2318,6 +2574,10 @@ public interface Comparable<T> {
 #### 对象克隆
 
 clone方法是 Object 的一个 protected 方法。
+
+拷贝原变量和副本都是同一个对象的引用
+
+
 
 **浅拷贝**：没有克隆对象中引用的其他对象。默认拷贝是浅拷贝，还会共享信息。
 
@@ -2585,6 +2845,13 @@ public FileInputStream(String name) throws FileNotFoundException
 
 
 
+#### throws和throw
+
+1. throws出现在方法头，throw出现在方法体 
+2. throws表示出现异常的一种可能性，并不一定会发生异常；throw则是抛出了异常，执行throw则一定抛出了某种异常。
+
+
+
 ### 7.2 捕获异常
 
 #### 捕获异常
@@ -2674,7 +2941,8 @@ try {
 
 不管是否有异常被捕获， finally 子句中的代码都被执行。 
 
-
+> 一旦在finally块中使用了return或throw语句，将会导致try块，catch块中的return，throw语句失效。
+>
 
 #### 带资源的 try 语句
 
@@ -2879,8 +3147,6 @@ jre/lib/logging.propertis
 > code: logging
 
 ### 7.6 调试技巧🔖
-
-
 
 ## 8.泛型程序设计🔖
 
@@ -3156,15 +3422,20 @@ public interface Queue<E> {
 }  
 ```
 
-队列通常有两种实现方式：**循环数组**，**链表**。两种实现都可以通过一个实现了Queue接口的类表示：
+队列通常有两种实现方式：**循环数组**，**链表**。
+
+![](../../images/java-051.jpg)
+
+两种实现都可以通过一个实现了Queue接口的类表示：
 
 ```java
 public class CicularArayQueue<E> implements Queue<E> { // not an actual library class
   private int head;
   private int tail;
+  
   CircularArrayQueue(int capacity) { . . . } 
   public void add(E element) { . . . }
-  public E remove0{ . . . }
+  public E remove() { . . . }
   public int size() { . . . }
   private EQ elements;
 }
@@ -3175,12 +3446,14 @@ public class LinkedListQueue<E> iipleients Queue<E> { // not an actual library c
   private Link head; 
   private Link tail;
   
-  LinkedListQueueO { . . . } 
+  LinkedListQueue() { . . . } 
   public void add(Eelement) {...} 
   public E remove() { ...}
   public int size() { . . . }
 }  
 ```
+
+> 上面两个类只是例子，Java类库中没有。如果需要一个循环数组队列，可用`ArrayDeque`类；如果需要一个链表队列，可用`LinkedList`类，它们都实现了`Queue`接口。
 
 使用：
 
@@ -3252,7 +3525,13 @@ for (String element: c) {
 
 “for each”循环可以和任何实现了Iterable接口的对象一起工作。Collection接口扩展了Iterable接口，因此标准类库中的任何集合都可以使用“for each”。
 
-forEachRemaining方法提供一个lambda表达式🔖
+forEachRemaining方法提供一个lambda表达式：
+
+```java
+iterator.forEachRemaining(element -> ...);
+```
+
+元素被访问的顺序取决于集合类型。
 
 
 
@@ -3326,6 +3605,24 @@ E set(int index, E element)
 
 `NavigableSet`   `NagigableMap`
 
+#### List、Set、Map 
+
+1. List 是一个有序集合，可以存放重复的数据 (有序：存进是什么顺序，取出时还是什么顺序)
+   (1).ArrayList 底层是数组适合查询，不适合增删元素。
+   (2).LiskedList 底层是双向链表适合增删元素，不适合查询操作。
+   (3).Vector 底层和ArrayList相同，但是Vector是线程安全的，效率较低很少使用
+2. Set 是一个无序集合，不允许放重复的数据 (无序不可重复，存进和取出的顺序不一样)
+   (1).HashSet 底层是哈希表/散列表
+   (2).TreeSet 继承sartedSet接口（无需不可重复，但存进去的元素可以按照元素的大小自动排序）
+
+3. Map 是一个无序集合，以键值对的方式存放数据，键对象不允许重复，值对象可以重复。
+
+   (1).HashMap实现不同步，线程不安全。 HashTable线程安全
+
+   (2).HashMap中的key-value都是存储在Entry中的。
+
+   (3).HashMap可以存null键和null值，不保证元素的顺序恒久不变，它的底层使用的是数组和链表，通过hashCode()方法和equals方法保证键的唯一性
+
 ### 9.2 具体的集合
 
 ![](../../images/java-022.jpg)
@@ -3390,7 +3687,7 @@ iter.add("Juliet") ;
 
 动态数组
 
-不需要同步时使用ArrayList，需要同步时使用Vector。
+> Vector类的所有方法都是同步的。可以由两个线程安全地访问一个Vector对象。不需要同步时使用ArrayList，需要同步时使用Vector。
 
 
 
@@ -3416,13 +3713,15 @@ Java中，散列表用链表数组实现。
 
 #### 队列与双端队列
 
-Deque
-
-ArrayDeque  LinkedList
+`Deque`接口。`ArrayDeque` 和 `LinkedList`都实现了这个接口，都可以用做双端队列。
 
 
 
 #### 优先级队列（priority queue）
+
+`PriorityQueue`中的元素可以按照任意的顺序插入，却总是按照排序的顺序进行检索。
+
+也就是说，无论何时调用remove方法，总会获得当前优先级队列中最小的元素。
 
 
 
@@ -3430,9 +3729,15 @@ ArrayDeque  LinkedList
 
 #### 基本映射操作
 
-接口Map
+两个通用的实现：`HashMap`和`TreeMap`。它们都实现了接口Map。
 
-两个通用的实现：`HashMap`和`TreeMap`。
+线程安全的类有hashtable concurrentHashMap synchronizedMap
+
+#### `Hashtable` vs `Hashmap`
+
+Hashtable 线程安全，不支持key和value为空，key不能重复，但value可以重复，不支持key和value为null。
+
+Hashmap 非线程安全，支持key和value为空，key不能重复，但value可以重复，支持key和value为null。
 
 
 
@@ -3553,8 +3858,6 @@ ArrayDeque  LinkedList
 
 
 ------
-
-
 
 ## 13.部署Java应用程序
 
