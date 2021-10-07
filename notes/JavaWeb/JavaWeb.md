@@ -855,3 +855,193 @@ ORM：对象关系映射
 ## 过滤器和监听器
 
 监听器在Javaweb开发中很少使用
+
+
+
+## JDBC
+
+Java Database Connectivity
+
+需要jar包的支持：
+
+
+
+**数据库**
+
+```sql
+create table users(
+	id Int primary key,
+  `name` varchar(40),
+  `password` varchar(40),
+  `email` varchar(60),
+   birthday date
+);
+
+Insert into users(id, `name`, `password`,email, birthday)
+values(1, '张三', '123456','zs@163.com','2000-01-01');
+Insert into users(id, `name`, `password`,email, birthday)
+values(2, '李四', '123456','ls@163.com','2001-01-01');
+Insert into users(id, `name`, `password`,email, birthday)
+values(3, '王五', '123456','ww@163.com','2002-01-01');
+```
+
+导入依赖
+
+```xml
+<dependency>
+  <groupId>mysql</groupId>
+  <artifactId>mysql-connector-java</artifactId>
+  <version>8.0.21</version>
+</dependency>
+```
+
+**JDBC固定六步骤**：
+
+1. 加载驱动
+2. 链接数据库
+3.  得到想数据库发送SQL的对象：Statement
+4. 编写SQL
+5. 执行SQL
+6. 关闭连接
+
+```java
+String url = "jdbc:mysql://localhost:3306/jdbc?useUnicode=true&characterEncoding=utf-8";
+String username = "root";
+String password = "iop654321";
+
+// 1 加载驱动
+Class.forName("com.mysql.cj.jdbc.Driver");
+// 2 链接数据库，connection相当于代表数据库
+Connection connection = DriverManager.getConnection(url, username, password);
+// 3 向数据库发送SQL的对象Statement或PreparedStatement（安全的，预编译），用它来做crud
+Statement statement = connection.createStatement();
+// 4 编写SQL
+String sql = "select * from users";
+// 5 执行查询SQL，返回一个ResultSet：结果集
+ResultSet rs = statement.executeQuery(sql);
+while (rs.next()) {
+  System.out.println("id=" + rs.getObject("id"));
+  System.out.println("name=" + rs.getObject("name"));
+  System.out.println("password=" + rs.getObject("password"));
+  System.out.println("email=" + rs.getObject("email"));
+  System.out.println("birthday=" + rs.getObject("birthday"));
+// 6 关闭链接，释放资源（一点要做）。先开的后关闭
+rs.close();
+statement.close();
+connection.close();
+```
+
+预编译SQL：
+
+```java
+String url = "jdbc:mysql://localhost:3306/jdbc?useUnicode=true&characterEncoding=utf-8";
+String username = "root";
+String password = "iop654321";
+
+// 1 加载驱动
+Class.forName("com.mysql.cj.jdbc.Driver");
+// 2 链接数据库，connection相当于代表数据库
+Connection connection = DriverManager.getConnection(url, username, password);
+
+// 3 编写SQL
+String sql = "insert into users(id, name, password, email, birthday) VALUES (?,?,?,?,?)";
+
+// 4 预编译
+PreparedStatement preparedStatement = connection.prepareStatement(sql);
+preparedStatement.setInt(1,4);  // 给第一个占位符？赋值
+preparedStatement.setString(2, "王麻子");
+preparedStatement.setString(3, "wmz12345");
+preparedStatement.setString(4, "wmz@163.com");
+preparedStatement.setDate(5, new Date(new java.util.Date().getTime()));
+
+// 5 执行SQL
+int i = preparedStatement.executeUpdate();
+if (i>0) {
+  System.out.println("插入成功");
+}
+// 6 关闭链接，释放资源（一点要做）。先开的后关闭
+preparedStatement.close();
+connection.close();
+```
+
+**事务**
+
+要么成功，要么失败。
+
+ACID原则：保证数据的安全。
+
+> 开启事务
+> 事务提交 commit()
+> 事务回滚 rollback()
+> 关闭事务
+
+事务一旦提交就没法回滚了。
+
+```sql
+create table account(
+	id int primary key auto_increment,
+  `name` varchar(40),
+   money float
+);
+insert into account(name, money) VALUE('A', 1000);
+insert into account(name, money) VALUE('B', 1000);
+insert into account(name, money) VALUE('C', 1000);
+```
+
+```sql
+start transaction ; #开启事务
+
+update account set money = money - 100 where name = 'A';
+update account set money = money + 100 where name = 'B';
+
+rollback ;
+commit ;
+```
+
+```java
+String url = "jdbc:mysql://localhost:3306/jdbc?useUnicode=true&characterEncoding=utf-8";
+String username = "root";
+String password = "iop654321";
+
+Connection connection = null;
+
+try {
+  // 1 加载驱动
+  Class.forName("com.mysql.cj.jdbc.Driver");
+  // 2 链接数据库，connection相当于代表数据库
+  connection = DriverManager.getConnection(url, username, password);
+
+  // 3 通知数据库开启事务，false表示开启
+  connection.setAutoCommit(false);
+
+  String sql1 = "update account set money = money - 100 where name = 'A'";
+  connection.prepareStatement(sql1).executeUpdate();
+
+  // 制造错误
+  int i = 1/0;
+
+  String sql2 = "update account set money = money + 100 where name = 'B'";
+  connection.prepareStatement(sql2).executeUpdate();
+
+  connection.commit(); // 两条SQL都提交成功，就提交事务
+  System.out.println("success");
+
+} catch (Exception e) {
+  // 如果出现异常通知数据库回滚事务
+  try {
+    connection.rollback();
+    System.out.println("rollback");
+  } catch (SQLException ex) {
+    ex.printStackTrace();
+  }
+} finally {
+  try {
+    connection.close();
+  } catch (SQLException e) {
+    e.printStackTrace();
+  }
+}
+```
+
+
+
