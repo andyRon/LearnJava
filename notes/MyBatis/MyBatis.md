@@ -245,8 +245,8 @@ public class MybatisUtils {
   解决方法就是：配置maven默认的资源目录（父项目和子项目中都可以配置）：
 
 ```xml
-    <!-- 在build中配置resources，来防止我们资源导出失败的问题。
-    默认Maven在编译时，只会拷贝src/main/resources里的配置文件，其它地方的就不会
+    <!-- 在build中配置resources，来防止我们资源导出失败的问题（也叫maven静态资源问题）。
+    默认Maven在编译时，只会拷贝src/main/resources里的配置文件，其它地方的就不会；我们需要配置src/main/java目录下路的配置文件也被编译
     -->
     <build>
         <resources>
@@ -407,7 +407,9 @@ Map传递参数，直接在sql中取出key即可。【parameterType="map"】
 1. Java代码执行的时候，传通配符%%
 
 ```xml
-<select id="getUserLike" resultType="com.andyron.pojo.User">  select * from mybatis.user where name like #{value}</select>
+<select id="getUserLike" resultType="com.andyron.pojo.User">  
+  select * from mybatis.user where name like #{value}
+</select>
 ```
 
 ```java
@@ -833,7 +835,7 @@ Select * from user limit startIndex, pageSize;
 
 [MyBatis Pagehelper](https://pagehelper.github.io/) 
 
-
+🔖
 
 分页最终还是用sql的limit
 
@@ -1146,38 +1148,37 @@ public class Teacher {
 
 ```xml
 <select id="getTeacherPlus" resultMap="TeacherStudent">
-        select t.id tid, t.name tname, s.id sid, s.name sname
-        from teacher t, student s
-        where t.id = s.tid and t.id = #{tid};
-    </select>
-    <resultMap id="TeacherStudent" type="Teacher">
-        <result property="id" column="tid"/>
-        <result property="name" column="tname"/>
-        <!-- 复杂的属性，需要单独处理, 对象：association,集合：collection
+  select t.id tid, t.name tname, s.id sid, s.name sname
+  from teacher t, student s
+  where t.id = s.tid and t.id = #{tid};
+</select>
+<resultMap id="TeacherStudent" type="Teacher">
+  <result property="id" column="tid"/>
+  <result property="name" column="tname"/>
+  <!-- 复杂的属性，需要单独处理, 对象：association,集合：collection
         javaType指定属性类型
         ofType获取集合中的泛型信息
         -->
-        <collection property="students" ofType="Student" >
-            <result property="id" column="sid"/>
-            <result property="name" column="sname"/>
-            <result property="tid" column="tid"/>
-        </collection>
-    </resultMap>
+  <collection property="students" ofType="Student" >
+    <result property="id" column="sid"/>
+    <result property="name" column="sname"/>
+    <result property="tid" column="tid"/>
+  </collection>
+</resultMap>
 ```
 
 按照查询嵌套处理：
 
 ```xml
-    <select id="getTeacherPlus2" resultMap="TeacherStudent2">
-        select * from teacher where id = #{tid};
-    </select>
-    <resultMap id="TeacherStudent2" type="Teacher">
-        <collection property="students" javaType="ArrayList" ofType="Student" select="getStudentByTeacherId"
-                    column="id"/>
-    </resultMap>
-    <select id="getStudentByTeacherId" resultType="Student">
-        select * from student where tid = #{tid};
-    </select>
+<select id="getTeacherPlus2" resultMap="TeacherStudent2">
+  select * from teacher where id = #{tid};
+</select>
+<resultMap id="TeacherStudent2" type="Teacher">
+  <collection property="students" javaType="ArrayList" ofType="Student" select="getStudentByTeacherId" column="id"/>
+</resultMap>
+<select id="getStudentByTeacherId" resultType="Student">
+  select * from student where tid = #{tid};
+</select>
 ```
 
 
@@ -1199,11 +1200,24 @@ public class Teacher {
 
 ## 12、动态SQL
 
-动态SQL就是根据不同的条件生成不同的SQL语句。
+**动态SQL就是根据不同的条件生成不同的SQL语句。**
+
+简化SQL拼接
+
+```
+if
+choose (when, otherwise)
+trim (where, set)
+foreach
+```
+
+🔖p22-25
 
 
 
+动态SQL就是在拼接SQL语句，只要保证SQL的正确性，按照SQL的格式，去排列组合就可以了。
 
+建议：先写出完整的SQL，再对应的去修改成动态SQL的实现。 
 
 ## 13、缓存
 
@@ -1373,12 +1387,120 @@ java.io.NotSerializableException
 2. 再看一级缓存
 3. 数据库
 
-
+<img src="https://kuangstudy.oss-cn-beijing.aliyuncs.com/bbs/2021/04/01/kuangstudy203221f0-73d7-4d4c-bb81-84b1af9a63db.png" alt="img" style="zoom:67%;" />
 
 ### 13.6 自定义缓存EhCache
 
+[官方文档](http://www.mybatis.org/ehcache-cache/)
+
 EhCache 是一个纯Java的进程内缓存框架，具有快速、精干等特点。
+
+Ehcache是一种广泛使用的java分布式缓存，用于通用缓存；
+
+要在应用程序中使用Ehcache，需要引入依赖的jar包：
+
+```xml
+<!-- https://mvnrepository.com/artifact/org.mybatis.caches/mybatis-ehcache -->
+<dependency>
+    <groupId>org.mybatis.caches</groupId>
+    <artifactId>mybatis-ehcache</artifactId>
+    <version>1.1.0</version>
+</dependency>
+```
+
+在mapper.xml中使用对应的缓存即可：
+
+```xml
+<mapper namespace = “org.acme.FooMapper” > 
+    <cache type = “org.mybatis.caches.ehcache.EhcacheCache” /> 
+</mapper>
+```
+
+编写ehcache.xml文件，如果在`加载时`未找到`/ehcache.xml`资源或出现问题，则将使用默认配置。
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
+         updateCheck="false">
+    <!--
+       diskStore：为缓存路径，ehcache分为内存和磁盘两级，此属性定义磁盘的缓存位置。参数解释如下：
+       user.home – 用户主目录
+       user.dir  – 用户当前工作目录
+       java.io.tmpdir – 默认临时文件路径
+     -->
+    <diskStore path="./tmpdir/Tmp_EhCache"/>
+    <defaultCache
+            eternal="false"
+            maxElementsInMemory="10000"
+            overflowToDisk="false"
+            diskPersistent="false"
+            timeToIdleSeconds="1800"
+            timeToLiveSeconds="259200"
+            memoryStoreEvictionPolicy="LRU"/>
+    <cache
+            name="cloud_user"
+            eternal="false"
+            maxElementsInMemory="5000"
+            overflowToDisk="false"
+            diskPersistent="false"
+            timeToIdleSeconds="1800"
+            timeToLiveSeconds="1800"
+            memoryStoreEvictionPolicy="LRU"/>
+    <!--
+       defaultCache：默认缓存策略，当ehcache找不到定义的缓存时，则使用这个缓存策略。只能定义一个。
+     -->
+    <!--
+      name:缓存名称。
+      maxElementsInMemory:缓存最大数目
+      maxElementsOnDisk：硬盘最大缓存个数。
+      eternal:对象是否永久有效，一但设置了，timeout将不起作用。
+      overflowToDisk:是否保存到磁盘，当系统当机时
+      timeToIdleSeconds:设置对象在失效前的允许闲置时间（单位：秒）。仅当eternal=false对象不是永久有效时使用，可选属性，默认值是0，也就是可闲置时间无穷大。
+      timeToLiveSeconds:设置对象在失效前允许存活时间（单位：秒）。最大时间介于创建时间和失效时间之间。仅当eternal=false对象不是永久有效时使用，默认是0.，也就是对象存活时间无穷大。
+      diskPersistent：是否缓存虚拟机重启期数据 Whether the disk store persists between restarts of the Virtual Machine. The default value is false.
+      diskSpoolBufferSizeMB：这个参数设置DiskStore（磁盘缓存）的缓存区大小。默认是30MB。每个Cache都应该有自己的一个缓冲区。
+      diskExpiryThreadIntervalSeconds：磁盘失效线程运行时间间隔，默认是120秒。
+      memoryStoreEvictionPolicy：当达到maxElementsInMemory限制时，Ehcache将会根据指定的策略去清理内存。默认策略是LRU（最近最少使用）。你可以设置为FIFO（先进先出）或是LFU（较少使用）。
+      clearOnFlush：内存数量最大时是否清除。
+      memoryStoreEvictionPolicy:可选策略有：LRU（最近最少使用，默认策略）、FIFO（先进先出）、LFU（最少访问次数）。
+      FIFO，first in first out，这个是大家最熟的，先进先出。
+      LFU， Less Frequently Used，就是上面例子中使用的策略，直白一点就是讲一直以来最少被使用的。如上面所讲，缓存的元素有一个hit属性，hit值最小的将会被清出缓存。
+      LRU，Least Recently Used，最近最少使用的，缓存的元素有一个时间戳，当缓存容量满了，而又需要腾出地方来缓存新的元素的时候，那么现有缓存元素中时间戳离当前时间最远的元素将被清出缓存。
+   -->
+</ehcache>
+```
 
 
 
 ## 练习
+
+🔖 把smbms项目中29个sql修改为mybatis
+
+
+
+
+
+## MyBatis中的设计模式
+
+1、Builder模式，例如SqlSessionFactoryBuilder、XMLConfigBuilder、XMLMapperBuilder、XMLStatementBuilder、CacheBuilder；
+
+2、工厂模式，例如SqlSessionFactory、ObjectFactory、MapperProxyFactory；
+
+3、单例模式，例如ErrorContext和LogFactory；
+
+4、代理模式，Mybatis实现的核心，比如MapperProxy、ConnectionLogger，用的jdk的动态代理；还有executor.loader包使用了cglib或者javassist达到延迟加载的效果；
+
+5、组合模式，例如SqlNode和各个子类ChooseSqlNode等；
+
+6、模板方法模式，例如BaseExecutor和SimpleExecutor，还有BaseTypeHandler和所有的子类例如IntegerTypeHandler；
+
+7、适配器模式，例如Log的Mybatis接口和它对jdbc、log4j等各种日志框架的适配实现；
+
+8、装饰者模式，例如Cache包中的cache.decorators子包中等各个装饰者的实现；
+
+9、迭代器模式，例如迭代器模式PropertyTokenizer；
+
+
+
+https://www.cnblogs.com/CQqfjy/p/12302786.html

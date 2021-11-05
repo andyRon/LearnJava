@@ -11,7 +11,7 @@
     <!--
     思路：
         1. 查询所有学生信息
-        2. 根据学生的tid，查询对应的老是
+        2. 根据学生的tid，查询对应的老师
     -->
     <select id="getStudent" resultMap="StudentTeacher">
         select * from student

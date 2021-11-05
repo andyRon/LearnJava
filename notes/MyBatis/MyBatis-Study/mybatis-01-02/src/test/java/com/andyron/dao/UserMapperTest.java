@@ -59,7 +59,7 @@ public class UserMapperTest {
         UserMapper mapper = sqlSession.getMapper(UserMapper.class);
 
         Map<String, Object> map = new HashMap<String, Object>();
-        map.put("userid", 7);
+        map.put("userid", 9);
         map.put("userpwd", "789665");
         mapper.addUser2(map);
 
@@ -84,7 +84,7 @@ public class UserMapperTest {
         SqlSession sqlSession = MyBatisUtils.getSqlSession();
         UserMapper mapper = sqlSession.getMapper(UserMapper.class);
 
-        mapper.deleteUser(4);
+        mapper.deleteUser(9);
 
         sqlSession.commit();
         sqlSession.close();
