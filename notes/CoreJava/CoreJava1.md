@@ -252,6 +252,21 @@ public static void mian(String\u005B \u005D args)
 
 
 
+#### 默认值和取值范围
+
+|         | 默认值   | 存储需求（字节） | 取值范围     | 示例               |
+| ------- | -------- | ---------------- | ------------ | ------------------ |
+| byte    | 0        | 1                | -2^7—2^7-1   | byte b=10;         |
+| char    | '\u0000' | 2                | 0 — 2^16-1   | char c=’c’;        |
+| short   | 0        | 2                | -2^15—2^15-1 | short s=10;        |
+| int     | 0        | 4                | -2^31—2^31-1 | int i=10;          |
+| long    | 0        | 8                | -2^63—2^63-1 | long o=10L;        |
+| float   | 0.0f     | 4                | -2^31—2^31-1 | float f=10.0F      |
+| double  | 0.0d     | 8                | -2^63—2^63-1 | double d=10.0;     |
+| boolean | false    | 1                | true\false   | boolean flag=true; |
+
+
+
 #### Unicode 和 char 
 
 **code point**（**码点**）是指与一个编码表中的某个字符对应的代码值。a code value that is associated with a character in an encoding scheme.
@@ -2693,6 +2708,22 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 内部类既可以访问自身的数据域， 也可以访问创建它的外围类对象的数据域。
 
+> 《Think in java》:
+>
+> 使用内部类最吸引人的原因是：每个内部类都能独立地继承一个（接口的）实现，所以无论外围类是否已经继承了某个（接口的）实现，对于内部类都没有影响。
+
+使用内部类最大的优点就在于它能够非常好的解决多重继承的问题，使用内部类还能够为我们带来如下特性（摘自《Think in java》）：
+
+1、内部类可以用多个实例，每个实例都有自己的状态信息，并且与其他外围对象的信息相互独立。
+
+2、在单个外围类中，可以让多个内部类以不同的方式实现同一个接口，或者继承同一个类。
+
+3、创建内部类对象的时刻并不依赖于外围类对象的创建。
+
+4、内部类并没有令人迷惑的“is-a”关系，他就是一个独立的实体。
+
+5、内部类提供了更好的封装，除了该外围类，其他类都不能访问。
+
 
 
 #### 使用内部类访问对象状态
@@ -2783,6 +2814,26 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 ![img](http://uploadfiles.nowcoder.com/images/20151113/140047_1447376765880_373DC390B08E99ABC340DB1F78F35FCB)
 
+```mermaid
+flowchart TB
+a[Throwable] --> b[Exception]
+a --> c[Error<br>程序无法处理的错误]
+b --> d[RuntimeException]
+d --> j([ClassCastException])
+d --> k([IndexOutOfBoundsException<br>数组越界])
+d --> m([NullPointerException<br>空指针])
+b --> o(["其它异常<br>(受查异常)"])
+o --> f([IOException])
+o --> g([ClassNotFoundException])
+o --> h([ClassNotSupportedException])
+o --> n([SQLException])
+o --> i([...])
+f --> l([FileNotFoundException])
+
+```
+
+
+
 **Exception（异常）** :是程序本身可以处理的异常。
 
 **Error（错误）:** 是程序无法处理的错误。描述Java运行时系统的内部错误和资源耗尽错误。一般不需要程序处理。
@@ -2791,9 +2842,9 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 **非受查（unchecked）异常(编译器不要求处置的异常):** 包括运行时异常（RuntimeException与其子类）和错误（Error）。
 
+> 运行时异常不需要程序员去处理，当异常出现时，JVM会帮助处理（编译时发现不了了，运行时才被发现）。非运行异常需要程序员手动去捕获或者抛出异常进行显示的处理（编译时发现）。
 
-
-`Exception`包含两个分支：`RuntimeException`；其它异常。
+`Exception`包含两个分支：`RuntimeException`，其它异常。
 
 由程序错误导致的异常属于`RuntimeException`；而程序本身没问题，由于像I/O错误这类问题导致的异常属于其它异常。
 
@@ -3148,9 +3199,11 @@ jre/lib/logging.propertis
 
 ### 7.6 调试技巧🔖
 
-## 8.泛型程序设计🔖
 
-使用泛型机制编写的程序代码要比那些杂乱地使用Object变量，然后再进行强制类型转换的代码具有更好的安全性和可读性。
+
+## 8.泛型程序设计
+
+使用泛型机制编写的程序代码要比那些杂乱地使用Object变量，然后再进行强制类型转换的代码具有更好的**安全性和可读性**。
 
 泛型对于集合类尤其有用。
 
@@ -3158,7 +3211,7 @@ jre/lib/logging.propertis
 
 ### 8.1 为什么要使用泛型程序设计
 
-**泛型程序设计**(Generic programming) 意味着编写的代码可以被很多不同类型的对象所重用。
+**泛型程序设计**(Generic programming) 意味着<u>编写的代码可以被很多不同类型的对象所重用</u>。
 
 #### 类型参数的好处
 
@@ -3190,7 +3243,7 @@ public class ArrayList {
    files.add(new File("..."));
    ```
 
-**类型参数（type parameters）**解决上面问题，增加了程序可读性和安全性：
+**类型参数（type parameters）**解决上面问题，增加了程序**可读性和安全性**：
 
 ```java
 ArrayList<String> files = new ArrayList<String>();
@@ -3234,6 +3287,7 @@ public class Pair<T> {
 ```java
 public class Pair<T, U> { ... }
 ```
+类定义中的类型变量指定方法的返回类型以及域和局部变量的类型。
 
 > 类型变量的命名，一般大写单个字母。在Java库中，
 >
@@ -3305,33 +3359,161 @@ class ArrayAlg {
 
 ```java
 String middle = ArrayAlg.<String>getMiddle("John", "Q.", "Public");
+
+// 也可省略
+String middle = ArrayAlg.getMiddle("John", "Q.", "Public");
 ```
 
 
 
 ### 8.4 类型变量的限定
 
+有时，类或方法需要对类型变量加以约束。
+
+```java
+public static <T extends Comparable> T min(T[] a) {
+  if (a == null || a.length == 0) {
+    return null;
+  }
+  T smallest = a[0];
+  for (int i = 0; i < a.length; i++) {
+    if (smallest.compareTo(a[i]) > 0) {
+      smallest = a[i];
+    }
+  }
+  return smallest;
+}
+```
+
+变量smallest类型为T，如果没有`<T extends Comparable>`，就不知道是否有`compareTo`方法。
+
+> `<T extends BoundingType>`，T和绑定类型可以是类，也可以是接口。
+>
+> 而关键字不管是类还是接口都使用`extends`。
+>
+> 可以有多个限定，如`<T extends Comparable & Serializable`
+
+```java
+public class PairTest2 {
+    public static void main(String[] args) {
+
+        LocalDate[] birthDays = {
+                LocalDate.of(1921, 8, 1),
+                LocalDate.of(1949, 10, 1),
+                LocalDate.of(1978, 5, 1),
+                LocalDate.of(1911, 1, 1),
+
+        };
+        Pair<LocalDate> minmax = ArrayAlg.minmax(birthDays);
+        System.out.println("min:" + minmax.getFirst());
+        System.out.println("max:" + minmax.getSecond());
+    }
+
+}
+class ArrayAlg {
+    public static <T extends Comparable> Pair<T> minmax(T[] a) {
+        if (a == null || a.length == 0) {
+            return null;
+        }
+        T min = a[0];
+        T max = a[0];
+        for (int i = 0; i < a.length; i++) {
+            if (min.compareTo(a[i]) > 0) {
+                min = a[i];
+            }
+            if (max.compareTo(a[i]) < 0) {
+                max = a[i];
+            }
+        }
+        return new Pair<>(min, max);
+    }
+}
+```
+
+
+
+
+
 
 
 ### 8.5 泛型代码和虚拟机
 
+虚拟机没有泛型类型对象——所有对象都属于普通类。
+
 #### 类型擦除
+
+无论何时定义一个泛型类型，都自动提供了一个相应的**原始类型**（raw type）。原始类型的名字就是删去类型参数后的泛型类型名。类中的类型变量，替换为限定类型（如果没有限定就用Object替代）：
+
+```java
+public class Pair {
+    private Object first;
+    private Object second;
+
+    public Pair(Object first, Object second) {
+        this.first = first;
+        this.second = second;
+    }
+
+    public Pair() {
+    }
+
+    public Object getFirst() {
+        return first;
+    }
+
+    public void setFirst(Object first) {
+        this.first = first;
+    }
+
+    public Object getSecond() {
+        return second;
+    }
+
+    public void setSecond(Object second) {
+        this.second = second;
+    }
+}
+```
+
+多个限定类型使用第一个来替换：
+
+```java
+public class Interval<T extends Comparable & Seriable> implements Serializable {
+  private T lower;
+  private T uppper;
+  ....
+}
+```
+
+原始类型为：
+
+```java
+public class Interval implements Serializable {
+  private Comparable lower;
+  private Comparable uppper;
+  ....
+}
+```
+
+在程序中可以包含不同类型的Pair，例如，`Pair<String>`或`Pair<LocalDate>`。而擦除类型后就变成原始的Pair类型了。
 
 
 
 #### 翻译泛型表达式
 
-
+当程序调用泛型方法时，如果擦除返回类型，编译器插入强制类型转换。
 
 #### 翻译泛型方法
 
-
+类型擦除也会出现在泛型方法中。
 
 #### 调用遗留代码
 
+设计Java泛型类型时，主要目标是**允许泛型代码和遗留代码之间能够互操作**。
 
 
 
+🔖 8.6 - 8.9
 
 ### 8.6 约束与局限性
 
@@ -3383,6 +3565,10 @@ String middle = ArrayAlg.<String>getMiddle("John", "Q.", "Public");
 
 ### 8.8 通配符类型
 
+```java
+Pair<? extends Employee>
+```
+
 
 
 ### 8.9 反射和泛型
@@ -3396,6 +3582,7 @@ String middle = ArrayAlg.<String>getMiddle("John", "Q.", "Public");
 
 
 #### 虚拟机中的泛型类型信息
+
 
 
 
