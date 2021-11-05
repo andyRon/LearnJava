@@ -352,6 +352,13 @@ Stream<String> paralleWords = Stream.of(wordArray).parallel();
 
 ## 2 输入/输出（I/O）
 
+> - 如何访问文件与目录
+> - 如何以二进制格式和文本格式来读写数据
+> - 对象序列化
+> - 正则表达式
+
+
+
 ### 2.1 输入/输出流
 
 > 与上一章中的流没有任何关系。
@@ -366,25 +373,60 @@ Stream<String> paralleWords = Stream.of(wordArray).parallel();
 
 
 
+🔖 Reader Writer  Unicode字符，Char（2个字节）
+
+
+
 #### 读写字节
+
+`InputStream`的唯一抽象方法：
+
+```java
+abstract int read()
+```
+
+这个方法将读入一个字节，并返回读入的字节，或者在遇到输入源结尾时返回-1。
+
+子类必须覆盖这个方法以提供适用的功能。
+
+`OutputStream`的唯一抽象方法：
+
+```java
+abstract int read()
+```
+
+表示向某个输出位置写出一个字节。子类也必须覆盖。
+
+read和write方法在执行时都将**阻塞**，直至字节确实被读入或写出。
+
+**available**方法可检测当前可读入的字节数量，那么下面的额代码就不会产生阻塞：
+
+```java
+int bytesAvailable = in.available();
+if (bytesAvailable > 0) {
+  byte[] data = new byte[bytesAvailable];
+  in.read(data);
+}
+```
+
+
 
 ```java
 // java.io.InputStream
-
 abstract int read()
   
 int read(byte[] b)
-
+读入一个字节数组，并返回实际读入的字节数，或者在碰到输入流的结尾时返回-1。这个read方法最多读入b.length个字节。
 int read(byte[] b, int off, int len)
-  
+读入一个字节数组。这个read方法返回实际读入的字节数，或者在碰到输入流的结尾时返回-1。  
 long skip(long n)
-  
+在输入流中跳过n个字节，返回实际跳过的字节数（如果碰到输入流的结尾，则可能小于n）。  
 int available()
-  
+返回在不阻塞的情况下可获取的字节数。  
 void close()
   
 void mark(int readlimit)
-  
+在输入流的当前位置打一个标记（并非所有的流都支持这个特性）。  
 void reset()
   
 boolean markSupported()
@@ -394,7 +436,6 @@ boolean markSupported()
 
 ```java
 // java.io.OutputStream
-
 abstract void wirte(int n)
   
 void write(byte[] b)
@@ -404,6 +445,7 @@ void write(byte[] b, int off, int len)
 void close()
   
 void flush()
+冲刷输出流，也就是将所有缓冲的数据发送到目的地。
 ```
 
 
@@ -416,35 +458,87 @@ void flush()
 
 `InputStream`和`OutputStream`用于读写单个字节或字节数组。
 
-`DataInputStream`和 `DataOutputStream`用于读写字符串和数字。
+`DataInputStream`和 `DataOutputStream`可用于读写字符串和数字，它们可以以二进制格式读写所有的基本Java类型。
 
-对于Unicode文本，可用抽象类`Reader`和`Writer`的子类。
+`ZipInputStream`和`ZipOutputStream`可以以常见的ZIP压缩格式读写文件。
+
+抽象类`Reader`和`Writer`的子类，用于Unicode文本和Char（2个字节）。
 
 Reader和Writer的层次结构：
 
 ![Reader和Writer的层次结构](../../images/java-030.jpg)
 
+Reader和Writer类的基本方法与InputStream和OutputStream中的方法类似。
+
+`Closeable`， `Flushable`， `Readable`， `Appendable`接口：
+
+![](../../images/java-031.jpg)
+
+```java
+// java.io.Closeable
+void close();
+
+// java.io.Flushable
+void flush();
+
+// java.lang.Readable
+int read(java.nio.CharBuffer cb);
+  
+// java.lang.Appendable
+Appendable append(char c);
+Appendable append(CharSequence cs);
+向这个Appendable中追加给定的码元或者给定的序列中的所有码元，返回this。
+  
+// java.lang.CharSequence
+char charAt(int index);
+返回给定索引处的码元。
+int length();
+码元的数量。
+CharSequence subSequence(int start, int end);
+返回由存储在start到end-1处的所有码元构成的CharSequence。
+String toString();
+default IntStream codePoints(){}
+```
 
 
-Closeable,Flushable,Readable,Appendable接口：
-
-![Closeable,Flushable,Readable,Appendable接口](../../images/java-031.jpg)
 
 #### 组合输入/输入流过滤器
 
-`FileInputStream`
+`FileInputStream`和`FileOutputStream`
 
-`FileOutputStream`
+```java
+FileInputStream fin = new FileIputStream("employee.dat");
+```
+
+> 所有在java.io中的类都将相对路径名解释为以用户工作目录开始，你可以通过调用`System.getProperty("user.dir")`来获得这个信息，如在idea中就是项目的根目录。
+
+> 常量字符串`java.io.File.separator`是当前系统的**文件分隔符**。
+
+🔖
+
+### 2.2 文本I/O
+
+`OutputStreamWriter`类将使用选定的字符编码方式，把Unicode码元的输出流转换为字节流。而`InputStreamReader`类将包含字节（用某种字符编码方式表示的字符）的输入流转换为可以产生Unicode码元的读入器。
+
+如何让一个输入读入器可以从控制台读入键盘敲击信息，并将其转换为Unicode：
+
+```java
+Reader in = new InputStreamReader(System.in);
+```
+
+```java
+Reader in = new InputStreamReader(new FileInputStream("data.txt"), StandardCharsets.UTF_8);
+```
 
 
-
-### 2.2 文本输入与输出
 
 
 
 #### 如何写出文本输出
 
 `PrintWriter`
+
+
 
 #### 如何读入文本输入
 
@@ -460,7 +554,7 @@ Closeable,Flushable,Readable,Appendable接口：
 
 
 
-### 2.3 读写二进制数据
+### 2.3 二进制I/O
 
 #### DataInput和DataOutput接口
 
@@ -494,11 +588,13 @@ void writeUTF(String s)
 
 #### 随机访问文件
 
-`java.io.RandomAccessFile`
+`java.io.RandomAccessFile`类可以在文件中的任何位置查找或写入数据。
 
 
 
 #### ZIP文档
+
+ZIP文档（通常）以压缩格式存储了一个或多个文件，每个ZIP文档都有一个头，包含诸如**每个文件名字和所使用的压缩方法**等信息。
 
 `java.util.zip.ZipInputStream`
 
@@ -522,11 +618,28 @@ void writeUTF(String s)
 
 #### 理解对象序列化的文件格式🔖
 
+对象序列化是以特殊的文件格式存储对象数据的。
 
+存储一个对象时，它所属类也必须存储，这个类的猫叔包含：
+
+- 类名。
+- 序列化的版本唯一的ID，它是数据域类型和方法签名的指纹。
+- 描述序列化方法的标志集。
+- 对数据域的描述。
+
+**指纹**是通过对类、超类、接口、域类型和方法签名按照规范方式排序，然后将安全散列算法（SHA）应用于这些数据而获得的。
+
+
+
+- 对象流输出中包含所有对象的类型和数据域。
+- 每个对象都被赋予一个序列号。
+- 相同对象的重复出现将被存储为对这个对象的序列号的引用。
 
 #### 修改默认的序列化机制
 
+某些数据域是不可以序列化的
 
+`transient`
 
 #### 序列化单例和类型安全的枚举
 
@@ -548,9 +661,57 @@ void writeUTF(String s)
 
 #### Path
 
+```java
+Path absolute = Paths.get("/home", "andy");
+Path relative = Paths.get("myprog", "conf", "user.properties");
+```
+
+Paths.get方法接受一个或多个字符串，并将它们用默认文件系统的路径分隔符（类Unix文件系统是`/`，Windows是`\`）连接起来。然后它解析连接起来的结果，如果其表示的不是给定文件系统中的合法路径，那么就抛出`InvalidPathException`异常。这个连接起来的结果就是一个Path对象。
+
 
 
 #### 读写文件
+
+读取文件所有内容：
+
+```java
+byte[] bytes = Files.readAllBytes(path);
+```
+
+然后想将文件当作字符串读入：
+
+```java
+String content = new String(bytes, charset);
+```
+
+将文件当作行序列读入：
+
+```java
+List<String> lines = Files.readAllLines(path, charset);
+```
+
+写一个字符串到文件中：
+
+```java
+Files.write(path, content.getBytes(charset));
+```
+
+向指定文件追加内容：
+
+```java
+Files.write(path, content.getBytes(charset), StandardOpenOption.APPEND);
+```
+
+果要处理的文件长度比较大，或者是二进制文件，那么还是应该使用所熟知的输入/输出流或者读入器/写出器：
+
+```java
+InputStream in = Files.newInputStream(path);
+OutputStream in = Files.newOutputStream(path);
+Reader in = Files.newBufferedReader(path, charset);
+Write out = Files.newBufferedWrite(path, charset);
+```
+
+
 
 ```java
 // java.nio.file.Files
@@ -582,20 +743,55 @@ Files.createFile(path);
 
 #### 复制、移动和删除文件
 
+```java
+Files.copy(fromPath, toPath);
+Files.move(fromPath, toPath);
+Files.delete(path);
+boolean deleted = Files.deleteIfExists(path);
+```
+
 
 
 #### 获取文件信息
+
+```java
+// java.nio.file.Files
+static boolean exists（Path path）
+static boolean isHidden（Path path）
+static boolean isReadable（Path path）
+static boolean isWritable（Path path）
+static boolean isExecutable（Path path）
+static boolean isRegularFile（Path path）
+static boolean isDirectory（Path path）
+static boolean isSymbolicLink（Path path）
+检查由路径指定的文件的给定属性。
+static long size（Path path）
+获取文件按字节数度量的尺寸。
+  
+public static <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options)
+读取类型为A的文件属性。
+```
+
+`BasicFileAttributes`接口中定义了各种文件属性：
+
+```java
+FileTime creationTime（）
+FileTime lastAccessTime（）
+FileTime lastModifiedTime（）
+boolean isRegularFile（）
+boolean isDirectory（）
+boolean isSymbolicLink（）
+long size（）
+Object fileKey（）
+```
 
 
 
 #### 访问目录中的项
 
+`Files.list`方法会返回一个可以读取（惰性）目录中各个项的`Stream<Path>`对象。
 
-
-```java
-Files.list()
-Files.walk()
-```
+list方法不会进入子目录，为了处理所有子目录需要`Files.walk`
 
 
 
@@ -613,7 +809,7 @@ java.nio.file.FileSystem
 
 
 
-### 2.6 内存映射文件
+### 2.6 内存映射文件🔖
 
 大多数操作系统都可以利用虚拟内存实现来将一个文件或者文件的一部分”映射“到内存中。然后这个文件就可以当作是内存数组一样地访问。
 
