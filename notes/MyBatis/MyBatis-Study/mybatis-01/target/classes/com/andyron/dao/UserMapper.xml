@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- namespace:绑定一个Dao/Mapper接口-->
 <mapper namespace="com.andyron.dao.UserDao">
-    <select id="getUserList" resultType="com.andyron.pojo.User">
+    <select id="getUserList" resultType="com.andyron.pojo.User" >
         select * from mybatis.user
     </select>
 </mapper>

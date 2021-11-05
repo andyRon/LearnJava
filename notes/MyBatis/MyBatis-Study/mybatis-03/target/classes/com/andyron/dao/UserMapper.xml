@@ -6,7 +6,7 @@
 <mapper namespace="com.andyron.dao.UserMapper">
 
     <!-- 结果映射集-->
-    <resultMap id="UserMap" type="User">
+    <resultMap id="UserMap1" type="User">
         <!-- column是数据库中的字段，property是实体类中的字段 -->
         <result column="pwd" property="password"/>
     </resultMap>

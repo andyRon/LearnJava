@@ -18,7 +18,12 @@ public class UserMapperTest {
         UserMapper mapper = sqlSession.getMapper(UserMapper.class);
 
 
-        mapper.deleteUser(7);
+//        mapper.deleteUser(7);
+
+        List<User> users = mapper.getUsers();
+        for (User user : users) {
+            System.out.println(user);
+        }
 
         sqlSession.close();
     }

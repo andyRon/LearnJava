@@ -41,7 +41,7 @@ public class UserMapperTest {
         UserMapper mapper = sqlSession.getMapper(UserMapper.class);
 
         HashMap<String, Integer> map = new HashMap<String, Integer>();
-        map.put("startIndex", 0);
+        map.put("startIndex", 4);
         map.put("pageSize", 2);
 
         List<User> userList = mapper.getUserByLimit(map);
