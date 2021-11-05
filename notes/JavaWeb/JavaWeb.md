@@ -407,7 +407,7 @@ maven约定大于配置。
 
 - Servlet就是sun公司开发动态web的一门技术
 
-- sun在这些API中提供一个借口叫做：Servlet，如果想开发一个Servlet程序，只需要完成两个小步骤：
+- sun在这些API中提供一个接口叫做：`Servlet`，如果想开发一个Servlet程序，只需要完成两个小步骤：
   - 编写一个类，实现Servlet接口
   - 把开发好的Java类部署到Web服务器中
 
@@ -469,7 +469,7 @@ Sun提供了两个Servlet实现类：`HttpServlet`, `GenericServlet`
 
 配置项目发布的路径
 
-![](../../images/java-078.jpg)
+<img src="../../images/java-078.jpg" style="zoom: 33%;" />
 
 7. 启动测试
 
@@ -477,7 +477,7 @@ Sun提供了两个Servlet实现类：`HttpServlet`, `GenericServlet`
 
 Servlet是由Web服务器调用，web服务器在受到浏览器请求之后，会：
 
-![](../../images/java-079.jpg)
+<img src="../../images/java-079.jpg" style="zoom: 67%;" />
 
 
 
@@ -680,7 +680,7 @@ protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws Se
     }
 ```
 
-![](../../images/java-081.jpg)
+<img src="../../images/java-081.jpg" style="zoom:50%;" />
 
 > 注：ServletContext上面介绍的功能之后很少使用，都会被其它替代。
 
@@ -788,6 +788,29 @@ String[] getParameterValues(String s);
 
 🔖p15
 
+```java
+@Override
+protected void doGet(HttpservletRequest req. HttpservletResponse resp) throws ServletException, IOException {
+
+	req. setcharacterEncoding("utf-8");
+	resp.setcharacterEncoding("utf-8");
+	String username = req.getParameter("username");
+	String password = req.getParameter("password");
+	String[] hobbys = req.getParameterValues("hobbys");
+	System.out.println("==========");
+	//后台接收中文乱码问题
+	System. out.println(username);
+	System. out.println(password);
+	System. out.println(Arrays.tostring(hobbys));
+	System. out.println("============");
+	system. out.println(req.getContextPath());
+	//通过请求转发
+	//这里的/代表当前的web应用
+	req.getRequestDispatcher("/success.jsp").forward(req,resp);
+}
+
+```
+
 
 
 
@@ -826,7 +849,525 @@ session：服务器技术，可以用来保存用户的会话信息
 
 🔖16:36
 
+### 7.3、Cookie
+
+1. 从请求中拿到cookie信息
+
+2. 服务器响应给客户端cookie
+
+```java
+Cookie[] cookies = req.getCookies(); //获得Cookie
+cookie.getName(); //获得cookie中的key
+cookie.getValue(); //获得cookie中的vlaue
+new Cookie("lastLoginTime", System.currentTimeMillis()+""); //新建一个cookie
+cookie.setMaxAge(24*60*60); //设置cookie的有效期
+resp.addCookie(cookie); //响应给客户端一个cookie
+```
+
+cookie：一般会保存在本地的 用户目录下 appdata；
+
+
+
+一个网站cookie是否存在上限？
+
+- 一个Cookie只能保存一个信息；
+- 一个web站点可以给浏览器发送多个cookie，最多存放20个cookie；
+- Cookie大小有限制4kb；
+- 300个cookie浏览器上限
+
+删除Cookie；
+
+- 不设置有效期，关闭浏览器，自动失效；
+
+- 设置有效期时间为 0 ；
+
+编码解码：
+
+```java
+URLEncoder.encode("秦疆","utf-8")
+URLDecoder.decode(cookie.getValue(),"UTF-8")
+```
+
+### 7.4、Session（重点）
+
+<img src="https://img-blog.csdnimg.cn/2020050618262991.png" style="zoom:50%;" />
+
+什么是Session：
+
+- 服务器会给每一个用户（浏览器）创建一个Seesion对象；
+- 一个Seesion独占一个浏览器，只要浏览器没有关闭，这个Session就存在；
+
+- 用户登录之后，整个网站它都可以访问！–> 保存用户的信息；保存购物车的信息
+- ……
+  
+
+Session和cookie的区别：
+
+- Cookie是把用户的数据写给用户的浏览器，浏览器保存 （可以保存多个）
+- Session把用户的数据写到用户独占Session中，服务器端保存 （保存重要的信息，减少服务器资源的浪费）
+- Session对象由服务创建；
+
+使用场景：
+
+- 保存一个登录用户的信息；
+- 购物车信息；
+- 在整个网站中经常会使用的数据，我们将它保存在Session中；
+
+使用Session：
+
+```java
+package com.kuang.servlet;
+
+import com.kuang.pojo.Person;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.*;
+import java.io.IOException;
+
+public class SessionDemo01 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        
+        //解决乱码问题
+        req.setCharacterEncoding("UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("text/html;charset=utf-8");
+        
+        //得到Session
+        HttpSession session = req.getSession();
+        //给Session中存东西
+        session.setAttribute("name",new Person("秦疆",1));
+        //获取Session的ID
+        String sessionId = session.getId();
+
+        //判断Session是不是新创建
+        if (session.isNew()){
+            resp.getWriter().write("session创建成功,ID:"+sessionId);
+        }else {
+            resp.getWriter().write("session以及在服务器中存在了,ID:"+sessionId);
+        }
+
+        //Session创建的时候做了什么事情；
+//        Cookie cookie = new Cookie("JSESSIONID",sessionId);
+//        resp.addCookie(cookie);
+
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+
+```
+
+```java
+//得到Session
+HttpSession session = req.getSession();
+
+Person person = (Person) session.getAttribute("name");
+
+System.out.println(person.toString());
+
+HttpSession session = req.getSession();
+session.removeAttribute("name");
+//手动注销Session
+session.invalidate();
+
+```
+
+**会话自动过期：web.xml配置**:
+
+```xml
+<!--设置Session默认的失效时间-->
+<session-config>
+    <!--15分钟后Session自动失效，以分钟为单位-->
+    <session-timeout>15</session-timeout>
+</session-config>
+
+```
+
+<img src="https://img-blog.csdnimg.cn/2020050618301064.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2JlbGxfbG92ZQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" style="zoom:50%;" />
+
+
+
 ## 8、JSP
+
+### 8.1 什么 JSP
+
+Java Server Pages ： Java服务器端页面，也和Servlet一样，用于动态Web技术！
+
+最大的特点：写JSP就像在写HTML
+
+区别：
+
+- HTML只给用户提供静态的数据
+
+- JSP 页面中可以嵌入Java 代码，为用户提供动态数据；
+
+### 8.2 JSP 原理
+
+服务器内部工作：
+Tomcat 中有一个 work 工作目录；
+IDEA 中使用 Tomcat 的会在 IDEA 中 Tomcat 中生产一个 work 目录
+
+<img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211022200101599.png" alt="image-20211022200101599" style="zoom:33%;" />
+
+发现页面转变成了 Java 程序
+
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20201102205258993.png#pic_center)
+浏览器向服务器发送请求，不管访问什么资源，起始都是在访问 Servlet ！
+
+JSP 最终也会被转换成一个 Java 类！
+JSP 本质上就是一个 Servlet。
+
+```java
+//初始化
+  public void _jspInit() {
+      
+  }
+//销毁
+  public void _jspDestroy() {
+  }
+//JSPService
+  public void _jspService(.HttpServletRequest request,HttpServletResponse response)
+
+```
+
+1. 判断请求
+2. 内置一些对象
+
+```java
+final javax.servlet.jsp.PageContext pageContext;  //页面上下文
+javax.servlet.http.HttpSession session = null;    //session
+final javax.servlet.ServletContext application;   //applicationContext
+final javax.servlet.ServletConfig config;         //config
+javax.servlet.jsp.JspWriter out = null;           //out
+final java.lang.Object page = this;               //page：当前
+HttpServletRequest request                        //请求
+HttpServletResponse response                      //响应
+```
+
+3. 输出页面前增加的代码
+
+```java
+response.setContentType("text/html");       //设置响应的页面类型
+pageContext = _jspxFactory.getPageContext(this, request, response,
+                                          null, true, 8192, true);
+_jspx_page_context = pageContext;
+application = pageContext.getServletContext();
+config = pageContext.getServletConfig();
+session = pageContext.getSession();
+out = pageContext.getOut();
+_jspx_out = out;
+
+```
+
+4. 以上这些对象可直接在 JSP 中使用
+
+<img src="https://img-blog.csdnimg.cn/20201102205856631.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM2MTg4MTI3,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述" style="zoom:33%;" />
+
+在JSP页面中；
+
+只要是 JAVA代码就会原封不动的输出；
+
+如果是HTML代码，就会被转换为：
+
+```
+out.write("<html>\r\n");
+```
+
+这样的格式，输出到前端！
+
+### 8.3 JSP 基础语法
+
+JSP 表达式
+
+```xml
+  <%--JSP表达式
+  作用：用来将程序的输出，输出到客户端
+  <%= 变量或者表达式%>
+  --%>
+  <%= new java.util.Date()%>
+12345
+```
+
+**JSP 脚本片段**
+
+```xml
+  <%--jsp脚本片段--%>
+  <%
+    int sum = 0;
+    for (int i = 1; i <=100 ; i++) {
+      sum+=i;
+    }
+    out.println("<h1>Sum="+sum+"</h1>");
+  %>
+12345678
+```
+
+**脚本片段的再实现**
+
+```xml
+  <%
+    int x = 10;
+    out.println(x);
+  %>
+  <p>这是一个JSP文档</p>
+  <%
+    int y = 2;
+    out.println(y);
+  %>
+
+  <hr>
+
+
+  <%--在代码嵌入HTML元素--%>
+  <%
+    for (int i = 0; i < 5; i++) {
+  %>
+    <h1>Hello,World  <%=i%> </h1>
+  <%
+    }
+  %>
+123456789101112131415161718192021
+```
+
+**JSP 声明**
+
+```xml
+  <%!
+    static {
+      System.out.println("Loading Servlet!");
+    }
+
+    private int globalVar = 0;
+
+    public void kuang(){
+      System.out.println("进入了方法Kuang！");
+    }
+  %>
+1234567891011
+```
+
+JSP 声明： 会被编译到 JSP 生成 Java 的类中！ 其他的，就会被生成 _jspService 方法中！
+
+```
+<%%>
+<%=%>
+<%!%>
+
+<%--注释--%>
+12345
+```
+
+JSP 的注释，不会在客户端显示，HTML就会！
+
+### 8.4 JSP 指令
+
+```xml
+<%@page args.... %>
+<%@include file=""%>
+
+<%--@include会将两个页面合二为一--%>
+
+<%@include file="common/header.jsp"%>
+<h1>网页主体</h1>
+
+<%@include file="common/footer.jsp"%>
+
+<hr>
+
+
+<%--jSP标签
+    jsp:include：拼接页面，本质还是三个
+    --%>
+<jsp:include page="/common/header.jsp"/>
+<h1>网页主体</h1>
+<jsp:include page="/common/footer.jsp"/>
+12345678910111213141516171819
+```
+
+### 8.5 九大内置对象
+
+- PageContext 存东西
+- Request 存东西
+- Response
+- Session 存东西
+- Application 【ServletContext】 存东西
+- config 【ServletConfig】
+- out
+- page
+- exception
+
+```java
+pageContext.setAttribute("name1","秦疆1号"); //保存的数据只在一个页面中有效
+request.setAttribute("name2","秦疆2号"); //保存的数据只在一次请求中有效，请求转发会携带这个数据
+session.setAttribute("name3","秦疆3号"); //保存的数据只在一次会话中有效，从打开浏览器到关闭浏览器
+application.setAttribute("name4","秦疆4号");  //保存的数据只在服务器中有效，从打开服务器到关闭服务器
+1234
+```
+
+request：客户端向服务器发送请求，产生的数据，用户看完就没用了，比如：新闻，用户看完没用的！
+
+session：客户端向服务器发送请求，产生的数据，用户用完一会还有用，比如：购物车；
+
+application：客户端向服务器发送请求，产生的数据，一个用户用完了，其他用户还可能使用，比如：聊天数据；
+
+### 8.6 JSP标签、JSTL标签、EL表达式
+
+```xml
+<!-- JSTL表达式的依赖 -->
+<dependency>
+    <groupId>javax.servlet.jsp.jstl</groupId>
+    <artifactId>jstl-api</artifactId>
+    <version>1.2</version>
+</dependency>
+<!-- standard标签库 -->
+<dependency>
+    <groupId>taglibs</groupId>
+    <artifactId>standard</artifactId>
+    <version>1.1.2</version>
+</dependency>
+123456789101112
+```
+
+EL 表达式： ${}
+
+- 获取数据
+- 执行运算
+- 获取 Web 开发的常用对象
+
+JSP 标签
+
+```xml
+<%--jsp:include--%>
+
+<%--
+http://localhost:8080/jsptag.jsp?name=kuangshen&age=12
+--%>
+
+<jsp:forward page="/jsptag2.jsp">
+    <jsp:param name="name" value="kuangshen"></jsp:param>
+    <jsp:param name="age" value="12"></jsp:param>
+</jsp:forward>
+12345678910
+```
+
+**JSTL表达式**
+
+JSTL 标签库的使用就是为了弥补 HTML 标签的不足；它自定义许多标签，可以供我们使用，标签的功能和 Java 代码一样！
+
+**格式化标签**
+
+**SQL标签**
+
+**XML 标签**
+
+**核心标签** （掌握部分）
+
+<img src="https://img-blog.csdnimg.cn/2020110221251720.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM2MTg4MTI3,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述" style="zoom:50%;" />
+**JSTL标签库使用步骤**
+
+- 引入对应的 taglib
+- 使用其中的方法
+- **在 Tomcat 也需要引入 JSTL 的包，否则会报错：JSTL 解析错误**
+
+c: if
+
+```xml
+<head>
+    <title>Title</title>
+</head>
+<body>
+
+
+<h4>if测试</h4>
+
+<hr>
+
+<form action="coreif.jsp" method="get">
+    <%--
+    EL表达式获取表单中的数据
+    ${param.参数名}
+    --%>
+    <input type="text" name="username" value="${param.username}">
+    <input type="submit" value="登录">
+</form>
+
+<%--判断如果提交的用户名是管理员，则登录成功--%>
+<c:if test="${param.username=='admin'}" var="isAdmin">
+    <c:out value="管理员欢迎您！"/>
+</c:if>
+
+<%--自闭合标签--%>
+<c:out value="${isAdmin}"/>
+
+</body>
+12345678910111213141516171819202122232425262728
+```
+
+c:choose c:when
+
+```xml
+<body>
+
+<%--定义一个变量score，值为85--%>
+<c:set var="score" value="55"/>
+
+<c:choose>
+    <c:when test="${score>=90}">
+        你的成绩为优秀
+    </c:when>
+    <c:when test="${score>=80}">
+        你的成绩为一般
+    </c:when>
+    <c:when test="${score>=70}">
+        你的成绩为良好
+    </c:when>
+    <c:when test="${score<=60}">
+        你的成绩为不及格
+    </c:when>
+</c:choose>
+
+</body>
+123456789101112131415161718192021
+```
+
+c:forEach
+
+```xml
+<%
+
+    ArrayList<String> people = new ArrayList<>();
+    people.add(0,"张三");
+    people.add(1,"李四");
+    people.add(2,"王五");
+    people.add(3,"赵六");
+    people.add(4,"田六");
+    request.setAttribute("list",people);
+%>
+
+
+<%--
+var , 每一次遍历出来的变量
+items, 要遍历的对象
+begin,   哪里开始
+end,     到哪里
+step,   步长
+--%>
+<c:forEach var="people" items="${list}">
+    <c:out value="${people}"/> <br>
+</c:forEach>
+
+<hr>
+
+<c:forEach var="people" items="${list}" begin="1" end="3" step="1" >
+    <c:out value="${people}"/> <br>
+</c:forEach>
+```
+
+
 
 
 
@@ -852,13 +1393,194 @@ ORM：对象关系映射
 
 
 
-## 过滤器和监听器
+## 11、过滤器Filter
+
+Filter：过滤器，用来过滤网站的数据；
+
+- 处理中文乱码
+- 登录验证
+
+<img src="https://img-blog.csdnimg.cn/20201102214811292.png" alt="在这里插入图片描述" style="zoom:50%;" />
+
+Filter 开发步骤：
+
+1. 导包
+2. 编写过滤器
+
+```java
+public class CharacterEncodingFilter implements Filter {
+
+    //初始化：web服务器启动，就以及初始化了，随时等待过滤对象出现！
+    public void init(FilterConfig filterConfig) throws ServletException {
+        System.out.println("CharacterEncodingFilter初始化");
+    }
+
+    //Chain : 链
+    /*
+    1. 过滤中的所有代码，在过滤特定请求的时候都会执行
+    2. 必须要让过滤器继续同行
+        chain.doFilter(request,response);
+     */
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        request.setCharacterEncoding("utf-8");
+        response.setCharacterEncoding("utf-8");
+        response.setContentType("text/html;charset=UTF-8");
+
+        System.out.println("CharacterEncodingFilter执行前....");
+        chain.doFilter(request,response); //让我们的请求继续走，如果不写，程序到这里就被拦截停止！
+        System.out.println("CharacterEncodingFilter执行后....");
+    }
+
+    //销毁：web服务器关闭的时候，过滤会销毁
+    public void destroy() {
+        System.out.println("CharacterEncodingFilter销毁");
+    }
+}
+```
+
+3. 在web.xml中配置Filter
+
+```xml
+<filter>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <filter-class>com.kuang.filter.CharacterEncodingFilter</filter-class>
+</filter>
+<filter-mapping>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <!--只要是 /servlet的任何请求，会经过这个过滤器-->
+    <url-pattern>/servlet/*</url-pattern>
+    <!--<url-pattern>/*</url-pattern>-->
+</filter-mapping>
+```
+
+
+
+
+
+## 12、监听器
 
 监听器在Javaweb开发中很少使用
 
+实现一个监听器的接口；（有n种监听器）
+
+1. 编写一个监听器。实现监听器的接口…
+
+```java
+//统计网站在线人数 ： 统计session
+public class OnlineCountListener implements HttpSessionListener {
+
+    //创建session监听： 看你的一举一动
+    //一旦创建Session就会触发一次这个事件！
+    public void sessionCreated(HttpSessionEvent se) {
+        ServletContext ctx = se.getSession().getServletContext();
+
+        System.out.println(se.getSession().getId());
+
+        Integer onlineCount = (Integer) ctx.getAttribute("OnlineCount");
+
+        if (onlineCount==null){
+            onlineCount = new Integer(1);
+        }else {
+            int count = onlineCount.intValue();
+            onlineCount = new Integer(count+1);
+        }
+
+        ctx.setAttribute("OnlineCount",onlineCount);
+
+    }
+
+    //销毁session监听
+    //一旦销毁Session就会触发一次这个事件！
+    public void sessionDestroyed(HttpSessionEvent se) {
+        ServletContext ctx = se.getSession().getServletContext();
+
+        Integer onlineCount = (Integer) ctx.getAttribute("OnlineCount");
+
+        if (onlineCount==null){
+            onlineCount = new Integer(0);
+        }else {
+            int count = onlineCount.intValue();
+            onlineCount = new Integer(count-1);
+        }
+
+        ctx.setAttribute("OnlineCount",onlineCount);
+
+    }
 
 
-## JDBC
+    /*
+    Session销毁：
+    1. 手动销毁  getSession().invalidate();
+    2. 自动销毁
+     */
+}
+```
+
+2. web.xml中注册监听器
+
+   ```xml
+   <!--注册监听器-->
+   <listener>
+       <listener-class>com.kuang.listener.OnlineCountListener</listener-class>
+   </listener>
+   1234
+   ```
+
+3. 看情况是否使用！
+
+## 13、过滤器、监听器常见应用
+
+**监听器：GUI编程中经常使用；**
+
+```java
+public class TestPanel {
+    public static void main(String[] args) {
+        Frame frame = new Frame("中秋节快乐");  //新建一个窗体
+        Panel panel = new Panel(null); //面板
+        frame.setLayout(null); //设置窗体的布局
+
+        frame.setBounds(300,300,500,500);
+        frame.setBackground(new Color(0,0,255)); //设置背景颜色
+
+        panel.setBounds(50,50,300,300);
+        panel.setBackground(new Color(0,255,0)); //设置背景颜色
+
+        frame.add(panel);
+
+        frame.setVisible(true);
+
+        //监听事件，监听关闭事件
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+            }
+        });
+
+    }
+}
+```
+
+用户登录之后才能进入主页！用户注销后就不能进入主页了！
+
+1. 用户登录之后，向Sesison中放入用户的数据
+2. 进入主页的时候要判断用户是否已经登录；要求：在过滤器中实现！
+
+```java
+HttpServletRequest request = (HttpServletRequest) req;
+HttpServletResponse response = (HttpServletResponse) resp;
+
+if (request.getSession().getAttribute(Constant.USER_SESSION)==null){
+    response.sendRedirect("/error.jsp");
+}
+
+chain.doFilter(request,response);
+
+```
+
+
+
+## 14、JDBC
 
 Java Database Connectivity
 
@@ -1042,6 +1764,36 @@ try {
   }
 }
 ```
+
+
+
+## 15、超市管理项目smbms
+
+
+
+## 16、文件上传   
+
+2.使用类介绍
+
+【文件上传的注意事项】
+
+1. 为保证服务器安全，上传文件应该放在外界无法直接访问的目录下，比如放于WEB-INF目录下。 
+2. 为防止文件覆盖的现象发生，要为上传文件产生一个唯一的文件名
+3. 要限制上传文件的最大值，
+4. 可以限制上传文件的类型，在收到上传文件名时，判断后缀名是否合法。
+
+【需要用到的类详解】
+`ServletFileUpload`负责处理上传的文件数据，并将表单中每个输入项封装成一个`Fileltem`对象，在使用ServletFileUpload对象解析请求时需要`Dis kFileltemFactory`对象。
+
+所以，我们需要在进行解析工作前构造好DiskFileltemFactory对象，通过ServletfFileUpload对象的构造方法或setFileltem Factory()方法设置ServletFileUpload对象的fileltemFactory属性。
+
+ 
+
+🔖p39 54min  项目报错，可能是包导入的问题
+
+
+
+## 邮件发送
 
 
 
