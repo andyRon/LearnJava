@@ -1,2 +1,8 @@
 *.class
 
+
+notes/CoreJava/code/v1ch03/FileInOut/
+
+beta/
+
+*.hprof

@@ -58,7 +58,7 @@ Filter模式可以在运行期动态增加功能（又称Decorator模式）
 
 `ZipInputStream`
 
-![](/Users/andyron/myfield/github/LearnJa../../images/java-012.jpg)
+![](../../images/java-012.jpg)
 
 
 
@@ -238,7 +238,7 @@ ava线程的状态有以下几种：
 
 用一个状态转移图表示如下：
 
-![](/Users/andyron/myfield/github/LearnJa../../images/java-013.jpg)
+![](../../images/java-013.jpg)
 
 ### 中断线程
 

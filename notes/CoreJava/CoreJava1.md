@@ -381,6 +381,10 @@ int nx = (int) Math.round(x);
 
 > 如果试图将一个数值从一种类型强制转换为另一种类型， 而又超出了目标类型的 表示范围， 结果就会截断成一个完全不同的值。例如，(byte) 300 的实际值为 44。(10010 1100 -> 0010 1100，也就是300-256=44)
 
+
+
+
+
 #### 结合赋值和运算符
 
 ```java
@@ -2797,9 +2801,9 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 有哪些错误和问题：
 
-1. 用户输入错误
-2. 设备错误
-3. 物理限制
+1. 用户输入错误。
+2. 设备错误。各种硬件出问题情况，如打印机被关掉了、没纸、网页奔溃等。
+3. 物理限制。磁盘满了。
 4. 代码错误
 
 
@@ -2809,6 +2813,8 @@ Array.sort(people, Comparator.comparing(Person::getName, (s, t) -> Integer.compa
 
 
 #### 异常分类
+
+Java中异常对象都派生于`Throwable`类。
 
 ![](../../images/java-028.jpg)
 
@@ -2836,7 +2842,7 @@ f --> l([FileNotFoundException])
 
 **Exception（异常）** :是程序本身可以处理的异常。
 
-**Error（错误）:** 是程序无法处理的错误。描述Java运行时系统的内部错误和资源耗尽错误。一般不需要程序处理。
+**Error（错误）:** 是程序无法处理的错误。描述Java运行时系统的**内部错误和资源耗尽错误**。一般不需要程序处理。
 
 **受查（checked）异常（编译器要求必须处置的异常）** ： 除了Error，RuntimeException及其子类以外，其他的Exception类及其子类都属于可查异常。这种异常的特点是Java编译器会检查它，也就是说，当程序中可能出现这类异常，<u>要么用try-catch语句捕获它，要么用throws子句声明抛出它，否则编译不会通过</u>。
 
