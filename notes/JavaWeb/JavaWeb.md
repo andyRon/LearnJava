@@ -477,7 +477,7 @@ Sun提供了两个Servlet实现类：`HttpServlet`, `GenericServlet`
 
 Servlet是由Web服务器调用，web服务器在受到浏览器请求之后，会：
 
-<img src="../../images/java-079.jpg" style="zoom: 67%;" />
+<img src="../../images/java-079.jpg"  />
 
 
 
