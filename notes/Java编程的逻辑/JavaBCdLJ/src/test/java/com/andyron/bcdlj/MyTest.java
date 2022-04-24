@@ -12,11 +12,10 @@ import java.util.*;
 public class MyTest {
     @Test
     public void test() {
-        char chr = 127;
-        int sum = 200;
-        chr += 1;
-        sum += chr;
-        System.out.println(sum);
+        String name = "com.andyron.bcdlj.MyTest";
+        System.out.println(name.replace(".", "/"));
+
+
 
 
     }
