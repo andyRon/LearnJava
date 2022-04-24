@@ -1,3 +1,11 @@
+---
+
+---
+
+
+
+
+
 MyBatis
 ------------
 
@@ -138,7 +146,7 @@ INSERT INTO `user` (`id`, `name`, `pwd`) VALUES
 
 ### 2.2 创建一个模块
 
-- 编写MyBatis的核心配置文件：
+- 编写MyBatis的核心配置文件mybaits-config.xml：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -209,7 +217,7 @@ public class MybatisUtils {
 
   
 
-- 接口实现类，由原来的UserDaoImpl转变为一个Mapper配置文件：
+- 接口实现类，由原来的UserDaoImpl转变为一个Mapper配置文件(UserMapper.xml)：
 
   ```xml
   <?xml version="1.0" encoding="UTF-8" ?>
