@@ -222,7 +222,7 @@ User(id=1452562031445110785, name=AndyRon, age=5, email=rongming.2008@163.com)
 - 10 bit 作为机器编号 （5个bit是数据中心，5个bit的机器ID） - **10位的长度最多支持部署1024个节点**
 - 12 bit 作为毫秒内序列号 - **12位的计数顺序号支持每个节点每毫秒产生4096个ID序号**
 
-![img](https://img-blog.csdnimg.cn/20190726091202771.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3UwMTAzOTg3NzE=,size_16,color_FFFFFF,t_70)
+![](https://img-blog.csdnimg.cn/20190726091202771.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3UwMTAzOTg3NzE=,size_16,color_FFFFFF,t_70)
 
 
 
