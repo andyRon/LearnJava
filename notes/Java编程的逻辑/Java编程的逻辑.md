@@ -1,7 +1,7 @@
 Java编程的逻辑
 -------
 
-
+[示例  代码](https://github.com/swiftma/program-logic/blob/master/the_logic_of_java_programming.md)
 
 # 一、编程基础与二进制
 
@@ -814,7 +814,7 @@ Java中，所谓类的加载是指将类的相关信息加载到内存。在Java
 
 `Child c = new Child();`会将新创建的Child对象引用赋给变量c，而`Base b = c;`会让b也引用这个Child对象。
 
-![image-20220313103844791](images/image-20220313103844791.png)
+![](images/image-20220313103844791.png)
 
 引用型变量c和b分配在栈中，它们指向相同的堆中的Child对象。Child对象存储着方法区中Child类型的地址，还有Base中的实例变量a和Child中的实例变量a
 
@@ -836,7 +836,7 @@ Java中，所谓类的加载是指将类的相关信息加载到内存。在Java
 
 **虚方法表**，就是在类加载的时候为每个类创建一个表，记录该类的对象所有动态绑定的方法（包括父类的方法）及其地址，但一个方法只有一条记录，子类重写了父类方法后只会保留子类的。
 
-![image-20220313104421843](images/image-20220313104421843.png)
+![](images/image-20220313104421843.png)
 
 #### 变量访问的过程
 
@@ -2350,11 +2350,11 @@ Random类是线程安全的，也就是说，多个线程可以同时使用一�
 
 虽然泛型的基本思维和概念是比较简单的，但它有一些非常令人费解的语法、细节，以及局限性。
 
-容器类是基于泛型的，不理解泛型，就难以深刻理解容器类。
+<font color=#FF8C00>容器类是基于泛型的，不理解泛型，就难以深刻理解容器类。</font>
 
 ### 8.1 基本概念和原理
 
-泛型将接口的概念进一步延伸，“泛型”的字面意思就是**广泛的类型**。类、接口和方法代码可以应用于非常广泛的类型，<u>代码与它们能够操作的数据类型不再绑定在一起</u>，同一套代码可以用于多种数据类型，这样，不仅可以复用代码，降低耦合，而且可以提高代码的可读性和安全性。
+泛型将接口的概念进一步**延伸**，“泛型”的字面意思就是**广泛的类型**。类、接口和方法代码可以应用于非常广泛的类型，<u>代码与它们能够操作的数据类型不再绑定在一起</u>，同一套代码可以用于多种数据类型，这样，不仅可以复用代码，降低耦合，而且可以提高代码的可读性和安全性。
 
 #### 一个简单泛型类
 
@@ -2377,7 +2377,7 @@ public class Pair<T> {
 }
 ```
 
-泛型就是**类型参数**化，处理的数据类型不是固定的，而是可以作为参数传入。
+泛型就是**类型参数化**，处理的数据类型不是固定的，而是可以作为参数传入。
 
 ```java
 public class Pair<U, V> {
@@ -2442,7 +2442,7 @@ String value = (String)kv.getSecond();
 
 实际上，Java泛型的内部原理就是这样的。
 
-Java有**Java编译器**和**Java虚拟机**，编译器将Java源代码转换为.class文件，虚拟机加载并运行class文件。对于泛型类，Java编译器会将泛型代码转换为普通的非泛型代码，就像上面的普通Pair类代码及其使用代码一样，<u>将类型参数T擦除，替换为Object，插入必要的强制类型转换</u>。**Java虚拟机实际执行的时候，它是不知道泛型这回事的，只知道普通的类及代码。**
+Java有**Java编译器**和**Java虚拟机**，编译器将Java源代码转换为class文件，虚拟机加载并运行class文件。对于泛型类，Java编译器会将泛型代码转换为普通的非泛型代码，就像上面的普通Pair类代码及其使用代码一样，<u>将类型参数T擦除，替换为Object，插入必要的强制类型转换</u>。**Java虚拟机实际执行的时候，它是不知道泛型这回事的，只知道普通的类及代码。**
 
 ##### 3.泛型的好处
 
@@ -2531,7 +2531,7 @@ DynamicArray<Pair<Integer, String>> arr = new DynamicArray<>()
 
 #### 类型参数的限定
 
-泛型的类型参数支持限定这个参数的一个<font color=#FF8C00>上界</font>，通过extens来表示。
+泛型的类型参数支持限定这个参数的一个<font color=#FF8C00>上界</font>，通过`extends`来表示。
 
 ##### 1.上界为某个具体的类
 
@@ -2557,13 +2557,39 @@ public static <T extends Comparable<T>> T max(T[] arr){
 }
 ```
 
-`<T extends Comparable<T>>`是一种令人费解的语法形式，这种形式称为递归类型限制，可以这么解读：T表示一种数据类型，必须实现Comparable接口，且必须可以与相同类型的元素进行比较。
+`<T extends Comparable<T>>`是一种令人费解的语法形式，这种形式称为**递归类型限制**，可以这么解读：T表示一种数据类型，必须实现Comparable接口，且必须可以与相同类型的元素进行比较。
 
 ##### 3.上界为其他类型参数
 
-🔖
 
 
+```java
+    public void addAll(DynamicArray<T> c) {
+        for (int i = 0; i < c.size; i++) {
+            add(c.get(i));
+        }
+    }
+
+    public static void main(String[] args) {
+        DynamicArray<Number> numbers = new DynamicArray<>();
+        DynamicArray<Integer> ints = new DynamicArray<>();
+        ints.add(123);
+        ints.add(4567);
+        numbers.addAll(ints); // 编译错误
+    }
+```
+
+虽然Integer是Number的子类，但`DynamicArray<Integer>`并不是`DynamicArray<Number>`的子类，`DynamicArray<Integer>`的对象也不能赋值给`DynamicArray<Number>`的变量，这一点初看上去是违反直觉的，但这是事实，必须要理解这一点。
+
+通过**类型限定**来解决：
+
+```java
+    public <T extends E> void addAll(DynamicArray<T> c) {
+        for (int i = 0; i < c.size; i++) {
+            add(c.get(i));
+        }
+    }
+```
 
 >  **泛型是计算机程序中一种重要的思维方式，它将数据结构和算法与数据类型相分离，使得同一套数据结构和算法能够应用于各种数据类型，而且可以保证类型安全，提高可读性。**
 
@@ -2571,7 +2597,7 @@ public static <T extends Comparable<T>> T max(T[] arr){
 
 
 
-### 8.2 解析通配符🔖
+### 8.2 解析通配符
 
 #### 更简洁的参数类型限定
 
@@ -2585,12 +2611,18 @@ public void addAll(DynamicArray<? extends E> c) {
 
 `<? extends E>`表示**有限定通配符**。
 
-`<T extends E>`和`<?extends E>`的关系：
+`<T extends E>`和`<? extends E>`的关系：
 
 1. `<T extends E>`用于定义类型参数，它声明了一个类型参数T，可放在泛型类定义中类名后面、泛型方法返回值前面。
 2. `<? extends E>`用于实例化类型参数，它用于实例化泛型变量中的类型参数，只是这个具体类型是未知的，只知道它是E或E的某个子类型。
 
-#### 理解通配符
+#### 理解通配符🔖
+
+**无线顶通配符**，如`DynamicArray<? >`。
+
+**只能读，不能写**
+
+Java容器类中就有类似这样的用法，公共的API是通配符形式，形式更简单，但内部调用带类型参数的方法。
 
 泛型方法到底应该用通配符的形式还是加类型参数？
 
@@ -2601,9 +2633,9 @@ public void addAll(DynamicArray<? extends E> c) {
 
 
 
-#### 超类型通配符
+#### 超类型通配符🔖
 
-`<? super E>`，称为**超类型通配符**，表示E的某个父类型。
+`<? super E>`，称为**超类型通配符**，表示E的某个父类型。无法用类型参数替代。
 
 
 
@@ -2621,26 +2653,47 @@ public void addAll(DynamicArray<? extends E> c) {
 
 > 一项技术，往往只有理解了其局限性，才算是真正理解了它，才能更好地应用它。
 
+Java泛型的实现机制决定了它有一定的限制性。
+
 #### 使用泛型类、方法和接口
 
-- 基本类型不能用于实例化类型参数。因为类型参数会被替换为Object，所以Java泛型中不能使用基本数据类型。
+因为类型参数会被替换为Object，所以Java泛型中不能使用基本数据类型。
 
-  ```java
-  // 不合法
-  Pair<int> minmax = new Pair<int>(1,100);
-  ```
+```java
+// 不合法
+Pair<int> minmax = new Pair<int>(1,100);
+```
 
-- 运行时类型信息不适用于泛型。
+一个泛型对象的getClass方法的返回值与原始类型对象也是相同的：
 
-- 类型擦除可能会引发一些冲突。
+```java
+Pair<Integer> p1 = new Pair<Integer>(1,100);
+Pair<String> p2 = new Pair<String>("hello", "world");
+System.out.println(Pair.class==p1.getClass()); //true
+System.out.println(Pair.class==p2.getClass()); //true
+```
+
+instanceof是运行时判断，也与泛型无关。
+
+运行时类型信息不适用于泛型。
+
+类型擦除可能会引发一些冲突。
 
 #### 定义泛型类、方法和接口
 
 - 不能通过类型参数创建对象。
-- 泛型类类型参数不能用于静态变量和方法。
-- 了解多个类型限定的语法。
 
-#### 泛型与数组
+- 泛型类类型参数不能用于静态变量和方法。
+
+- Java中还支持多个上界，多个上界之间以&分隔：
+
+  ```java
+  T extends Base & Comparable & Serializable
+  ```
+
+  
+
+#### 泛型与数组🔖
 
 不能创建泛型数组。
 
@@ -2669,6 +2722,16 @@ public void addAll(DynamicArray<? extends E> c) {
 #### 基本原理
 
 transient
+
+
+
+```java
+elementData = Arrays.copyOf(elementData, newCapacity);
+
+System.arraycopy(elementData, index+1, elementData, index, numMoved);
+```
+
+
 
 #### 迭代
 
@@ -3194,6 +3257,8 @@ PriorityQueue特点：
 
 
 #### 设计思维和模式
+
+
 
 
 
@@ -3769,9 +3834,31 @@ Jackson还支持很多其他格式，如YAML、AVRO、Protobuf、Smile等。
 
 ##### 1.继承Thread
 
+继承Thread并重写其run方法来实现一个线程。
 
+run方法的方法签名是固定的， public，没有参数，没有返回值，不能抛出受检异常。
+
+start方法表示启动该线程，使其成为一条单独的执行流，操作系统会分配线程相关的资源，每个线程会有单独的程序执行计数器和栈，操作系统会把这个线程作为一个独立的个体进行调度，分配时间片让它执行，执行的起点就是run方法。
+
+操作系统负责调度，<u>在单CPU的机器上，同一时刻只能有一个线程在执行，在多CPU的机器上，同一时刻可以有多个线程同时执行</u>，但操作系统给我们屏蔽了这种差异，给程序员的感觉就是多个线程并发执行
 
 ##### 2.实现Runnable接口
+
+```java
+public class HelloRunnable implements Runnable {
+    @Override
+    public void run() {
+        System.out.println("hello");
+    }
+  
+  	public static void main(String[] args) {
+      Thread helloThread = new Thread(new HelloRunnable());
+      helloThread.start();
+	}
+}
+```
+
+
 
 #### 线程的基本属性和方法
 
@@ -3785,25 +3872,97 @@ Jackson还支持很多其他格式，如YAML、AVRO、Protobuf、Smile等。
 
 ##### 3.状态
 
+`Thread.State`
 
+1. NEW：没有调用start的线程状态为NEW。
+2. TERMINATED：线程运行结束后状态为TERMINATED。
+3. RUNNABLE：调用start后线程在执行run方法且没有阻塞时状态为RUNNABLE，不过，RUNNABLE不代表CPU一定在执行该线程的代码，可能正在执行也可能在等待操作系统分配时间片，只是它没有在等待其他条件。
+4. BLOCKED、WAITING、TIMED_WAITING：都表示线程被阻塞了，在等待一些条件。
+
+另外isAlive方法，线程被启动后，run方法运行结束前，返回值都是true。
 
 ##### 4.是否daemon线程
 
+启动线程会启动一条单独的执行流，整个程序只有在所有线程都结束的时候才退出，但daemon线程是例外，当整个程序中剩下的都是daemon线程的时候，程序就会退出。
 
+daemon线程一般是其他线程的辅助线程（如垃圾回收），在它辅助的主线程退出的时候，它就没有存在的意义了。
 
 ##### 5.sleep方法
 
+```java
+public static native void sleep(long millis) throws InterruptedException;
+```
 
+睡眠期间，线程可以被中断，如果被中断，sleep会抛出InterruptedException。
 
 ##### 6.yield方法
 
+让出CPU（只是建议）:
 
+```java
+public static native void yield();
+```
 
 ##### 7.join方法
+
+```java
+public final void join() throws InterruptedException
+```
+
+join方法，可以让调用join的线程等待该线程结束，再执行其它线程。在等待线程结束的过程中，这个等待可能被中断，如果被中断，会抛出InterruptedException。
+
+```java
+public class HelloRunnable implements Runnable {
+    @Override
+    public void run() {
+        System.out.println("hello");
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        Thread helloThread = new Thread(new HelloRunnable());
+        helloThread.start();
+        System.out.println("world");
+    }
+}
+```
+
+结果为(HelloThread没执行完，main线程可能就执行完了)：
+
+```
+world
+hello
+```
+
+```java
+public class HelloRunnable implements Runnable {
+    @Override
+    public void run() {
+        System.out.println("hello");
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        Thread helloThread = new Thread(new HelloRunnable());
+        helloThread.start();
+        helloThread.join();
+        System.out.println("world");
+    }
+}
+```
+
+```
+hello
+world
+```
 
 
 
 ##### 8.过时方法
+
+```java
+public final void stop()
+public final void suspend()
+public final void resume()
+```
 
 
 
@@ -3823,7 +3982,7 @@ Jackson还支持很多其他格式，如YAML、AVRO、Protobuf、Smile等。
 
 1. 充分利用多CPU的计算能力，单线程只能利用一个CPU，使用多线程可以利用多CPU的计算能力。
 2. 充分利用硬件资源，CPU和硬盘、网络是可以同时工作的，一个线程在等待网络IO的同时，另一个线程完全可以利用CPU，对于多个独立的网络请求，完全可以使用多个线程同时请求。
-3. 在用户界面（GUI）应用程序中，保持程序的响应性，界面和后台任务通常是不同的线程，否则，如果所有事情都是一个线程来执行，当执行一个很慢的任务时，整个界面将停止响应，也无法取消该任务。
+3. 在用户界面（GUI）应用程序中，<u>保持程序的响应性，界面和后台任务通常是不同的线程</u>，否则，如果所有事情都是一个线程来执行，当执行一个很慢的任务时，整个界面将停止响应，也无法取消该任务。
 4. 简化建模及IO处理，比如，在服务器应用程序中，对每个用户请求使用一个单独的线程进行处理，相比使用一个线程，处理来自各种用户的各种请求，以及各种网络和文件IO事件，建模和编写程序要容易得多。
 
 成本：
@@ -4860,19 +5019,90 @@ public class MethodAnnotations {
 
 在运行时动态创建一个类，实现一个或多个接口，可以在不修改原有类的基础上动态为通过该类获取的对象添加方法、修改行为。
 
-动态代理是实现面向切面的编程AOP（Aspect OrientedProgramming）的基础。切面的例子有日志、性能监控、权限检查、数据库事务等。
+动态代理是实现面向切面的编程**AOP**（Aspect OrientedProgramming）的基础。切面的例子有日志、性能监控、权限检查、数据库事务等。
 
 动态代理有两种实现方式：一种是Java SDK提供的；另外一种是第三方库（如cglib）提供的。
 
 ### 23.1 静态代理
 
+代理存在的价值：
 
+1. 节省成本比较高的实际对象的创建开销，按需延迟加载，创建代理时并不真正创建实际对象，而只是保存实际对象的地址，在需要时再加载或创建。
+2. 执行**权限检查**，代理检查权限后，再调用实际对象。
+3. **屏蔽网络差异和复杂性**，代理在本地，而实际对象在其他服务器上，调用本地代理时，本地代理请求其他服务器。
+
+```java
+/**
+ * 静态代理示例
+ */
+public class SimpleStaticProxyDemo {
+    static interface IService {
+        public void sayHello();
+    }
+
+    static class RealService implements IService {
+        @Override
+        public void sayHello() {
+            System.out.println("hello");
+        }
+    }
+
+    static class TraceProxy implements IService {
+        private IService realService;
+
+        public TraceProxy(IService realService) {
+            this.realService = realService;
+        }
+
+        @Override
+        public void sayHello() {
+            System.out.println("entering sayHello");
+            this.realService.sayHello();
+            System.out.println("leaving sayHello");
+        }
+    }
+
+    public static void main(String[] args) {
+        IService realService = new RealService();
+        IService proxyService = new TraceProxy(realService);
+
+        proxyService.sayHello();
+    }
+}
+```
+
+**代理和实际对象一般有相同的接口**，共同的接口是IService，实际对象是RealService，代理是TraceProxy。
+
+TraceProxy内部有一个IService的成员变量，指向实际对象，在构造方法中被初始化，对于方法sayHello的调用，它转发给了实际对象，在调用前后输出了一些跟踪调试信息。
+
+代理模式与适配器和装饰器有点类似，它们的背后都有一个别的实际对象，都是通过==组合==的方式指向该对象，不同之处在于，适配器是提供了一个不一样的新接口，装饰器是对原接口起到了“装饰”作用，可能是增加了新接口、修改了原有的行为等，代理一般不改变接口。🔖
+
+代理类TraceProxy的代码是在写程序时固定的，所以称为**==静态代理==**。
 
 ### 23.2 Java SDK动态代理
 
+#### 用法
 
+
+
+#### 基本原理
+
+```java
+Class<? > proxyCls = Proxy.getProxyClass(IService.class.getClassLoader(), new Class<? >[] { IService.class });
+Constructor<? > ctor = proxyCls.getConstructor(new Class<? >[]{ InvocationHandler.class });
+InvocationHandler handler = new SimpleInvocationHandler(realService);
+IService proxyService = (IService) ctor.newInstance(handler);
+```
+
+#### 动态代理的优点
+
+使用动态代理，可以编写通用的代理逻辑，用于各种类型的被代理对象，而不需要为每个被代理的类型都创建一个静态代理类。
 
 ### 23.3 cglib动态代理
+
+Java SDK动态代理的局限在于，它**只能为接口创建代理，返回的代理对象也只能转换到某个接口类型**。
+
+第三方的类库[cglib](https://github.com/cglib/cglib)
 
 
 
@@ -4890,19 +5120,148 @@ public class MethodAnnotations {
 
 ClassLoader一般是系统提供的，不需要自己实现，不过，通过创建自定义的ClassLoader，可以实现一些强大灵活的功能，比如：
 
-1. 热部署
-2. 应用的模块化和相互隔离
-3. 从不同地方灵活加载
+1. 热部署。在不重启Java程序的情况下，动态替换类的实现。
+
+2. 应用的模块化和相互隔离。不同的ClassLoader可以加载相同的类但互相隔离、互不影响。
+
+   Web应用服务器如Tomcat利用这一点在一个程序中管理多个Web应用程序，每个Web应用使用自己的ClassLoader，这些Web应用互不干扰。
+
+   OSGI（Open Service Gateway Initiative，开放服务网关协议）和Java9利用这一点实现了一个动态模块化架构，每个模块有自己的ClassLoader，不同模块可以互不干扰。
+
+3. 从不同地方灵活加载。
 
 ### 24.1 类加载的基本机制和过程
 
+负责加载类的类就是类加载器，它的输入是**完全限定的类名**，输出是**Class对象**。类加载器不是只有一个，一般程序运行时，都会有三个（java9引入模块化，有些变化）：
+
+1. **启动类加载器**（Bootstrap ClassLoader）：Java虚拟机实现的一部分，不是Java语言实现的，一般是C++实现的，它负责加载Java的基础类，主要是`<JAVA_HOME>/lib/rt.jar`，日常用的Java类库比如String、ArrayList等都位于该包内。
+2. **扩展类加载器**（Extension ClassLoader）：这个加载器的实现类是`sun.misc.Launcher$ExtClassLoader`，它负责加载Java的一些扩展类，一般是`<JAVA_HOME>/lib/ext`目录中的jar包。
+3. **应用程序类加载器**（Application ClassLoader）/**系统类加载器**（System ClassLoader）：这个加载器的实现类是`sun.misc.Launcher$AppClassLoader`，它负责加载应用程序的类，包括自己写的和引入的第三方法类库，即所有在类路径中指定的类。
+
+三个类加载器不是父子继承关系，而是父子委派关系。
+
+双亲委派
+
+### 24.2 理解ClassLoader
+
+类`ClassLoader`是一个抽象类，扩展类加载器和应用程序类加载器都继承至它。
+
+每个`Class`对象都有一个`getClassLoader()`方法，可以获取实际加载它的`ClassLoader`。
+
+`ClassLoader`有一个获取父`ClassLoader`的方法(如果是启动类加载器返回null)：
+
+```java
+public final ClassLoader getParent()
+```
+
+ClassLoader有一个静态方法，可以获取默认的系统类加载器：
+
+```java
+public static ClassLoader getSystemClassLoader()
+```
+
+ClassLoader中加载类方法：
+
+```java
+public Class<? > loadClass(String name) throws ClassNotFoundException
+```
+
+`Class`有两个静态方法forName：
+
+```java
+public static Class<?> forName(String className)
+public static Class<?> forName(String name, boolean initialize, ClassLoader loader)
+```
+
+第一个方法使用系统类加载器加载，第二个方法指定ClassLoader，参数initialize表示加载后<u>是否执行类的初始化代码（如static语句块）</u>，没有指定默认为true。
+
+> ClassLoader的loadClass方法与Class的forName方法都可以加载类，它们有什么不同呢？
+>
+> ClassLoader的loadClass不会执行类的初始化代码。
+
+```java
+public class CLInitDemo {
+    public static class Hello {
+        static {
+            System.out.println("hello");
+        }
+    }
+
+    public static void main(String[] args) {
+        ClassLoader cl = ClassLoader.getSystemClassLoader();
+        String className = CLInitDemo.class.getName()+ "$Hello";
+        try {
+//            Class<?> cls = cl.loadClass(className);   // 没有输出
+            Class<?> cls = Class.forName(className);    // 输出 hello
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
 
 
-### 24.2 理解ClassLoadder
 
 
 
 ### 24.3 类加载的应用：可配置的策略
+
+> 什么情况需要自己加载类呢？
+
+很多应用使用面向接口的编程，接口具体的实现类可能有很多，适用于不同的场合，具体使用哪个实现类在配置文件中配置，通过更改配置，不用改变代码，就可以改变程序的行为，在设计模式中，这是一种策略模式。
+
+```java
+package com.andyron.bcdlj.c24.c243;
+
+public interface IService {
+    public void action();
+}
+```
+
+```java
+package com.andyron.bcdlj.c24.c243;
+
+import java.io.FileInputStream;
+import java.util.Properties;
+
+public class ConfigurableStrategyDemo {
+
+    public static IService createService() {
+        try {
+            Properties prop = new Properties();
+            String filename = "data/config.properties";
+            prop.load(new FileInputStream(filename));
+            String className = prop.getProperty("service");
+            Class<?> cls = Class.forName(className);
+            return (IService) cls.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
+    }
+
+    public static void main(String[] args) {
+        IService service = createService();
+        service.action();
+    }
+}
+```
+
+```java
+package com.andyron.bcdlj.c24.c243;
+
+public class ServiceB implements IService {
+    @Override
+    public void action() {
+        System.out.println("service B action");
+    }
+}
+```
+
+config.properties内容：
+
+```properties
+service=com.andyron.bcdlj.c24.c243.ServiceB
+```
 
 
 
@@ -4910,9 +5269,49 @@ ClassLoader一般是系统提供的，不需要自己实现，不过，通过创
 
 自定义ClassLoader是Tomcat实现应用隔离、支持JSP、OSGI实现动态模块化的基础。
 
+一般是继承类ClassLoader，重写`findClass`方法，使用自己的逻辑寻找class文件字节码的字节形式。再通过`defineClass`方法转换为Class对象：
+
+```java
+protected final Class<?> defineClass(String name, byte[] b, int off, int len) throws ClassFormatError
+```
+
+name表示类名，b是存放字节码数据的字节数组，有效数据从off开始，长度为len。看个例子：
+
+```java
+public class MyClassLoader extends ClassLoader {
+
+    private static final String BASE_DIR = "data/";
+
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        String fileName = name.replace("\\.", "/");
+        fileName = BASE_DIR + fileName + ".class";
+        try {
+            byte[] bytes = BinaryFileUtils.readFileToByteArray(fileName);
+            return defineClass(fileName, bytes, 0, bytes.length);
+        } catch (IOException e) {
+            throw new ClassNotFoundException("failed to load class " + name, e);
+        }
+    }
+}
+```
+
+父ClassLoader默认是系统类加载器，如果要指定可重写构造方法：
+
+```java
+protected ClassLoader(ClassLoader parent)
+```
 
 
-### 24.5 自定义ClassLoader的应用：热部署
+
+### 24.5 自定义ClassLoader的应用：热部署🔖
+
+热部署：在不重启应用的情况下，当类的定义即字节码文件修改后，能够替换该Class创建的对象。
+
+```java
+
+
+```
 
 
 
@@ -4920,17 +5319,104 @@ ClassLoader一般是系统提供的，不需要自己实现，不过，通过创
 
 ### 25.1 语法
 
+正则表达式中的字符分两类：普通字符，元字符。
+
+#### 1.单个字符
+
+![](images/image-20220424175306573.png)
+
+#### 2.字符组
+
+![](images/image-20220424175322266.png)
+
+#### 3.量词：指定出现次数的元字符
+
+![](images/image-20220424175339837.png)
+
+#### 4.分组
+
+![](images/image-20220424175351966.png)
+
+#### 5.特殊边界匹配
+
+![](images/image-20220424175402964.png)
+
+#### 6.环视边界匹配
+
+![](images/image-20220424175436526.png)
+
+#### 7.转义与匹配模式
+
+
+
 
 
 ### 25.2 Java API
 
+`java.util.regex`，两个主要类：
 
+- `Pattern`：表示正则表达式对象，它与要处理的具体字符串无关。
+- `Matcher`：表示一个匹配，它将正则表达式应用于一个具体字符串，通过它对字符串进行处理。
 
 ### 25.3 模板引擎
 
 
 
 ### 25.4 剖析常见表达式
+
+#### 1.邮编
+
+```java
+[0-9]{6}
+```
+
+#### 2.手机号码
+
+```java
+[0-9]{11}
+```
+
+#### 3.固定电话号码
+
+不考虑分机，中国的固定电话一般由两部分组成：区号和市内号码，区号是3到4位，市内号码是7到8位。
+
+区号以0开头，表达式：
+
+```java
+0[0-9]{2,3}
+```
+
+市内号码：
+
+```java
+[0-9]{7,8}
+```
+
+区号可能用括号包含，区号与市内号码之间可能有连字符，如010-63325678，(010)63325678。整个表达式：
+
+```java
+(\(?0[0-9]{2,3}\)?-?)?[0-9]{7,8}
+```
+
+#### 4.日期
+
+日期有多种表示，看类似`2022-01-11`的形式：
+
+```java
+\d{4}-(0? [1-9]|1[0-2])-(0? [1-9]|[1-2][0-9]|3[01])
+```
+
+#### 5.时间
+
+#### 6.身份证号
+
+#### 7.IP地址
+
+#### 8.URL
+
+#### 9.Email地址
+
+#### 10.中文字符
 
 
 

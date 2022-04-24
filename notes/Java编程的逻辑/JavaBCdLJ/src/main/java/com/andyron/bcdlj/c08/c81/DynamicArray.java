@@ -44,4 +44,31 @@ public class DynamicArray<E> {
         elementData[index] = element;
         return oldValue;
     }
+
+    /**
+     * <T extends E>  类型限定
+     */
+    public <T extends E> void addAll(DynamicArray<T> c) {
+        for (int i = 0; i < c.size; i++) {
+            add(c.get(i));
+        }
+    }
+
+    public void copyTo(DynamicArray<? super E> dest) {
+        for (int i = 0; i < size; i++) {
+            dest.add(get(i));
+        }
+    }
+
+    public static void main(String[] args) {
+        DynamicArray<Number> numbers = new DynamicArray<>();
+        DynamicArray<Integer> ints = new DynamicArray<>();
+        ints.add(123);
+        ints.add(4567);
+        numbers.addAll(ints);
+    }
+
+    public  void dd() {
+        Class<? extends String> aClass = "dd".getClass();
+    }
 }

@@ -18,4 +18,12 @@ public class MyTest {
         Double d = arr.get(rnd.nextInt(size));
         System.out.println(d);
     }
+
+    @Test
+    public void test() {
+        DynamicArray<Integer> ints = new DynamicArray<>();
+        DynamicArray<? extends Number> numbers = ints;
+        Integer a = 200;
+//        numbers.add(a);
+    }
 }
