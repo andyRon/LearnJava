@@ -25,11 +25,11 @@ JVM中类加载器？
 
 
 
-<img src="http://assets.processon.com/chart_image/6174a0870e3e7416bde14735.png" style="zoom:67%;" />
+<img src="http://assets.processon.com/chart_image/6174a0870e3e7416bde14735.png" style="zoom:90%;" />
 
 
 
-<img src="https://uploadfiles.nowcoder.com/images/20181010/5032673_1539139922699_59B2900AA03CB2182A51CDB520B535B6" alt="img" style="zoom:50%;" />
+<img src="https://uploadfiles.nowcoder.com/images/20181010/5032673_1539139922699_59B2900AA03CB2182A51CDB520B535B6" alt="img" style="zoom:80%;" />
 
 
 
@@ -37,7 +37,7 @@ JVM中类加载器？
 
 作用：加载Class文件 
 
-<img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211024090617502.png" alt="image-20211024090617502" style="zoom:50%;" />
+<img src="images/image-20211024090617502.png" alt="image-20211024090617502" style="zoom:100%;" />
 
 1. 虚拟机自带的加载器
 2. 启动类（根）加载器  
@@ -91,24 +91,24 @@ Java安全模型的核心就是Java沙箱（sandbox），什么是沙箱？沙�
 
 在Java中将执行程序分成**本地代码**和**远程代码**两种，本地代码默认视为可信任的，而远程代码则被看作是不受信的。对于授信的本地代码，可以访问一切本地资源。而对于非授信的远程代码在早期的Java实现中，安全依赖于沙箱（Sandbox）机制。如下图所示JDK1.0安全模型：
 
-![](/Users/andyron/Library/Application Support/typora-user-images/image-20211024104121555.png)
+![](images/image-20211024104121555.png)
 
 
 
 但如此严格的安全机制也给程序的功能扩展带来障碍，比如当用户希望远程代码访问本地系统的文件时候，就无法实现。因此在后续的Java1.1版本中，针对安全机制做了改进，增加了`安全策略`，允许用户指定代码对本地资源的访问权限。如下图所示JDK1.1安全模型：
 
-![](/Users/andyron/Library/Application Support/typora-user-images/image-20211024104343367.png)
+![](images/image-20211024104343367.png)
 
 在Java1.2版本中，再次改进了安全机制，增加了`代码签名`。不论本地代码或是远程代码，都会按照用户的安全策略设定，由类加载器加载到虚拟机中权限不同的运行空间，来实现差异化的代码执行权限控制。如下图所示
 JDK1.2安全模型：
 
-![](/Users/andyron/Library/Application Support/typora-user-images/image-20211024104429558.png)
+![](images/image-20211024104429558.png)
 
 当前最新的安全机制实现，则引入了域(Domain) 的概念。虛拟机会把所有代码加载到不同的系统域和应用域，
 系统域部分专门负责与关键资源进行交互，而各个应用域部分则通过系统域的部分代理来对各种需要的资源进行访
 问。虛拟机中不同的受保护域(Protected Domain)，对应不一样的权限 (Permission)，存在于不同域中的类文件就具有了当前域的全部权限，如下图所示 最新的安全模型(idk 1.6)：
 
-![](/Users/andyron/Library/Application Support/typora-user-images/image-20211024104632191.png)
+![](images/image-20211024104632191.png)
 
 
 
@@ -188,7 +188,7 @@ Program Counter Register
 
 JVM内存模型图：
 
-<img src="https://uploadfiles.nowcoder.com/images/20161223/415611_1482452184396_6FB53C51539B47559CF0D122A832CF63" alt="img" style="zoom:50%;" />
+<img src="images/415611_1482452184396_6FB53C51539B47559CF0D122A832CF63.png" alt="img"  />
 
 ### 栈
 
@@ -213,7 +213,7 @@ public  class Test {
 
 循环引用导致栈溢出：`StackOverflowError`。
 
-<img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211024113702116.png" alt="image-20211024113702116" style="zoom:50%;" />
+<img src="images/image-20211024113702116.png" alt="image-20211024113702116" style="zoom:50%;" />
 
 
 
@@ -223,7 +223,7 @@ public  class Test {
 
 每执行一个方法都产生一个**栈帧**（stack1，stack2等）。程序正在执行的方法，一定在栈的顶部。
 
-![](/Users/andyron/Library/Application Support/typora-user-images/image-20211024114554811.png)
+![](images/image-20211024114554811.png)
 
 
 
@@ -233,7 +233,7 @@ public  class Test {
 
 
 
-<img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211024115024909.png" alt="image-20211024115024909" style="zoom:50%;" />
+<img src="images/image-20211024115024909.png" alt="image-20211024115024909"  />
 
 
 
@@ -259,7 +259,7 @@ Heap，一个JVM只有一个堆内存，对内存的大小是可以调节的。
 >
 > Edem : from : to = 8 : 1 : 1  （可以通过参数 –XX:SurvivorRatio 来设定）
 
-<img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211024160631110.png" alt="image-20211024160631110" style="zoom:33%;" />
+<img src="images/image-20211024160631110.png" alt="image-20211024160631110"  />
 
 GC垃圾回收，主要是在伊甸园区和养老区，前者是轻量级（轻GC），后者是重量级（重GC，Full GC）。
 
@@ -297,11 +297,11 @@ java.lang.OutOfMemoryError: Java heap space
 
 > 元空间是目前的叫法，有的人也称为 非堆，方法区
 
-![image-20211024163029497](/Users/andyron/Library/Application Support/typora-user-images/image-20211024163029497.png)
+![](images/image-20211024163029497.png)
 
 
 
-![image-20211024163129188](/Users/andyron/Library/Application Support/typora-user-images/image-20211024163129188.png)
+![](images/image-20211024163129188.png)
 
 逻辑上存在，物理上不存在
 
@@ -334,7 +334,7 @@ total=128974848字节	123.0MB
 
 
 
-![image-20211024164928470](/Users/andyron/Library/Application Support/typora-user-images/image-20211024164928470.png)
+![](images/image-20211024164928470.png)
 
 控制台运行结果：
 
@@ -363,7 +363,7 @@ Heap
 -Xms8m -Xmx8m -XX:+PrintGCDetails
 ```
 
-![image-20211024165943737](/Users/andyron/Library/Application Support/typora-user-images/image-20211024165943737.png)
+![](images/image-20211024165943737.png)
 
 
 
@@ -392,7 +392,7 @@ MAT，JProfiler的作用：
 -Xms1m -Xmx8m -XX:+HeapDumpOnOutOfMemoryError
 ```
 
-![](/Users/andyron/Library/Application Support/typora-user-images/image-20211024173504800.png)
+![](images/image-20211024173504800.png)
 
 对应的dump文件`java_pid41484.hprof`文件在项目根目录，用安装好的JProfiler打开就可以分析了。
 
@@ -416,7 +416,7 @@ MAT，JProfiler的作用：
 
 GC两种：轻GC（普通的GC），重GC（全局GC）
 
-<img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211026113000077.png" style="zoom:50%;" /> 
+<img src="images/image-20211026113000077.png"  /> 
 
 #### GC常用算法
 
@@ -426,13 +426,13 @@ JVM不采用
 
 2. 复制算法
 
-![](/Users/andyron/Library/Application Support/typora-user-images/image-20211026113706912.png)
+![](images/image-20211026113706912.png)
 
 
 
 复制算法的核心就是，将原有的内存空间一分为二（from，to），每次只用其中的一块，在垃圾回收时，将正在使用的对象复制到另外一个内存空间中，然后将该内存空间清空，交换两个内存的角色，完成垃圾回收。
 
-<img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211026114248082.png" style="zoom:50%;" />
+<img src="images/image-20211026114248082.png"  />
 
 每一次GC后，Eden和to区就清空。
 
@@ -450,7 +450,7 @@ JVM不采用
 
 活着对象
 
-<img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211026114922832.png" alt="image-20211026114922832" style="zoom:33%;" />
+<img src="images/image-20211026114922832.png" alt="image-20211026114922832"  />
 
 - 缺点：两次扫描，严重浪费时间，会产生内存碎片
 - 优点：不需要额外的空间
@@ -461,7 +461,7 @@ JVM不采用
 
 再次优化标记清楚算法，把空格的内存移到一起，就不会是内存碎片了 
 
-<img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211026115217242.png" style="zoom: 33%;" />  
+<img src="images/image-20211026115217242.png"  />  
 
 
 
@@ -521,7 +521,7 @@ Java内存模型
 
    JMM定义了线程工作内存和主内存之间的抽象关系：线程之间的共享变量存储在主内存（Main Memory）中，每个线程都有一个私有的本地内存（Local Memory）
 
-   <img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211026121925614.png" style="zoom: 33%;" />
+   <img src="images/image-20211026121925614.png"  />
 
    解决共享对象可见性问题：volilate
 
@@ -686,11 +686,11 @@ $ jinfo -flag MaxPermSize 2058
 #### jstack：
 
 jstack(Java Stack Trace)，打印线程的**栈**信息，制作线程dump文件。
-   
 
 
 
-#### jstat
+
+#### jstat：性能监控
 
 jstat(Java Virtual Machine Statistics Monitoring Tool)
     ① jstat利用JVM内建的指令对Java应用程序的资源和性能进行实时的命令行的监控，包括了对进程的classloader，compiler，gc情况；
@@ -786,8 +786,6 @@ NGCMN    NGCMX     NGC     S0C   S1C       EC      OGCMN      OGCMX       OGC   
 ```
 
 
-
-#### jstat：性能监控
 
 
 
