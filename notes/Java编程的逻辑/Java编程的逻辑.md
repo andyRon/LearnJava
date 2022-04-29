@@ -2561,8 +2561,6 @@ public static <T extends Comparable<T>> T max(T[] arr){
 
 ##### 3.上界为其他类型参数
 
-
-
 ```java
     public void addAll(DynamicArray<T> c) {
         for (int i = 0; i < c.size; i++) {
@@ -2591,9 +2589,9 @@ public static <T extends Comparable<T>> T max(T[] arr){
     }
 ```
 
->  **泛型是计算机程序中一种重要的思维方式，它将数据结构和算法与数据类型相分离，使得同一套数据结构和算法能够应用于各种数据类型，而且可以保证类型安全，提高可读性。**
+>  ==**泛型是计算机程序中一种重要的思维方式，它将数据结构和算法与数据类型相分离，使得同一套数据结构和算法能够应用于各种数据类型，而且可以保证类型安全，提高可读性。**==
 
-在Java中，泛型是通过**类型擦除**来实现的，它是Java编译器的概念，Java虚拟机运行时对泛型基本一无所知，理解这一点是很重要的，它有助于我们理解Java泛型的很多局限性。
+在Java中，泛型是通过**==类型擦除==**来实现的，它是Java编译器的概念，Java虚拟机运行时对泛型基本一无所知，理解这一点是很重要的，它有助于我们理解Java泛型的很多局限性。
 
 
 
@@ -2613,12 +2611,19 @@ public void addAll(DynamicArray<? extends E> c) {
 
 `<T extends E>`和`<? extends E>`的关系：
 
-1. `<T extends E>`用于定义类型参数，它声明了一个类型参数T，可放在泛型类定义中类名后面、泛型方法返回值前面。
-2. `<? extends E>`用于实例化类型参数，它用于实例化泛型变量中的类型参数，只是这个具体类型是未知的，只知道它是E或E的某个子类型。
+1. `<T extends E>`用于**定义**类型参数，它声明了一个类型参数T，可放在泛型类定义中类名后面、泛型方法返回值前面。
+2. `<? extends E>`用于**实例化**类型参数，它用于实例化泛型变量中的类型参数，只是这个具体类型是未知的，只知道它是E或E的某个子类型。
+
+```java
+public void addAll(DynamicArray<? extends E> c) 
+public <T extends E> void addAll(DynamicArray<T> c)
+```
+
+
 
 #### 理解通配符🔖
 
-**无线顶通配符**，如`DynamicArray<? >`。
+**无限定通配符**，如`DynamicArray<? >`。
 
 **只能读，不能写**
 
@@ -2693,7 +2698,7 @@ instanceof是运行时判断，也与泛型无关。
 
   
 
-#### 泛型与数组🔖
+#### 泛型与数组🔖🔖
 
 不能创建泛型数组。
 
@@ -2751,15 +2756,56 @@ public interface Iterable<T> {
 
 ##### 5.迭代器的好处
 
+从封装的思路上讲，迭代器**==封装了各种数据组织方式的迭代操作==**，提供了简单和一致的接口。
+
 #### ArrayList实现的接口
+
+Java的各种容器类有一些**共性**的操作，这些共性以接口的方式体现。
 
 ##### 1.Collection
 
 Collection表示一个数据集合，数据间没有位置或顺序的概念。
 
+```java
+public interface Collection<E> extends Iterable<E> {
+  int size();
+  boolean isEmpty();
+  boolean contains(Object o);
+  Iterator<E> iterator();
+  Object[] toArray();
+  <T> T[] toArray(T[] a);
+  boolean add(E e);
+  boolean remove(Object o);
+  boolean containsAll(Collection<? > c);
+  boolean addAll(Collection<? extends E> c);
+  boolean removeAll(Collection<? > c);
+  boolean retainAll(Collection<? > c);
+  void clear();
+  boolean equals(Object o);
+  int hashCode();
+}
+```
+
+
+
 ##### 2.List
 
-List表示有顺序或位置的数据集合，它扩展了Collection。
+List表示有顺序或位置的数据集合，它扩展了Collection，增加的主要方法有：
+
+```java
+boolean addAll(int index, Collection<? extends E> c);
+E get(int index);
+E set(int index, E element);
+void add(int index, E element);
+E remove(int index);
+int indexOf(Object o);
+int lastIndexOf(Object o);
+ListIterator<E> listIterator();
+ListIterator<E> listIterator(int index);
+List<E> subList(int fromIndex, int toIndex);
+```
+
+Java 8对List接口增加了几个默认方法，包括sort、replaceAll和spliterator; Java 9增加了多个重载的of方法，可以根据一个或多个元素生成一个不变的List。
 
 ##### 3.RandomAccess
 
@@ -2770,11 +2816,52 @@ public interface RandomAccess {
 
 这种没有任何代码的接口在Java中被称为**标记接口**，用于声明类的一种属性。
 
+可随机访问就是具备类似数组那样的特性，数据在内存是连续存放的，根据索引值就可以直接定位到具体的元素，访问效率很高。
+
+> 有没有声明RandomAccess有什么关系呢？
+>
+> 主要用于一些通用的算法代码中，它可以根据这个声明而选择效率更高的实现。
+
 #### ArrayList的其他方法
+
+构造方法：
+
+```java
+public ArrayList(int initialCapacity)
+public ArrayList(Collection<? extends E> c)
+```
+
+返回数据：
+
+```java
+public Object[] toArray()
+public <T> T[] toArray(T[] a)
+```
+
+Arrays中有一个静态方法asList可以返回对应的List。
+
+控制内部使用的数组大小：
+
+```java
+public void ensureCapacity(int minCapacity)
+  
+public void trimToSize()
+```
 
 
 
 #### ArrayList特点分析
+
+不同数据组织方式有不同特点，而不同特点有不同适用场合。
+
+==作为程序员，就是要理解每种数据结构的特点，根据场合的不同，选择不同的数据结构。==
+
+ArrayList内部采用动态数据实现，这决定它的特点：
+
+1. 可以随机访问，按照索引位置进行访问效率很高
+2. 除非数组已排序，否则按照内容查找元素效率比较低。具体是O(N), N为数组内容长度，也就是说，性能与数组长度成正比。
+3. 添加元素的效率还可以，重新分配和复制数组的开销被平摊了，具体来说，添加N个元素的效率为O(N)。
+4. 插入和删除元素的效率比较低，因为需要移动元素，具体为O(N)。
 
 
 
@@ -2804,9 +2891,27 @@ Queue扩展了Collection，它的主要操作有三个：
 
 ### 9.3 剖析ArrayDeque
 
-ArrayDeque是基于数组实现的双端队列。
+ArrayDeque是**基于数组实现的双端队列**。
 
 #### 实现原理
+
+##### 1.循环数组
+
+##### 2.构造方法
+
+##### 3.从尾部添加
+
+##### 4.从头部添加
+
+##### 5.从头部删除
+
+##### 6.查看长度
+
+##### 7.检测给定元素是否存在
+
+##### 8.toArray方法
+
+
 
 #### ArrayDeque特点分析
 
