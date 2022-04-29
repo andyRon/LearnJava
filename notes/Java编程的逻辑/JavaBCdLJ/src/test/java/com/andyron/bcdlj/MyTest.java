@@ -2,6 +2,7 @@ package com.andyron.bcdlj;
 
 import com.andyron.bcdlj.c04.Point;
 import com.andyron.bcdlj.c07.c76.Password;
+import javafx.util.Pair;
 import org.junit.Test;
 
 import java.io.*;
@@ -12,10 +13,8 @@ import java.util.*;
 public class MyTest {
     @Test
     public void test() {
-        String name = "com.andyron.bcdlj.MyTest";
-        System.out.println(name.replace(".", "/"));
-
-
+        UUID uuid = new UUID(12L, 12L);
+        System.out.println(UUID.randomUUID().toString());
 
 
     }
@@ -209,6 +208,12 @@ public class MyTest {
     }
 
     @Test
+    public void test9() {
+        ArrayList<String> arrayList = new ArrayList<>();
+        arrayList.size();
+    }
+
+    @Test
     public void test13_2() throws IOException {
         FileOutputStream output = new FileOutputStream("hello.txt");
         try {
@@ -252,7 +257,26 @@ public class MyTest {
         } finally {
             output.close();
         }
+
+        Pair<String, Integer> pair = new Pair<String, Integer>("key1", 123);
     }
 
 }
 
+class TestList extends AbstractList {
+
+    @Override
+    public Object get(int index) {
+        return null;
+    }
+
+    @Override
+    public int size() {
+        return 0;
+    }
+
+    @Override
+    protected void removeRange(int fromIndex, int toIndex) {
+        super.removeRange(fromIndex, toIndex);
+    }
+}
