@@ -222,7 +222,7 @@ User(id=1452562031445110785, name=AndyRon, age=5, email=rongming.2008@163.com)
 - 10 bit 作为机器编号 （5个bit是数据中心，5个bit的机器ID） - **10位的长度最多支持部署1024个节点**
 - 12 bit 作为毫秒内序列号 - **12位的计数顺序号支持每个节点每毫秒产生4096个ID序号**
 
-![](https://img-blog.csdnimg.cn/20190726091202771.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3UwMTAzOTg3NzE=,size_16,color_FFFFFF,t_70)
+![](images/20190726091202771.png)
 
 
 
@@ -274,9 +274,9 @@ void testUpdate() {
 
 1. 在表中新增字段 `creat_time`  `update_time`,设置默认值为`CURRENT_TIMESTAMP`，并把`update_time`设置为根据当前时间戳更新。
 
+![](images/image-20211025181221184.png)
 
 
-<img src="../../images/image-20211025181221184.png" style="zoom:50%;" />
 
 
 
@@ -293,7 +293,7 @@ void testUpdate() {
 
 1. 删除数据库的默认值、根据当前时间戳更新的操作（方式一的1）
 
-<img src="../../images/image-20211025181836556.png" style="zoom: 50%;" />
+![](images/image-20211025181836556.png)
 
 2. 实体类字段加注解
 
@@ -400,7 +400,7 @@ void testOptimisticLocker() {
 }
 ```
 
-<img src="../../images/image-20211025203451517.png" style="zoom: 33%;" />
+![](images/image-20211025203451517.png)
 
 测试乐观锁失败的情况，多线程
 
@@ -424,7 +424,7 @@ void testOptimisticLocker() {
     }
 ```
 
-<img src="../../images/image-20211025204726962.png" style="zoom:33%;" />
+![](images/image-20211025204726962.png)
 
 两次判断是version都是2，但第一更新后version就变成了3，第二次再更新就不能成功了。
 
