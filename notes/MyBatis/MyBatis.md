@@ -1395,7 +1395,9 @@ java.io.NotSerializableException
 2. 再看一级缓存
 3. 数据库
 
-<img src="https://kuangstudy.oss-cn-beijing.aliyuncs.com/bbs/2021/04/01/kuangstudy203221f0-73d7-4d4c-bb81-84b1af9a63db.png" alt="img" style="zoom:67%;" />
+![](images/kuangstudy203221f0-73d7-4d4c-bb81-84b1af9a63db.png)
+
+
 
 ### 13.6 自定义缓存EhCache
 
