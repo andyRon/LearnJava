@@ -325,13 +325,106 @@ Java虚拟机对于Class文件每一部分（自然也包括常量池）的格�
 
 #### 对象的创建
 
+```c++
+// 确保常量池中存放的是已解释的类
+if (!constants->tag_at(index).is_unresolved_klass()) {
+    // 断言确保是klassOop和instanceKlassOop（这部分下一节介绍）
+    oop entry = (klassOop) *constants->obj_at_addr(index);
+    assert(entry->is_klass(), "Should be resolved klass");
+    klassOop k_entry = (klassOop) entry;
+    assert(k_entry->klass_part()->oop_is_instance(), "Should be instanceKlass");
+    instanceKlass* ik = (instanceKlass*) k_entry->klass_part();
+    // 确保对象所属类型已经经过初始化阶段
+    if ( ik->is_initialized() && ik->can_be_fastpath_allocated() ) {
+        // 取对象长度
+        size_t obj_size = ik->size_helper();
+        oop result = NULL;
+        // 记录是否需要将对象所有字段置零值
+        bool need_zero = !ZeroTLAB;
+        // 是否在TLAB中分配对象
+        if (UseTLAB) {
+            result = (oop) THREAD->tlab().allocate(obj_size);
+        }
+        if (result == NULL) {
+            need_zero = true;
+            // 直接在eden中分配对象
+retry:
+            HeapWord* compare_to = *Universe::heap()->top_addr();
+            HeapWord* new_top = compare_to + obj_size;
+            // cmpxchg是x86中的CAS指令，这里是一个C++方法，通过CAS方式分配空间，并发失败的
+               话，转到retry中重试直至成功分配为止
+            if (new_top <= *Universe::heap()->end_addr()) {
+                if (Atomic::cmpxchg_ptr(new_top, Universe::heap()->top_addr(), compare_to) != compare_to) {
+                    goto retry;
+                }
+                result = (oop) compare_to;
+            }
+        }
+        if (result != NULL) {
+            // 如果需要，为对象初始化零值
+            if (need_zero ) {
+                HeapWord* to_zero = (HeapWord*) result + sizeof(oopDesc) / oopSize;
+                obj_size -= sizeof(oopDesc) / oopSize;
+                if (obj_size > 0 ) {
+                    memset(to_zero, 0, obj_size * HeapWordSize);
+                }
+            }
+            // 根据是否启用偏向锁，设置对象头信息
+            if (UseBiasedLocking) {
+                result->set_mark(ik->prototype_header());
+            } else {
+                result->set_mark(markOopDesc::prototype());
+            }
+            result->set_klass_gap(0);
+            result->set_klass(k_entry);
+            // 将对象引用入栈，继续执行下一条指令
+            SET_STACK_OBJECT(result, 0);
+            UPDATE_PC_AND_TOS_AND_CONTINUE(3, 1);
+        }
+    }
+}
+```
+
 
 
 #### 对象的内存布局
 
+```mermaid
+flowchart LR
+a[堆内存] --> b[对象头]
+a --> 实例数据
+a -.-> 对齐填充
+b --> d[存储对象自身的运行时数据<span> Mark Word</span>]
+b --> 类型指针
+```
 
+HotSpot虚拟机对象的**对象头**部分包括两类信息。
+
+1. 用于**存储对象自身的运行时数据**，如哈希码（HashCode）、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等。
+
+2. **类型指针**，即对象指向它的类型元数据的指针。
+
+**实例数据**，无论是从父类继承下来的，还是在子类中定义的字段都必须记录起来。存储顺序会受到**虚拟机分配策略参数**（-XX：FieldsAllocationStyle参数）和字段在Java源码中**定义顺序**的影响。
+
+HotSpot虚拟机默认的分配顺序为<u>longs/doubles、ints、shorts/chars、bytes/booleans、oops（Ordinary Object Pointers，OOPs）</u>。
+
+**对齐填充**
 
 #### 对象的访问定位
+
+Java程序会通过栈上的**reference**数据来操作堆上的具体对象。由于reference类型在《Java虚拟机规范》里面只规定了它是一个指向对象的引用，并<u>没有定义这个引用应该通过什么方式去定位、访问到堆中对象的具体位置</u>，所以对象访问方式也是由虚拟机实现而定的。
+
+主流的访问方式主要有两种：
+
+1. 句柄
+
+![](images/image-20220503213233205.png)
+
+2. 直接指针
+
+速度更快，HotSpot
+
+![](images/image-20220503213244945.png)
 
 
 
@@ -350,3 +443,204 @@ Java虚拟机对于Class文件每一部分（自然也包括常量池）的格�
 
 
 #### 本机直接内存溢出
+
+
+
+## 3 垃圾收集器与内存分配策略
+
+### 3.1　概述
+
+垃圾收集（Garbage Collection，GC）
+
+1960，Lisp，内存动态分配和垃圾收集技术，John McCarthy思考垃圾收集要完成的三件事：
+
+- 哪些内存需要回收？
+- 什么时候回收？
+- 如何回收？
+
+> 为什么我们还要去了解垃圾收集和内存分配？
+>
+> 需要排查各种内存溢出、内存泄漏问题时，当垃圾收集成为系统达到更高并发量的==瓶颈==时，我们就必须对这些“自动化”的技术实施必要的==监控和调节==。
+
+Java堆和方法区有着很显著的不确定性：<u>一个接口的多个实现类需要的内存可能会不一样，一个方法所执行的不同条件分支所需要的内存也可能不一样，只有处于运行期间，我们才能知道程序究竟会创建哪些对象，创建多少个对象，这部分内存的分配和回收是动态的。</u>
+
+### 3.2 对象已死？
+
+#### 引用计数算法
+
+```java
+/**
+ * testGC()方法执行后，objA和objB会不会被GC呢？
+ * @author zzm
+ */
+public class ReferenceCountingGC {
+
+    public Object instance = null;
+
+    private static final int _1MB = 1024 * 1024;
+
+    /**
+     * 这个成员属性的唯一意义就是占点内存，以便能在GC日志中看清楚是否有回收过
+     */
+    private byte[] bigSize = new byte[2 * _1MB];
+
+    public static void testGC() {
+        ReferenceCountingGC objA = new ReferenceCountingGC();
+        ReferenceCountingGC objB = new ReferenceCountingGC();
+        objA.instance = objB;
+        objB.instance = objA;
+
+        objA = null;
+        objB = null;
+
+        // 假设在这行发生GC，objA和objB是否能被回收？
+        System.gc();
+    }
+}
+```
+
+
+
+#### 可达性分析算法
+
+
+
+#### 再谈引用
+
+
+
+#### 生存还是死亡？
+
+
+
+#### 回收方法区
+
+
+
+### 3.3 垃圾收集算法
+
+收集理论和几种算法思想及其发展过程
+
+#### 分代收集理论
+
+
+
+#### 标记-清除算法
+
+
+
+#### 标记-复制算法
+
+
+
+#### 标记-整理算法
+
+
+
+### 3.4 HotSpot的算法细节实现
+
+#### 根节点枚举
+
+
+
+#### 安全点
+
+
+
+#### 安全区域
+
+
+
+#### 记忆集与卡表
+
+
+
+#### 写屏障
+
+
+
+#### 并发的可达性分析
+
+
+
+### 3.5 经典垃圾收集器
+
+收集算法是内存回收的方法论，垃圾收集器就是内存回收的实践者。
+
+![](images/image-20220503215445077.png)
+
+#### Serial收集器
+
+
+
+#### ParNew收集器
+
+
+
+#### Parallel Scavenge收集器
+
+
+
+#### Serial Old收集器
+
+
+
+#### Parallel Old收集器
+
+
+
+#### CMS收集器
+
+
+
+#### Garbage First收集器
+
+
+
+### 3.6 低延迟垃圾收集器
+
+#### Shenandoah收集器
+
+
+
+#### ZGC收集器
+
+
+
+### 3.7 选择合适的垃圾收集器
+
+#### Epsilon收集器
+
+
+
+#### 收集器的权衡
+
+
+
+#### 虚拟机及垃圾收集器日志
+
+
+
+#### 垃圾收集器参数总结
+
+
+
+### 3.8 实战：内存分配与回收策略
+
+#### 对象优先在Eden分配
+
+
+
+#### 大对象直接进入老年代
+
+
+
+#### 长期存活的对象将进入老年代
+
+
+
+#### 动态对象年龄判定
+
+
+
+#### 空间分配担保
