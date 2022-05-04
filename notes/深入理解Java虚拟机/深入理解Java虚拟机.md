@@ -430,19 +430,31 @@ Java程序会通过栈上的**reference**数据来操作堆上的具体对象。
 
 ### 2.4 实战：OutOfMemoryError异常
 
+在《Java虚拟机规范》的规定里，除了程序计数器外，虚拟机内存的其他几个运行时区域都有发生OutOfMemoryError（下文称OOM）异常的可能。
+
+能根据异常的提示信息迅速得知是哪个区域的内存溢出，知道怎样的代码可能会导致这些区域内存溢出，以及出现这些异常后该如何处理。
+
+[jvm参数官方](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html)
+
 #### Java堆溢出
 
-
+XX:+HeapDumpOnOutOfMemoryError
 
 #### 虚拟机栈和本地方法栈溢出
 
-
+-Xss
 
 #### 方法区和运行时常量池溢出
 
+-XX:PermSize
 
+-XX:MaxPermSize
 
 #### 本机直接内存溢出
+
+-XX:MaxDirectMemorySize
+
+
 
 
 
@@ -644,3 +656,489 @@ public class ReferenceCountingGC {
 
 
 #### 空间分配担保
+
+
+
+## 4 虚拟机性能监控、故障处理工具
+
+### 4.1 概述
+
+==**给一个系统定位问题的时候，知识、经验是关键基础，数据是依据，工具是运用知识处理数据的手段。**==
+
+这里说的数据包括但不限于**异常堆栈、虚拟机运行日志、垃圾收集器日志、线程快照（threaddump/javacore文件）、堆转储快照（heapdump/hprof文件）**等。
+
+### 4.2 基础故障处理工具
+
+- 商业授权工具
+- 正式支持工具
+- 实验性工具
+
+真正的功能代码是实现在JDK的工具类库中。
+
+#### jps：虚拟机进程状况工具
+
+JDK的很多小工具的名字都参考了UNIX命令的命名方式。
+
+jps（JVM ProcessStatus Tool），列出正在运行的虚拟机进程，并显示虚拟机执行主类（Main Class，main()函数所在的类）名称以及这些进程的**本地虚拟机唯一ID**（LVMID，LocalVirtual Machine Identifier）。
+
+LVMID与操作系统的进程ID（PID，Process Identifier）是一致的。
+
+
+#### jstat：虚拟机统计信息监视工具
+
+jstat（JVM Statistics Monitoring Tool），用于监视虚拟机各种运行状态信息。可以显示本地或者远程虚拟机进程中的类加载、内存、垃圾收集、即时编译等运行时数据。
+
+
+
+#### jinfo：Java配置信息工具
+
+jinfo（Configuration Info for Java）的作用是实时查看和调整虚拟机各项参数。
+
+`-v`参数可以查看虚拟机启动时显式指定的参数列表。
+
+
+
+#### jmap：Java内存映像工具
+
+jmap（Memory Map for Java）命令用于生成堆转储快照（一般称为heapdump或dump文件）
+
+
+
+#### jhat：虚拟机堆转储快照分析工具
+
+jhat（JVM Heap Analysis Tool），搭配jmap，分析jmap生成的堆转储快照。
+
+
+
+#### jstack：Java堆栈跟踪工具
+
+jstack（Stack Trace for Java）命令用于生成虚拟机当前时刻的线程快照（一般称为threaddump或者javacore文件）。
+
+
+
+#### 基础工具总结
+
+- 基础工具：用于支持基本的程序创建和运行
+
+![](images/image-20220504095216955.png)
+
+- 安全：用于程序签名、设置安全测试等
+
+![](images/image-20220504095239198.png)
+
+- 国际化：用于创建本地语言文件
+
+![](images/image-20220504095306354.png)
+
+- 远程方法调用：用于跨Web或网络的服务交互
+
+![](images/image-20220504095423436.png)
+
+- 部署工具：用于程序打包、发布和部署
+
+![](images/image-20220504095454367.png)
+
+- REPL和脚本工具
+
+![](images/image-20220504095555724.png)
+
+- 性能监控和故障处理：用于监控分析Java虚拟机运行信息，排查问题
+
+### 4.3 可视化故障处理工具
+
+JConsole、JHSDB、VisualVM和JMC
+
+#### JHSDB：基于服务性代理的调试工具
+
+
+
+#### JConsole：Java监视与管理控制台
+
+JConsole（Java Monitoring and Management Console）是一款基于JMX（Java Manage-ment Extensions）的可视化监视、管理工具。
+
+
+
+#### VisualVM：多合-故障处理工具
+
+VisualVM（All-in-One Java Troubleshooting Tool）是功能最强大的运行监视和故障处理程序之一。
+
+
+
+#### Java Mission Control：可持续在线的监控工具
+
+
+
+#### 4.4 HotSpot虚拟机插件及工具
+
+
+
+## 5 调优案例分析与实战
+
+### 5.2　案例分析
+
+#### 大内存硬件上的程序部署策略
+
+
+
+#### 集群间同步导致的内存溢出
+
+
+
+#### 堆外内存导致的溢出错误
+
+
+
+#### 外部命令导致系统缓慢
+
+
+
+#### 服务器虚拟机进程崩溃
+
+
+
+#### 不恰当数据结构导致内存占用过大
+
+
+
+#### 由Windows虚拟内存导致的长时间停顿
+
+
+
+#### 由安全点导致长时间停顿
+
+
+
+### 5.3 实战：Eclipse运行速度调优
+
+#### 调优前的程序运行状态
+
+
+
+#### 升级JDK版本的性能变化及兼容问题
+
+
+
+#### 编译时间和类加载时间的优化
+
+
+
+#### 调整内存设置控制垃圾收集频率
+
+
+
+# 三、虚拟机执行子系统
+
+## 6 类文件结构
+
+代码编译的结果从本地机器码转变为字节码，是存储格式发展的一小步，却是编程语言发展的一大步。
+
+### 6.1 概述
+
+越来越多的程序语言选择了与操作系统和机器指令集无关的、平台中立的格式作为程序编译后的存储格式。
+
+### 6.2 无关性的基石
+
+
+
+### 6.3 Class类文件的结构
+
+Java技术能够一直保持着非常良好的向后兼容性，**Class文件结构的稳定**功不可没。
+
+尽管不同版本的《Java虚拟机规范》对Class文件格式进行了几次更新，但基本上**只是在原有结构基础上新增内容、扩充功能，并未对已定义的内容做出修改**。
+
+任何一个Class文件都对应着唯一的一个类或接口的定义信息，但是反过来说，类或接口并不一定都得定义在文件里（譬如类或接口也可以动态生成，直接送入类加载器）。
+
+Class文件是一组以8个字节为基础单位的二进制流，各个数据项目严格按照顺序紧凑地排列在文件之中，中间没有添加任何分隔符。
+
+![](images/image-20220504103119099.png)
+
+#### 魔数与Class文件的版本
+
+每个Class文件的头4个字节被称为**魔数（Magic Number）**。
+
+![](images/image-20220504103327822.png)
+
+#### 常量池
+
+紧接着主、次版本号之后的是常量池入口，常量池可以比喻为Class文件里的**资源仓库**，它是Class文件结构中与其他项目关联最多的数据，通常也是占用Class文件空间最大的数据项目之一，另外，它还是在Class文件中第一个出现的表类型数据项目。
+
+常量池容量计数值（constant_pool_count）
+
+常量池中主要存放两大类常量：字面量（Literal）和符号引用（SymbolicReferences）。
+
+![](images/image-20220504103920852.png)
+
+
+
+![常量池中的17种数据类型的结构总表](images/常量池中的17种数据类型的结构总表.png)
+
+#### 访问标志
+
+2个字节，访问标志（access_flags），这个标志用于**识别一些类或者接口层次的访问信息**，包括：这个Class是类还是接口；是否定义为public类型；是否定义为abstract类型；如果是类的话，是否被声明为final等等。
+
+![](images/image-20220504104825861.png)
+
+#### 类索引、父类索引与接口索引集合
+
+类索引（this_class）和父类索引（super_class）都是一个u2类型的数据，而接口索引集合（interfaces）是一组u2类型的数据的集合，Class文件中由这三项数据来确定该类型的继承关系。
+
+
+
+#### 字段表集合
+
+字段表（field_info）用于描述接口或者类中声明的变量。
+
+Java语言中的“字段”（Field）包括类级变量以及实例级变量，但不包括在方法内部声明的局部变量。
+
+![](images/image-20220504105301760.png)
+
+#### 方法表集合
+
+Class文件存储格式中对方法的描述与对字段的描述采用了几乎完全一致的方式，方法表的结构如同字段表一样，依次包括访问标志（access_flags）、名称索引（name_index）、描述符索引（descriptor_index）、属性表集合（attributes）。
+
+
+
+#### 属性表集合
+
+![虚拟机规范预定义的属性](images/虚拟机规范预定义的属性.png)
+
+##### 1.Code属性
+
+
+
+##### 2.Exceptions属性
+
+
+
+##### 3.LineNumberTable属性
+
+
+
+##### 4.LocalVariableTable及LocalVariableTypeTable属性
+
+
+
+##### 5.SourceFile及SourceDebugExtension属性
+
+
+
+##### 6.ConstantValue属性
+
+
+
+##### 7.InnerClasses属性
+
+
+
+##### 8.Deprecated及Synthetic属性
+
+
+
+##### 9.StackMapTable属性
+
+
+
+##### 10.Signature属性
+
+
+
+##### 11.BootstrapMethods属性
+
+
+
+##### 12.MethodParameters属性
+
+
+
+##### 13.模块化相关属性
+
+
+
+##### 14.运行时注解相关属性
+
+
+
+### 6.4 字节码指令简介
+
+Java虚拟机的指令由一个字节长度的、代表着某种特定操作含义的数字（称为**==操作码==**，Opcode）以及跟随其后的零至多个代表此操作所需的参数（称为**==操作数==**，Operand）构成。
+
+#### 字节码与数据类型
+
+![](images/image-20220504111146185.png)
+
+#### 加载和存储指令
+
+加载和存储指令用于将数据在栈帧中的局部变量表和操作数栈之间来回传输，这类指令包括：
+
+- 将一个局部变量加载到操作栈：
+
+  ```
+  iload、iload_<n>、lload、lload_<n>、fload、fload_<n>、dload、dload_<n>、aload、aload_<n>
+  ```
+
+- 将一个数值从操作数栈存储到局部变量表：
+
+  ```
+  istore、istore_<n>、lstore、lstore_<n>、fstore、fstore_<n>、dstore、dstore_<n>、astore、astore_<n>
+  ```
+
+- 将一个常量加载到操作数栈：
+
+  ```
+  bipush、sipush、ldc、ldc_w、ldc2_w、aconst_null、iconst_m1、iconst_<i>、lconst_<l>、fconst_<f>、dconst_<d>
+  ```
+
+- 扩充局部变量表的访问索引的指令：wide
+
+
+
+#### 运算指令
+
+运算指令可以分为两种：对整型数据进行运算的指令与对浮点型数据进行运算的指令。
+
+- 加法指令：iadd、ladd、fadd、dadd
+- 减法指令：isub、lsub、fsub、dsub
+- 乘法指令：imul、lmul、fmul、dmul
+- 除法指令：idiv、ldiv、fdiv、ddiv
+- 求余指令：irem、lrem、frem、drem
+- 取反指令：ineg、lneg、fneg、dneg
+- 位移指令：ishl、ishr、iushr、lshl、lshr、lushr
+- 按位或指令：ior、lor
+- 按位与指令：iand、land
+- 按位异或指令：ixor、lxor
+- 局部变量自增指令：iinc
+- 比较指令：dcmpg、dcmpl、fcmpg、fcmpl、lcmp
+
+
+
+#### 类型转换指令
+
+
+
+#### 对象创建与访问指令
+
+- 创建类实例的指令：new
+- 创建数组的指令：newarray、anewarray、multianewarray
+- 访问类字段（static字段，或者称为类变量）和实例字段（非static字段，或者称为实例变量）的指令：getfield、putfield、getstatic、putstatic
+- 把一个数组元素加载到操作数栈的指令：baload、caload、saload、iaload、laload、faload、daload、aaload
+- 将一个操作数栈的值储存到数组元素中的指令：bastore、castore、sastore、iastore、fastore、dastore、aastore
+- 取数组长度的指令：arraylength
+- 检查类实例类型的指令：instanceof、checkcast
+
+
+
+#### 操作数栈管理指令
+
+- 将操作数栈的栈顶一个或两个元素出栈：pop、pop2
+- 复制栈顶一个或两个数值并将复制值或双份的复制值重新压入栈顶：dup、dup2、dup_x1、dup2_x1、dup_x2、dup2_x2
+- 将栈最顶端的两个数值互换：swap
+
+
+
+#### 控制转移指令
+
+- 条件分支：ifeq、iflt、ifle、ifne、ifgt、ifge、ifnull、ifnonnull、if_icmpeq、if_icmpne、if_icmplt、if_icmpgt、if_icmple、if_icmpge、if_acmpeq和if_acmpne
+- 复合条件分支：tableswitch、lookupswitch
+- 无条件分支：goto、goto_w、jsr、jsr_w、ret
+
+
+
+#### 方法调用和返回指令
+
+- invokevirtual指令：用于调用对象的实例方法，根据对象的实际类型进行分派（虚方法分派），这也是Java语言中最常见的方法分派方式。
+- invokeinterface指令：用于调用接口方法，它会在运行时搜索一个实现了这个接口方法的对象，找出适合的方法进行调用。
+- invokespecial指令：用于调用一些需要特殊处理的实例方法，包括实例初始化方法、私有方法和父类方法。
+- invokestatic指令：用于调用类静态方法（static方法）。
+- invokedynamic指令：用于在运行时动态解析出调用点限定符所引用的方法。并执行该方法。前面四条调用指令的分派逻辑都固化在Java虚拟机内部，用户无法改变，而invokedynamic指令的分派逻辑是由用户所设定的引导方法决定的。
+
+
+
+#### 异常处理指令
+
+
+
+#### 同步指令
+
+
+
+### 6.5 公有设计，私有实现
+
+
+
+### 6.6 Class文件结构的发展
+
+
+
+## 7 虚拟机类加载机制
+
+### 7.1　概述
+
+**Java虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的Java类型**，这个过程被称作**==虚拟机的类加载机制==**。
+
+
+
+### 7.2　类加载的时机
+
+![](images/image-20220504112753815.png)
+
+### 7.3　类加载的过程
+
+#### 加载
+
+
+
+#### 验证
+
+确保Class文件的字节流中包含的信息符合《Java虚拟机规范》的全部约束要求，保证这些信息被当作代码运行后不会危害虚拟机自身的安全。
+
+##### 1.文件格式验证
+
+
+
+##### 2.元数据验证
+
+
+
+##### 3.字节码验证
+
+
+
+##### 4.符号引用验证
+
+
+
+#### 准备
+
+
+
+#### 解析
+
+
+
+#### 初始化
+
+
+
+### 7.4 类加载器
+
+Java虚拟机设计团队有意把类加载阶段中的“通过一个类的全限定名来获取描述该类的二进制字节流”这个动作放到Java虚拟机外部去实现，以便让应用程序自己决定如何去获取所需的类。实现这个动作的代码被称为“类加载器”（ClassLoader）。
+
+#### 类与类加载器
+
+
+
+#### 双亲委派模型
+
+
+
+#### 破坏双亲委派模型
+
+
+
+### 7.5 Java模块化系统
+
+#### 模块的兼容性
+
+
+
+#### 模块化下的类加载器
