@@ -1,10 +1,11 @@
 package com.andyron.bcdlj;
 
-import com.andyron.bcdlj.c04.Point;
 import com.andyron.bcdlj.c07.c76.Password;
 import javafx.util.Pair;
 import org.junit.Test;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
 import java.io.*;
 import java.lang.reflect.*;
 import java.nio.charset.StandardCharsets;
@@ -12,9 +13,20 @@ import java.util.*;
 
 public class MyTest {
     @Test
-    public void test() {
-        UUID uuid = new UUID(12L, 12L);
-        System.out.println(UUID.randomUUID().toString());
+    public void test() throws IntrospectionException {
+//        System.out.println(UUID.randomUUID().toString());
+
+        HashMap<String, String> map = new HashMap<>();
+        map.put("k1", "v1");
+        map.put("k2", "v2");
+        map.put("k3", "v1");
+        System.out.println(map);
+        System.out.println(map.keySet());
+        System.out.println(map.values());
+        map.keySet().clear();
+        System.out.println(map);
+
+
 
 
     }
@@ -213,6 +225,35 @@ public class MyTest {
         arrayList.size();
     }
 
+    /**
+     *  使用HashMap统计随机数
+     */
+    @Test
+    public void test10_1_2() {
+        Random rnd = new Random();
+        HashMap<Integer, Integer> countMap = new HashMap<>();
+        for (int i = 0; i < 1000; i++) {
+            int num = rnd.nextInt(4);
+            Integer count = countMap.get(num);
+            if (count == null) {
+                countMap.put(num, 1);
+            } else {
+                countMap.put(num, count + 1);
+            }
+        }
+        for (Map.Entry<Integer, Integer> kv : countMap.entrySet()) {
+            System.out.println(kv.getKey() + ", " + kv.getValue());
+        }
+    }
+    @Test
+    public void test10() {
+        HashMap<Integer, Integer> map = new HashMap<>();
+//        map
+
+    }
+
+
+
     @Test
     public void test13_2() throws IOException {
         FileOutputStream output = new FileOutputStream("hello.txt");
@@ -278,5 +319,26 @@ class TestList extends AbstractList {
     @Override
     protected void removeRange(int fromIndex, int toIndex) {
         super.removeRange(fromIndex, toIndex);
+    }
+}
+
+class User {
+    String id;
+    String name;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
