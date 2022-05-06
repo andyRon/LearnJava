@@ -2938,7 +2938,7 @@ Map可以方便处理需要根据**键**访问对象的场景，比如：
 - 管理配置文件中的配置项，配置项是典型的键值对；
 - 根据身份证号查询人员信息，身份证号为键，人员信息为值。
 
-数组、ArrayList、LinkedList可以视为一种特殊的Map，键为索引，值为对象。
+> 数组、ArrayList、LinkedList可以视为一种特殊的Map，键为索引，值为对象。
 
 Java 7中Map接口的定义：
 
@@ -2973,6 +2973,14 @@ Set<K> keySet();
 Java 8增加了一些默认方法，如<u>getOrDefault、forEach、replaceAll、putIfAbsent、replace、computeIfAbsent、merge</u>等，Java 9增加了多个重载的of方法，可以方便地根据一个或多个键值对构建不变的Map。
 
 Set是一个接口，表示的是数学中的集合概念，即**没有重复的元素集合**。
+
+keySet()、values()、entrySet()
+
+```java
+map.keySet().clear();
+```
+
+
 
 #### HashMap
 
@@ -3012,9 +3020,18 @@ public HashMap(Map<? extends K, ? extends V> m)  // 复制一个已有Map
 
 ##### 1.内部构成
 
-threshold
+HashMap主要实例变量：
 
-loadFactor 负载因子
+```java
+transient Node<K,V>[] table;
+transient int size;
+int threshold;
+final float loadFactor;
+```
+
+Node是HashMap中的静态内部类，它实现了Map中的内部接口Map.Entry（entry单词有条目的意思，这里可以理解为**键值对**），这个接口也Map下很多容器实现。table也就是Entry类型的数组。
+
+threshold表示阈值，当size大于threshold时进行扩展，threshold等于table.length乘以loadFactor（负载因子），loadFactor默认为0.75。
 
 ##### 2.默认构造方法
 
@@ -3041,6 +3058,10 @@ HashMap基本原理总结：
 - 存取的时候依据键的hash值，只在对应的链表中操作，不会访问别的链表，在对应链表操作时也是先比较hash值，如果相同再用equals方法比较。
 
 > 根据哈希值存取对象、比较对象是计算机程序中一种重要的思维方式，它使得存取对象主要依赖于自身Hash值，而不是与其他对象进行比较，存取效率也与集合大小无关，高达O(1)，即使进行比较，也利用Hash值提高比较性能。
+
+> 注：
+>
+> HashMap不是线程安全的；Hashtable通过synchronized实现了线程安全，很少用，并发场景下被ConcurrentHashMap取代。
 
 ### 10.2 剖析HashSet
 
@@ -3094,7 +3115,7 @@ HashSet的特点：
 
 ### 10.3 排序二叉树
 
-HashMap和HashSet的共同实现机制是哈希表，它们共同的限制是没有顺序；它们对应能保持顺序的是TreeMap和TreeSet，这两个类实现基础就是**排序二叉树**。
+HashMap和HashSet的共同实现机制是**哈希表**，它们共同的限制是**没有顺序**；它们对应能保持顺序的是TreeMap和TreeSet，这两个类实现基础就是**排序二叉树**。
 
 #### 基本概念
 
@@ -3168,6 +3189,8 @@ LinkedHashMap是HashMap的子类，但可以保持元素按插入或访问有序
 
 #### 基本用法
 
+LinkedHashMap是HashMap的子类，但内部还有**一个双向链表维护键值对的顺序，每个键值对既位于哈希表中，也位于这个双向链表中**。LinkedHashMap支持两种顺序：一种是插入顺序；另外一种是访问顺序。
+
 
 
 #### 实现原理
@@ -3182,7 +3205,7 @@ LinkedHashSet是HashSet的子类，它内部的Map的实现类是LinkedHashMap�
 
 ### 10.7 剖析EnumMap
 
-键的类型为枚举类型
+键的类型为枚举类型，Map的实现类。
 
 
 
@@ -3259,7 +3282,11 @@ PriorityQueue特点：
 
 ### 11.3 堆和PriorityQueue的应用
 
+
+
 #### 求前K个最大的元素
+
+
 
 #### 求中值
 
@@ -3355,7 +3382,13 @@ PriorityQueue特点：
 
 #### 用法和特点
 
-
+1. **动态数组**：ArrayList内部就是动态数组，HashMap内部的链表数组也是动态扩展的，ArrayDeque和PriorityQueue内部也都是动态扩展的数组。
+2. **链表**：LinkedList是用双向链表实现的，HashMap中映射到同一个链表数组的键值对是通过单向链表链接起来的，LinkedHashMap中每个元素还加入到了一个双向链表中以维护插入或访问顺序。
+3. **哈希表**：HashMap是用哈希表实现的，HashSet、LinkedHashSet和LinkedHashMap基于HashMap，内部当然也是哈希表。
+4. **排序二叉树**：TreeMap是用红黑树（基于排序二叉树）实现的，TreeSet内部使用TreeMap，当然也是红黑树，红黑树能保持元素的顺序且综合性能很高。
+5. 堆：PriorityQueue是用堆实现的，堆逻辑上是树，物理上是动态数组，堆可以高效地解决一些其他数据结构难以解决的问题。
+6. 循环数组：ArrayDeque是用循环数组实现的，通过对头尾变量的维护，实现了高效的队列操作。
+7. 位向量：EnumSet和BitSet是用位向量实现的，对于只有两种状态，且需要进行集合运算的数据，使用位向量进行表示、位运算进行处理，精简且高效。
 
 #### 数据结构和算法
 
@@ -5527,6 +5560,16 @@ protected ClassLoader(ClassLoader parent)
 
 ## 26 函数式编程
 
+ambda表达式是一种紧凑的传递代码的方式。
+
+基于Lambda表达式，针对常见的集合数据处理，Java 8引入了一套新的类库，位于包java.util.stream下，称为**Stream API**。
+
+Stream API是对容器类的增强，它可以将对集合数据的多个操作以流水线的方式组合在一起。
+
+Java 8新增的CompletableFuture是对并发编程的增强，可以方便地**将多个有一定依赖关系的异步任务以流水线的方式组合在一起**，大大简化多异步任务的开发。
+
+利用Lambda表达式，Java 8还增强了日期和时间API。
+
 ### 26.1 Lambda表达式
 
 #### 通过接口传递代码
@@ -5543,7 +5586,7 @@ protected ClassLoader(ClassLoader parent)
 
 ### 预定义的函数接口
 
-
+java.util.function
 
 ### 方法引用
 
@@ -5551,19 +5594,77 @@ protected ClassLoader(ClassLoader parent)
 
 ### 函数的复合
 
-
+函数式接口和Lambda表达式还可用作方法的返回值，传递代码回调用者，将这两种用法结合起来，可以构造复合的函数，使程序简洁易读。
 
 ### 26.2 函数式数据处理：基本用法
 
 #### 基本示例
 
+##### 1．基本过滤
+
+
+
+##### 2．基本转换
+
+
+
+##### 3．基本的过滤和转换组合
+
 
 
 #### 中间操作
 
+##### 1. distinct
+
+
+
+##### 2. sorted
+
+
+
+##### 3. skip/limit
+
+
+
+##### 4. peek
+
+
+
+##### 5. mapToLong/mapToInt/mapToDouble
+
+
+
+##### 6. flatMap
+
 
 
 #### 终端操作
+
+##### 1. max/min
+
+
+
+##### 2. count
+
+
+
+##### 3. allMatch/anyMatch/noneMatch
+
+
+
+##### 4. findFirst/findAny
+
+
+
+##### 5. forEach
+
+
+
+##### 6. toArray
+
+
+
+##### 7. reduce
 
 
 
@@ -5573,7 +5674,7 @@ protected ClassLoader(ClassLoader parent)
 
 #### 函数式数据处理思维
 
-
+流定义了很多数据处理的基本函数，对于一个具体的数据处理问题，解决的主要思路就是组合利用这些基本函数，以声明式的方式简洁地实现期望的功能，这种思路就是函数式数据处理思维，相比直接利用容器类API的命令式思维，思考的层次更高。
 
 ### 26.3 函数式数据处理：强大方便的收集器
 
@@ -5583,7 +5684,15 @@ protected ClassLoader(ClassLoader parent)
 
 #### 容器收集器
 
+##### 1. toSet
 
+
+
+##### 2. toCollection
+
+
+
+##### 3. toMap
 
 #### 字符串收集器
 
@@ -5595,7 +5704,7 @@ protected ClassLoader(ClassLoader parent)
 
 ### 26.4 组合式异步编程 
 
-
+java.time
 
 #### 异步任务管理
 
@@ -5619,3 +5728,38 @@ protected ClassLoader(ClassLoader parent)
 
 ### 26.5 Java 8 的日期和时间API
 
+#### 表示日期和时间
+
+##### 1. Instant
+
+
+
+##### 2. LocalDateTime
+
+
+
+##### 3. ZoneId/ZoneOffset
+
+
+
+##### 4. LocalDate/LocalTime
+
+
+
+##### 5. ZonedDateTime
+
+
+
+#### 格式化
+
+
+
+#### 设置和修改时间
+
+
+
+#### 时间段的计算
+
+
+
+#### 与Date/Calendar对象的转换
