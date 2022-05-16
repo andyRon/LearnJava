@@ -177,7 +177,7 @@ JavaInJava
 
 ### 展望Java技术的未来
 
-##### 无语言倾向
+#### 无语言倾向
 
 Java“天下第一”的底气不在于语法多么先进好用，而是来自它**庞大的用户群和极其成熟的软件生态**，这在朝夕之间难以撼动。
 
@@ -207,7 +207,17 @@ AWS Lambda
 
 Substrate VM
 
+#### 灵活的胖子
+
+HotSpot的定位是**面向各种不同应用场景的全功能Java虚拟机**。
+
+近几年，HotSpot开发团队正在持续地重构着HotSpot的架构，让它具有**模块化的能力和足够的开放性**。
+
 #### 语言语法持续增强
+
+语言的功能特性和语法是相对最不重要的改进点，毕竟连JavaScript这种“反人类”的语法都能获得如此巨大的成功，而比Java语法先进优雅得多的挑战者C#现在已经“江湖日下”，成了末路英雄。
+
+
 
 ### 实战：自己编译JDK🔖
 
@@ -215,7 +225,7 @@ Substrate VM
 
 [OpenJDK](http://openjdk.java.net/ )
 
-https://github.com/openjdk/jdk
+ 
 
 [OpenJDK 12](https://hg.openjdk.java.net/jdk/jdk12/)
 
@@ -261,17 +271,17 @@ Java虚拟机在执行Java程序的过程中会把它所管理的内存划分为
 
 #### Java虚拟机栈（线程私有）
 
-Java虚拟机栈（Java Virtual Machine Stack）的命周期与线程相同。
+Java虚拟机栈（Java Virtual Machine Stack）的生命周期与线程相同。
 
-虚拟机栈描述的是Java方法执行的线程内存模型：每个方法被执行的时候，Java虚拟机都会同步创建一个栈帧（Stack Frame）用于存储**==局部变量表、操作数栈、动态连接、方法出口==**等信息。
+虚拟机栈描述的是Java方法执行的线程内存模型：每个方法被执行的时候，Java虚拟机都会同步创建一个==栈帧（Stack Frame）==用于存储**==局部变量表、操作数栈、动态连接、方法出口==**等信息。每一个方法被调用直至执行完毕的过程，就对应着一个栈帧在虚拟机栈中从入栈到出栈的过程。
 
-局部变量表存放了编译期可知的各种Java虚拟机**基本数据类型**（boolean、byte、char、short、int、foat、long、double）、**对象引用**（reference类型，它并不等同于对象本身，可能是一个指向对象起始地址的引用指针，也可能是指向一个代表对象的句柄或者其他与此对象相关的位置）和**returnAddress类型**（指向了一条字节码指令的地址）。
+![](images/image-20220516102318889.png)
 
-局部变量槽（Slot）
+局部变量表存放了编译期可知的各种Java虚拟机**基本数据类型**（boolean、byte、char、short、int、foat、long、double）、**对象引用**（reference类型，它并不等同于对象本身，可能是一个指向对象起始地址的引用指针，也可能是指向一个代表对象的句柄或者其他与此对象相关的位置）和**returnAddress类型**（指向了一条字节码指令的地址）。它们在局部变量表中存储以**==局部变量槽（Slot）==**来表示，64位的long和double占用两个变量槽，其它只占用一个。
 
-StackOverflowError
+一个方法需要在栈帧中分配多大的局部变量空间是完全确定的，在方法运行期间不会改变。（这里的”大小“是指局部变量槽的数量，但一个变量槽分配32个bit或64个或者更多，完全有具体的虚拟机实现决定）
 
-OutOfMemoryError
+Java虚拟机栈两类异常状况：线程请求的栈深度大于虚拟机所允许的深度，StackOverflowError；如果Java虚拟机栈容量可以动态扩展，当栈扩展时无法申请到足够的内存会抛出OutOfMemoryError异常。
 
 
 
@@ -293,9 +303,9 @@ Java堆是垃圾收集器管理的内存区域，有时也被称作“**GC堆**�
 
 将Java堆细分的目的**只是为了更好地回收内存，或者更快地分配内存**。
 
-Java堆可以处于物理上不连续的内存空间中，但在逻辑上它应该被视为连续的。
+Java堆可以处于**物理上不连续的内存空间中，但在逻辑上它应该被视为连续的**。
 
-Java堆大小可通过参数-Xmx和-Xms设定来扩展。
+Java堆大小可通过参数`-Xmx`和`-Xms`设定来扩展。
 
 OutOfMemoryError
 
@@ -324,6 +334,10 @@ Java虚拟机对于Class文件每一部分（自然也包括常量池）的格�
 ### 2.3 HotSpot虚拟机对象探秘
 
 #### 对象的创建
+
+
+
+HotSpot虚拟机字节码解释器（bytecodeInterpreter.cpp）中的代码片段：
 
 ```c++
 // 确保常量池中存放的是已解释的类
@@ -410,13 +424,15 @@ HotSpot虚拟机默认的分配顺序为<u>longs/doubles、ints、shorts/chars�
 
 **对齐填充**
 
+
+
 #### 对象的访问定位
 
 Java程序会通过栈上的**reference**数据来操作堆上的具体对象。由于reference类型在《Java虚拟机规范》里面只规定了它是一个指向对象的引用，并<u>没有定义这个引用应该通过什么方式去定位、访问到堆中对象的具体位置</u>，所以对象访问方式也是由虚拟机实现而定的。
 
 主流的访问方式主要有两种：
 
-1. 句柄
+1. 句柄。句柄池，reference中存储的就是对象的句柄地址，而句柄中包含了对象实例数据与类型数据各自具体的地址信息。
 
 ![](images/image-20220503213233205.png)
 
@@ -428,21 +444,73 @@ Java程序会通过栈上的**reference**数据来操作堆上的具体对象。
 
 
 
-### 2.4 实战：OutOfMemoryError异常
+### 2.4 实战：OutOfMemoryError异常🔖
 
-在《Java虚拟机规范》的规定里，除了程序计数器外，虚拟机内存的其他几个运行时区域都有发生OutOfMemoryError（下文称OOM）异常的可能。
+在《Java虚拟机规范》的规定里，除了程序计数器外，虚拟机内存的其他几个运行时区域都有发生OutOfMemoryError（下文称**OOM**）异常的可能。
 
 能根据异常的提示信息迅速得知是哪个区域的内存溢出，知道怎样的代码可能会导致这些区域内存溢出，以及出现这些异常后该如何处理。
 
 [jvm参数官方](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html)
 
+新版的IDEA设置的虚拟机启动参数有点变化：
+
+![](images/iShot_2022-05-16_11.26.59.jpg)
+
 #### Java堆溢出
 
-XX:+HeapDumpOnOutOfMemoryError
+`-Xms20m -Xmx20m`：将堆的最小值-Xms参数与最大值-Xmx参数设置成一样的20MB，可避免堆自动扩展。
+
+`-XX:+HeapDumpOnOutOfMemoryError`：让虚拟机在出现内存溢出异常的时候Dump出当前的内存堆转储快照以便进行事后分析。
+
+```java
+/**
+ * VM Args：-Xms20m -Xmx20m -XX:+HeapDumpOnOutOfMemoryError
+ */
+public class HeapOOM {
+
+    static class OOMObject {
+    }
+
+    public static void main(String[] args) {
+        List<OOMObject> list = new ArrayList<OOMObject>();
+
+        while (true) {
+            list.add(new OOMObject());
+        }
+    }
+}
+```
+
+没有设置虚拟机启动参数时异常：
+
+```
+Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
+	at java.base/java.util.Arrays.copyOf(Arrays.java:3720)
+	at java.base/java.util.Arrays.copyOf(Arrays.java:3689)
+	at java.base/java.util.ArrayList.grow(ArrayList.java:238)
+	at java.base/java.util.ArrayList.grow(ArrayList.java:243)
+	at java.base/java.util.ArrayList.add(ArrayList.java:486)
+	at java.base/java.util.ArrayList.add(ArrayList.java:499)
+	at HeapOOM.main(HeapOOM.java:16)
+```
+
+设置后多了：
+
+```
+java.lang.OutOfMemoryError: Java heap space
+Dumping heap to java_pid52263.hprof ...
+Heap dump file created [29082846 bytes in 0.170 secs]
+```
+
+生成**java_pid52263.hprof**，IDEA可直接打开查看分析，也可通过专业的分析工具（如JProfiler）查看
+
+
 
 #### 虚拟机栈和本地方法栈溢出
 
--Xss
+HotSpot虚拟机中并不区分虚拟机栈和本地方法栈。`-Xoss`（设置本地方法栈大小）没有效果，栈容量只能由`-Xss`参数来设定。
+
+
 
 #### 方法区和运行时常量池溢出
 
@@ -630,6 +698,18 @@ public class ReferenceCountingGC {
 
 
 #### 虚拟机及垃圾收集器日志
+
+
+
+```
+-Xlog[:[selector][:[output][:[decorators][:output-options]]]]
+```
+
+
+
+```
+add，age，alloc，annotation，aot，arguments，attach，barrier，biasedlocking，blocks，bot，breakpoint，bytecode，census，class，classhisto，cleanup，compaction，comparator，constraints，constantpool，coops，cpu，cset，data，defaultmethods，dump，ergo，event，exceptions，exit，fingerprint，freelist，gc，hashtables，heap，humongous，ihop，iklass，init，itables，jfr，jni，jvmti，liveness，load，loader，logging，mark，marking，metadata，metaspace，method，mmu，modules，monitorinflation，monitormismatch，nmethod，normalize，objecttagging，obsolete，oopmap，os，pagesize，parser，patch，path，phases，plab，preorder，promotion，protectiondomain，purge，redefine，ref，refine，region，remset，resolve，safepoint，scavenge，scrub，setting，stackmap，stacktrace，stackwalk，start，startuptime，state，stats，stringdedup，stringtable，subclass，survivor，sweep，system，task，thread，time，timer，tlab，unload，update，verification，verify，vmoperation，vtables，workgang
+```
 
 
 
