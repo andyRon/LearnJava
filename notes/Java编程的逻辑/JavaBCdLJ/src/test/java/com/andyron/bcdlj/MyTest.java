@@ -1,7 +1,6 @@
 package com.andyron.bcdlj;
 
 import com.andyron.bcdlj.c07.c76.Password;
-import javafx.util.Pair;
 import org.junit.Test;
 
 import java.beans.IntrospectionException;
@@ -299,7 +298,7 @@ public class MyTest {
             output.close();
         }
 
-        Pair<String, Integer> pair = new Pair<String, Integer>("key1", 123);
+//        Pair<String, Integer> pair = new Pair<String, Integer>("key1", 123);
     }
 
 }
