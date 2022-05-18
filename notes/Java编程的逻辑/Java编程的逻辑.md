@@ -4106,13 +4106,24 @@ public final void resume()
 
 #### 共享内存及可能存在的问题
 
+每个线程表示一条单独的执行流，有自己的程序计数器，有自己的栈，但**线程之间可以共享内存，它们可以访问和操作相同的对象**。
+
+
+
 ##### 1.竟态条件（race condition）
 
-
+竞态条件（race condition）是指，当多个线程访问和操作同一个对象时，最终执行结果与执行时序有关，可能正确也可能不正确。
 
 ##### 2.内存可见性
 
+**内存可见性问题**。在计算机系统中，除了内存，数据还会被缓存在CPU的寄存器以及各级缓存中，当访问一个变量时，可能直接从寄存器或CPU缓存中获取，而不一定到内存中去取，当修改一个变量时，也可能是先写到缓存中，稍后才会同步更新到内存中。
 
+在单线程的程序中，这一般不是问题，但在多线程的程序中，尤其是在有多CPU的情况下，这就是严重的问题。<u>一个线程对内存的修改，另一个线程看不到，一是修改没有及时同步到内存，二是另一个线程根本就没从内存读。</u>
+
+解决办法：
+
+- 使用volatile关键字。
+- 使用synchronized关键字或显式锁同步。
 
 #### 线程的优点及成本
 
@@ -4136,9 +4147,17 @@ public final void resume()
 
 #### 用法和基本原理
 
+synchronized可以用于修饰类的实例方法、静态方法和代码块。
+
 ##### 1.实例方法
 
+synchronized实例方法实际保护的是同一个对象的方法调用。
+
+
+
 ##### 2.静态方法
+
+
 
 ##### 3.代码块
 
@@ -4148,7 +4167,11 @@ public final void resume()
 
 ##### 1.可重入性
 
+
+
 ##### 2.内存可见性
+
+
 
 ##### 3.死锁
 
@@ -4164,11 +4187,22 @@ public final void resume()
 
 ##### 4.并发容器
 
+- CopyOnWriteArrayList。 
+- ConcurrentHashMap。
+- ConcurrentLinkedQueue。
+- ConcurrentSkipListSet。
+
 
 
 ### 15.3 线程的基本协作机制
 
 #### 协作场景
+
+1. 生产者/消费者协作模式
+2. 同时开始
+3. 等待结束
+4. 异步结果
+5. 集合点
 
 
 
@@ -4178,7 +4212,16 @@ public final void resume()
 
 #### 生产者/消费者模式
 
+在生产者/消费者模式中，协作的共享变量是**队列**，生产者往队列上放数据，如果满了就wait，而消费者从队列上取数据，如果队列为空也wait。
 
+
+
+Java提供了专门的阻塞队列实现：
+
+- 接口BlockingQueue和BlockingDeque。
+- 基于数组的实现类ArrayBlockingQueue。
+- 基于链表的实现类LinkedBlockingQueue和LinkedBlockingDeque。
+- 基于堆的实现类PriorityBlockingQueue。
 
 #### 同时开始
 
@@ -4203,6 +4246,8 @@ public final void resume()
 
 
 #### 取消/关闭的机制
+
+在Java中，停止一个线程的主要机制是中断，中断并不是强迫终止一个线程，它是一种协作机制，是给线程传递一个取消信号，但是由线程来决定如何以及何时退出。
 
 
 
@@ -4245,11 +4290,54 @@ Java并发包中的基本原子变量类型有很多种。
 - AtomicLong：原子Long类型，常用来在程序中生成唯一序列号。
 - AtomicReference：原子引用类型，用来以原子方式更新复杂类型。
 
+另外还又针对数组的类：AtomicLongArray、AtomicReferenceArray，以及用于以原子方式更新对象中的字段的类，如AtomicIntegerFieldUpdater、AtomicReferenceFieldUpdater等。
+
+Java 8之后增加了几个类，在高并发统计汇总的场景中更为适合，包括LongAdder、LongAccumulator、Double-Adder和DoubleAccumulator。
+
 #### AtomicInteger
 
 ##### 1.基本用法
 
+之所以称为原子变量，是因为它包含一些以原子方式实现组合操作的方法。如：
+
+```java
+//以原子方式获取旧值并设置新值
+public final int getAndSet(int newValue)
+//以原子方式获取旧值并给当前值加1
+public final int getAndIncrement()
+//以原子方式获取旧值并给当前值减1
+public final int getAndDecrement()
+//以原子方式获取旧值并给当前值加delta
+public final int getAndAdd(int delta)
+//以原子方式给当前值加1并获取新值
+public final int incrementAndGet()
+//以原子方式给当前值减1并获取新值
+public final int decrementAndGet()
+//以原子方式给当前值加delta并获取新值
+public final int addAndGet(int delta)
+```
+
+这些方法的实现都依赖：
+
+```java
+public final boolean compareAndSet(int expect, int update)
+```
+
+compareAndSet是一个非常重要的方法，比较并设置，我们以后将简称为**CAS**。该方法有两个参数expect和update，以原子方式实现了如下功能：如果当前值等于expect，则更新为update，否则不更新，如果更新成功，返回true，否则返回false。
+
 ##### 2.基本原理和思维
+
+与synchronized锁相比，**这种原子更新方式代表一种不同的思维方式**。synchronized是**悲观**的，它假定更新很可能冲突，所以先获取锁，得到锁后才更新。原子变量的更新逻辑是**乐观**的，它假定冲突比较少，但使用CAS更新，也就是进行冲突检测，如果确实冲突了，那也没关系，继续尝试就好了。
+
+synchronized代表一种**阻塞式**算法，得不到锁的时候，进入锁等待队列，等待其他线程唤醒，有上下文切换开销。原子变量的更新逻辑是**非阻塞式**的，更新冲突的时候，它就重试，不会阻塞，不会有上下文切换开销。对于大部分比较简单的操作，无论是在低并发还是高并发情况下，这种乐观非阻塞方式的性能都远高于悲观阻塞式方式。
+
+ ConcurrentLinkedQueue和ConcurrentLinkedDeque：非阻塞并发队列。 
+
+ConcurrentSkipListMap和ConcurrentSkipListSet：非阻塞并发Map和Set。
+
+一般的计算机系统都在硬件层次上直接支持CAS指令
+
+🔖
 
 ##### 3.实现锁
 
@@ -4257,13 +4345,18 @@ Java并发包中的基本原子变量类型有很多种。
 
 #### ABA问题
 
-假设当前值为A，如果另一个线程先将A修改成B，再修改回成A，当前线程的CAS操作无法分辨当前值发生过变化。
+使用CAS方式更新有一个ABA问题：假设当前值为A，如果另一个线程先将A修改成B，再修改回成A，当前线程的CAS操作无法分辨当前值发生过变化。
 
 
+
+>  CAS是Java并发包的基础，基于它可以实现高效的、乐观、非阻塞式数据结构和算法，它也是并发包中锁、同步工具和各种容器的基础。
 
 ### 16.2 显式锁
 
-`java.util.concurrent.locks`
+`java.util.concurrent.locks`，主要接口和类有：
+
+- 锁接口Lock，主要实现类是ReentrantLock；
+- 读写锁接口ReadWriteLock，主要实现类是ReentrantReadWriteLock。
 
 #### 接口Lock
 
@@ -4271,9 +4364,27 @@ Java并发包中的基本原子变量类型有很多种。
 
 #### 可重入锁ReentrantLock
 
+##### 1.基本用法
+
+##### 2.使用tryLock避免死锁
+
 
 
 #### ReentrantLock的实现原理
+
+##### 1.LockSupport
+
+
+
+##### 2.AQS
+
+抽象类AbstractQueuedSynchronizer，简称AQS。
+
+
+
+##### 3.ReentrantLock
+
+
 
 
 
@@ -4281,11 +4392,17 @@ Java并发包中的基本原子变量类型有很多种。
 
 synchronized代表一种**声明式编程思维**，程序员更多的是表达一种同步声明，由Java系统负责具体实现，程序员不知道其实现细节；显式锁代表一种**命令式编程思维**，程序员实现所有细节。
 
+
+
 ### 16.3 显式条件
+
+显式条件在不同上下文中也可以被称为**条件变量、条件队列、或条件**。
 
 #### 用法
 
+锁用于解决竞态条件问题，条件是线程间的协作机制。
 
+显式锁与synchronized相对应，而显式条件与wait/notify相对应。wait/notify与synchronized配合使用，显式条件与显式锁配合使用。
 
 #### 生产者/消费者模式
 
@@ -4339,9 +4456,9 @@ Copy-On-Write即写时复制，或称写时拷贝，是解决并发问题的一�
 
 
 
-#### 基本实现原理
+#### 基本实现原理🔖
 
-
+跳表是基于链表的，在链表的基础上加了多层索引结构。
 
 ### 17.4 并发队列
 
@@ -4397,6 +4514,15 @@ SynchronousQueue和LinkedTransferQueue。
 
 ### 18.2 线程池
 
+线程池，就是一个线程的池子，里面有若干线程，它们的目的就是执行提交给线程池的任务，执行完一个任务后不会退出，而是继续等待或执行新任务。
+
+线程池两个概念：**任务队列**，**工作者线程**。
+
+线程池优点：
+
+- 它可以重用线程，避免线程创建的开销。
+- 任务过多时，通过排队避免创建过多线程，减少系统资源消耗和竞争，确保任务有序完成。
+
 ThreadPoolExecutor
 
 #### 理解线程池
@@ -4409,9 +4535,15 @@ ThreadPoolExecutor
 
 ##### 2.队列
 
+
+
 ##### 3.任务拒绝策略
 
+
+
 ##### 4.线程工厂
+
+
 
 ##### 5.关于核心线程的特殊配置
 
@@ -4427,7 +4559,7 @@ ThreadPoolExecutor
 
 ### 18.3 定时任务的陷阱
 
-定时任务的应用场景：
+定时任务的应用场景很多，比如：
 
 - 闹钟程序或任务提醒，指定时间叫床或在指定日期提醒还信用卡。
 - 监控系统，每隔一段时间采集下系统数据，对异常事件报警。
@@ -4437,9 +4569,23 @@ ThreadPoolExecutor
 
 
 
+注意：
+
+- 后台只有一个线程在运行；
+- 固定频率的任务被延迟后，可能会立即执行多次，将次数补够；
+- 固定延时任务的延时相对的是任务执行前的时间；
+- 不要在定时任务中使用无限循环；
+- 一个定时任务的未处理异常会导致所有定时任务被取消。
+
 #### ScheduledExecutorService
 
 
+
+ScheduledThreadPoolExecutor与Timer主要不同：
+
+- 它的背后是线程池，可以有多个线程执行任务。
+- 它在任务执行后再设置下次执行的时间，对于固定延时的任务更为合理。
+- 任务执行线程会捕获任务执行过程中的所有异常，一个定时任务的异常不会影响其他定时任务，不过，发生异常的任务（即使是一个重复任务）不会再被调度。
 
 ## 19 同步和协作工具类
 
@@ -4467,7 +4613,11 @@ ThreadPoolExecutor
 
 ##### 1.日期处理
 
+
+
 ##### 2.随机数
+
+
 
 ##### 3.上下文信息
 
@@ -4479,17 +4629,36 @@ ThreadPoolExecutor
 
 ### 20.1 线程安全的机制
 
-使用synchronized；使用显式锁；❑ 使用volatile；❑ 使用原子变量和CAS；❑ 写时复制；❑ 使用ThreadLocal。
+- 使用synchronized；
+- 使用显式锁； 
+- 使用volatile；
+- 使用原子变量和CAS；
+- 写时复制；
+- 使用ThreadLocal。
 
 ### 20.2 线程的协作机制
 
-❑ wait/notify；❑ 显式条件；❑ 线程的中断；❑ 协作工具类；❑ 阻塞队列；❑ Future/FutureTask。
+- wait/notify；
+
+- 显式条件；
+
+- 线程的中断；
+
+- 协作工具类；
+
+- 阻塞队列；
+
+- Future/FutureTask。
+
+
 
 ### 20.3 容器类
 
 #### 同步容器
 
 #### 并发容器
+
+
 
 ### 20.4 任务执行服务
 
