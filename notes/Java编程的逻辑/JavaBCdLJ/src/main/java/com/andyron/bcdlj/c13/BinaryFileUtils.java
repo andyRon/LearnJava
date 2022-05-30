@@ -40,5 +40,8 @@ public class BinaryFileUtils {
      */
     public static void main(String[] args) {
         // TODO Auto-generated method stub
+        for (File file : File.listRoots()) {
+            System.out.println(file.toString());
+        }
     }
 }

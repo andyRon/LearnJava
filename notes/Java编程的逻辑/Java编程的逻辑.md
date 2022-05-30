@@ -3430,21 +3430,19 @@ BOM头，Byte Order Mark（即字节序标记）
 
 不同的文件系统有不同的文件组织方式、结构和特点，但编程时不需要关心其细节，编程语言和类库为我们提供统一的API。
 
-File.separator，路径分隔符
+`File.separator`，路径分隔符
 
-System.getProperty("user.dir")，运行Java程序的当前目录
+`System.getProperty("user.dir")`，运行Java程序的当前目录
 
 文件都具有**元数据信息**，如文件名、创建时间、修改时间、文件大小等。
 
-是否隐藏
+**是否隐藏**
 
-访问权限
+**访问权限**
 
-文件名大小写是否敏感
+**文件名大小写是否敏感**
 
-临时文件，Windows 7 是 `C:\Users\用户名\AppData\Local\Temp`，Linux是`/tmp`
-
-
+临时文件，Windows 7 是 `C:\Users\用户名\AppData\Local\Temp`，Linux是`/tmp`。
 
 ##### 5 文件读写
 
@@ -3452,17 +3450,17 @@ Java封装了操作系统的功能，提供了统一的API。
 
 基本常识：**硬盘的访问延时，相比内存，是很慢的。**
 
-操作系统和硬盘一般是**按块批量传输**，而不是按字节，以摊销延时开销，块大小一般至少为512字节，即使应用程序只需要文件的一个字节，操作系统也会至少将一个块读进来。一般而言，应<u>尽量减少接触硬盘</u>，接触一次，就一次多做一些事情。对于网络请求和其他输入输出设备，原则都是类似的。
+操作系统和硬盘一般是**按==块==批量传输**，而不是按字节，以摊销延时开销，块大小一般至少为**512字节**，即使应用程序只需要文件的一个字节，操作系统也会至少将一个块读进来。一般而言，应<u>尽量减少接触硬盘</u>，接触一次，就一次多做一些事情。对于网络请求和其他输入输出设备，原则都是类似的。
 
 基本常识：一般读写文件需要**两次数据复制**，比如读文件，需要先从硬盘复制到操作系统内核，再从内核复制到应用程序分配的内存中。
 
-操作系统所在的环境是**内核态**，应用程序是**用户态**，应用程序调用操作系统的功能，需要两次环境的切换，先从用户态切到内核态，再从内核态切到用户态。**这种用户态/内核态的切换是有开销的，应尽量减少这种切换。**
+操作系统所在的环境是**内核态**，应用程序是**用户态**，应用程序调用操作系统的功能，需要两次环境的切换，<u>先从用户态切到内核态，再从内核态切到用户态</u>。**这种用户态/内核态的切换是有开销的，应尽量减少这种切换。**
 
 **缓冲区**
 
-**打开**，**关闭**。打开文件操作系统会建立一个有关该文件的内存结构，这个结构通过一个整数索引来引用，这个索引叫做**文件描述符**。**关闭文件**一般会同步缓冲区内容到硬盘，并释放占据的内存。
+**打开**，**关闭**。打开文件操作系统会建立一个有关该文件的内存结构，这个结构通过一个整数索引来引用，这个索引叫做**==文件描述符==**。**关闭文件**一般会同步缓冲区内容到硬盘，并释放占据的内存。
 
-**内存映射文件**
+**内存映射文件**，高效的随机读写大文件的方法，将文件直接映射到内存，操作内存就是操作文件。
 
 
 
@@ -3470,19 +3468,21 @@ Java封装了操作系统的功能，提供了统一的API。
 
 ##### 1 流 
 
-在Java中（很多其他语言也类似），文件一般不是单独处理的，而是视为输入输出（Input/Output, IO）设备的一种。Java使用基本统一的概念（流）处理所有的IO，包括文件、键盘、显示终端、网络等。
+在Java中（很多其他语言也类似），文件一般不是单独处理的，而是视为输入输出（Input/Output, IO）设备的一种。Java使用基本统一的概念（**流**）处理所有的IO，包括<u>文件、键盘、显示终端、网络</u>等。
 
-Java IO的基本类大多位于java.io。类InputStream表示输入流，OutputStream表示输出流，而FileInputStream表示文件输入流，FileOutputStream表示文件输出流。
+> 输入流就是可以从中获取数据到内存，输出流就是内存可以向其中写入数据。
 
-🔖
+Java IO的基本类大多位于java.io。类InputStream表示**输入流**，OutputStream表示**输出流**，而FileInputStream表示**文件输入流**，FileOutputStream表示**文件输出流**。
 
-
+有了流的概念，就有了很多**面向流的代码**，比如对流做<u>加密、压缩、计算信息摘要、计算检验和</u>等，这些代码接受的参数和返回结果都是**抽象的流**，它们构成了一个**协作体系**，**这类似于之前介绍的接口概念、面向接口的编程，以及容器类协作体系**。一些实际上不是IO的数据源和目的地也转换为了流，以方便参与这种协作，比如字节数组，也包装为了流ByteArrayInputStream和ByteArrayOutputStream。
 
 ##### 2 装饰器设计模式
 
-基本的流按字节读写，没有缓冲区，这不方便使用。Java解决这个问题的方法是使用装饰器设计模式。
+基本的流按字节读写，<u>没有缓冲区</u>，这不方便使用。Java解决这个问题的方法是使用装饰器设计模式。
 
-很多装饰类，其中两个基类：过滤器输入流**FilterInputStream**和过滤器输出流**FilterOutputStream**。子类如：
+很多装饰类，其中两个基类：过滤器输入流**FilterInputStream**和过滤器输出流**FilterOutputStream**。
+
+过滤类似于自来水管道，流入的是水，流出的也是水，功能不变，或者只是增加功能。子类如：
 
 - 对流起缓冲装饰的子类是BufferedInputStream和BufferedOutputStream。
 - 可以按8种基本类型和字符串对流进行读写的子类是DataInputStream和DataOutputStream。
@@ -3491,7 +3491,7 @@ Java IO的基本类大多位于java.io。类InputStream表示输入流，OutputS
 
 ##### 3 Reader/Writer
 
-以InputStream/OutputStream为基类的流基本都是<u>以二进制形式处理数据的</u>，不能够方便地处理文本文件，没有编码的概念，能够方便地<u>按字符处理文本数据</u>的基类是Reader和Writer。子类：
+以InputStream/OutputStream为基类的流基本都是<u>以二进制形式处理数据的</u>，不能够方便地处理文本文件，没有**编码**的概念，能够方便地<u>按字符处理文本数据</u>的基类是Reader和Writer。子类：
 
 - 读写文件的子类是FileReader和FileWriter。
 - 起缓冲装饰的子类是BufferedReader和BufferedWriter。
@@ -3516,7 +3516,7 @@ NIO代表一种不同的看待IO的方式，它有**缓冲区**和**通道**的�
 
 通道可以利用操作系统和硬件提供的**DMA机制**（Direct Memory Access，直接内存存取），不用CPU和应用程序参与，直接将数据从硬盘复制到网卡。
 
-NIO还支持一些比较底层的功能，如内存映射文件、文件加锁、自定义文件系统、非阻塞式IO、异步IO等。
+NIO还支持一些比较底层的功能，如**内存映射文件、文件加锁、自定义文件系统、非阻塞式IO、异步IO**等。
 
 ##### 7 序列化和反序列化
 
@@ -3524,11 +3524,11 @@ NIO还支持一些比较底层的功能，如内存映射文件、文件加锁�
 
 它们的作用：一是对象状态持久化；二是网络远程调用，用于传递和返回对象。
 
-Java主要通过接口Serializable和类ObjectInputStream/ObjectOutputStream提供对序列化的支持。
+Java主要通过接口`Serializable`和类`ObjectInputStream`/`ObjectOutputStream`提供对序列化的支持。
 
-Java的默认序列化的缺点：序列化后的形式比较大、浪费空间，序列化/反序列化的性能也比较低，Java特有不能与其他语言交互。
+Java的默认序列化的缺点：序列化后的形式比较大、浪费空间，序列化/反序列化的性能也比较低；Java特有技术，不能与其他语言交互。
 
-Java对象也可以序列化ⅩML和JSON，它们都是文本格式，人容易阅读，但占用的空间相对大一些。
+Java对象也可以序列化为ⅩML和JSON，它们都是文本格式，人容易阅读，但占用的空间相对大一些。
 
 在只用于网络远程调用的情况下，有很多流行的、跨语言的、精简且高效的对象序列化机制，如ProtoBuf、Thrift、MessagePack等。其中，<u>MessagePack是二进制形式的JSON，更小更快</u>。
 
@@ -3546,10 +3546,15 @@ public abstract int read() throws IOException;
 
 read方法从流中读取下一个字节，返回类型为int，但取值为0～255，当读到流结尾的时候，返回值为-1，如果流中没有数据，read方法会阻塞直到数据到来、流关闭或异常出现。异常出现时，read方法抛出异常，类型为IOException，这是一个受检异常，调用者必须进行处理。
 
-FileInputStream中实现会调用本地方法。
+read方法是个抽象方法，子类FileInputStream中实现会调用本地方法。
+
+其它方法：
 
 ```java
-public int read(byte b[]) throws IOException
+// 一次读取多个字节
+public int read(byte b[]) throws IOException {
+  return read(b, 0, b.length);
+}
 public int read(byte b[], int off, int len) throws IOException
 public void close() throws IOException
 ```
@@ -3564,7 +3569,13 @@ public boolean markSupported()
 public synchronized void reset() throws IOException
 ```
 
+skip跳过输入流中n个字节。
 
+available返回下一次不需要阻塞就能读取到的大概字节个数。
+
+mark、reset、markSupported，用于支持从读过的流中重复读取。
+
+不是所有流都支持mark、reset方法，是否支持可以通过markSupported的返回值进行判断。InpuStream的默认实现是不支持，FileInputStream也不直接支持，但BufferedInputStream和ByteArrayInputStream可以支持。
 
 ##### OutputStream
 
@@ -3587,6 +3598,8 @@ public void close() throws IOException
 #### FileInputStream/FileOutputStream
 
 输入源和输出目标是文件的流。
+
+##### 1 FileOutputStream
 
 FileOutputStream的构造方法：
 
@@ -3618,6 +3631,8 @@ public FileChannel getChannel()
 public final FileDescriptor getFD()
 ```
 
+##### 2 FileInputStream
+
 FileInputStream的主要构造方法:
 
 ```java
@@ -3625,7 +3640,7 @@ public FileInputStream(String name) throws FileNotFoundException
 public FileInputStream(File file) throws FileNotFoundException
 ```
 
-参数是文件路径或File对象，必须是一个已经存在的文件，不能是目录。如果不存在，抛出FileNotFoundException，如果用户没有读的权限，抛出SecurityException。
+参数是文件路径或File对象，必须是一个已经存在的文件，不能是目录。如果不存在，抛出FileNotFoundException，如果用户没有读的权限，抛出`SecurityException`。
 
 ```java
 @Test
@@ -3646,7 +3661,7 @@ public void test13_2_() throws IOException {
 
 #### ByteArrayInputStream/ByteArrayOutputStream
 
-输入源和输出目标是字节数组的流。
+输入源和输出目标是**字节数组**。
 
 
 
@@ -3654,21 +3669,31 @@ public void test13_2_() throws IOException {
 
 装饰类，按基本类型和字符串而非只是字节读写流。
 
+DataInputStream -> FilterInputStream -> InputStream
+
+DataOutputStream -> FilterOutputStream  -> OutputStream
+
 
 
 #### BufferedInputStream/BufferedOutputStream
 
 装饰类，对输入输出流提供缓冲功能。
 
+#### 实用方法
+
 [Apache Commons IO](http://commons.apache.org/proper/commons-io/) 提供了很多简单易用的方法。
 
+![](images/image-20220530153214772.png)
+
 ### 13.3 文本文件和字符流
+
+![](images/image-20220530155220740.png)
 
 #### 基本概论
 
 ##### 1.文本文件
 
-🔖
+
 
 ##### 2.编码
 
@@ -3710,6 +3735,8 @@ abstract public void flush() throws IOException;
 
 输入源和输出目标是文件的字符流；
 
+FileReader/FileWriter不能指定编码类型，只能使用默认编码，如果需要指定编码类型，可以使用InputStreamReader/OutputStreamWriter。
+
 #### CharArrayReader/CharArrayWriter
 
 输入源和输出目标是char数组的字符流；
@@ -3726,13 +3753,29 @@ abstract public void flush() throws IOException;
 
 装饰类，可将基本类型和对象转换为其字符串形式输出的类。
 
+PrintWriter的方便之处在于，它有很多构造方法，可以接受文件路径名、文件对象、OutputStream、Writer等，对于文件路径名和File对象，还可以接受编码类型作为参数。
+
 #### Scanner
+
+类似于一个Reader，但不是Reader的子类，可以读取基本类型的字符串形式，类似于PrintWriter的逆操作。
 
 #### 标准流
 
+之前一直在使用System.out向屏幕上输出，它是一个PrintStream对象，输出目标就是所谓的“标准”输出，经常是屏幕。除了System.out, Java中还有两个标准流：System. in和System.err。
+
+🔖
+
 #### 实用方法
 
-> 小结：写文件时，可以优先考虑PrintWriter，因为它使用方便，支持自动缓冲、指定编码类型、类型转换等。读文件时，如果需要指定编码类型，需要使用InputStreamReader；如果不需要指定编码类型，可使用FileReader，但都应该考虑在外面包上缓冲类Buffered-Reader。
+
+
+> 小结：
+>
+> 写文件时，可以优先考虑PrintWriter，因为它使用方便，支持自动缓冲、指定编码类型、类型转换等。
+>
+> 读文件时，如果需要指定编码类型，需要使用InputStreamReader；如果不需要指定编码类型，可使用FileReader，但都应该考虑在外面包上缓冲类BufferedReader。
+
+
 
 ### 13.4 文件和目录操作
 
@@ -3855,9 +3898,13 @@ public File[] listFiles(FileFilter filter)
 public File[] listFiles(FilenameFilter filter)
 ```
 
+FilenameFilter和FileFilter都是接口，用于过滤。
+
+🔖
 
 
-## 14 文件高级技术🔖
+
+## 14 文件高级技术
 
 上一章中的字符流和字节流，都是以流的方式读写文件，它们有局限性：
 
@@ -3872,15 +3919,66 @@ public File[] listFiles(FilenameFilter filter)
 
 `java.util.Properties`
 
+```java
+// 从流中加载属性
+public synchronized void load(InputStream inStream)
+// 获取属性值
+public String getProperty(String key)
+public String getProperty(String key, String defaultValue)
+```
+
+```java
+Properties properties = new Properties();
+properties.load(new FileInputStream("data/config.properties"));
+String host = properties.getProperty("db.host");
+int port = Integer.valueOf(properties.getProperty("db.port", "3306"));
+System.out.println(host);
+```
+
+使用类Properties处理属性文件的好处是：
+
+- 可以自动处理空格，分隔符=前后的空格会被自动忽略。
+- 可以自动忽略空行。
+- 可以添加注释，以字符#或！开头的行会被视为注释，进行忽略。
+
+使用Properties也有限制：**不能直接处理中文，在配置文件中，所有非ASCII字符需要使用Unicode编码**。
+
+> jdk命令`native2ascii`可用来转换为Unicode编码。
+
 #### CSV文件
 
-CSV是Comma-Separated Values的缩写，表示逗号分隔值
+CSV是Comma-Separated Values的缩写，表示逗号分隔值。
 
-Apache Commons CSV
+一般，一行表示一条记录，一条记录包含多个字段，字段之间用逗号（也可以是tab符'\t'、冒号':'、分号'; '等）分隔。
+
+各种日志文件通常是CSV文件。
+
+[**Apache Commons CSV**](http://commons.apache.org/proper/commons-csv/index.html)，CSVFormat表示CSV的格式：
+
+```java
+//定义分隔符
+public CSVFormat withDelimiter(final char delimiter)
+//定义引号符
+public CSVFormat withQuote(final char quoteChar)
+//定义转义符
+public CSVFormat withEscape(final char escape)
+//定义值为null的对象对应的字符串值
+public CSVFormat withNullString(final String nullString)
+//定义记录之间的分隔符
+public CSVFormat withRecordSeparator(final char recordSeparator)
+//定义是否忽略字段之间的空白
+public CSVFormat withIgnoreSurroundingSpaces(
+    final boolean ignoreSurroundingSpaces)
+```
 
 #### Excel
 
-[POI类库](http://poi.apache.org/)
+[POI类库](http://poi.apache.org/)，主要类：
+
+- Workbook：表示一个Excel文件对象，它是一个接口，有两个主要类HSSFWorkbook和ⅩSSFWorkbook，前者对应.xls格式，后者对应.xlsx格式。
+- Sheet：表示一个工作表。
+- Row：表示一行。
+- Cell：表示一个单元格。
 
 #### HTML
 
@@ -3888,23 +3986,87 @@ HTML分析器:[jsoup](https://jsoup.org/)
 
 #### 压缩文件
 
-ava SDK支持两种压缩文件格式：gzip和zip，如果需要更多格式，可以使用[Apache Commons Compress](http://commons.apache.org/proper/commons-compress/)
+java SDK支持两种压缩文件格式：gzip和zip，如果需要更多格式，可以使用[Apache Commons Compress](http://commons.apache.org/proper/commons-compress/)
+
+🔖
 
 ### 14.2 随机读写文件
 
 RandomAccessFile
 
+```java
+public class RandomAccessFile implements DataOutput, DataInput, Closeable
+```
+
+
+
 #### 用法
 
+```java
+public RandomAccessFile(String name, String mode) throws FileNotFoundException
+public RandomAccessFile(File file, String mode) throws FileNotFoundException
+```
 
+mode的四个值：
+
+1. "r"：只用于读。
+2. "rw"：用于读和写。
+3. "rws"：和"rw"一样，另外，它要求文件**内容和元数据**的任何更新都同步到设备上。
+4. "rwd"：和"rw"一样，另外，它要求文件内容的任何更新都同步到设备上，和"rws"的区别是，元数据的更新不要求同步。
+
+RandomAccessFile有类似InputStream/OutputStream的读写字节流的方法。
+
+```java
+	//读一个字节，取最低8位，0～255
+	public int read() throws IOException
+  public int read(byte b[]) throws IOException
+  public final int readInt() throws IOException
+  public final void writeInt(int v) throws IOException
+  public void write(byte b[]) throws IOException
+```
+
+另外两个特殊的read方法：
+
+```java
+	public final void readFully(byte b[]) throws IOException
+  public final void readFully(byte b[], int off, int len) throws IOException
+```
+
+它们可以确保读够期望的长度，如果到了文件结尾也没读够，它们会抛出**EOFException**异常。
+
+RandomAccessFile内部有一个**文件指针**，指向当前读写的位置，各种read/write操作都会自动更新该指针（本地方法）。与流不同的是，RandomAccessFile可以获取该指针，也可以更改该指针，相关方法是：
+
+```java
+	//获取当前文件指针
+	public native long getFilePointer() throws IOException
+  //更改当前文件指针到pos
+  public native void seek(long pos) throws IOException
+```
+
+
+
+```java
+// 类似InputStream的skip方法，但通过更改文件指针实现
+public int skipBytes(int n) throws IOException
+// 返回文件字节数
+public native long length() throws IOException
+// 修改文件长度（当前文件会根据情况扩展或截取）
+public native void setLength(long newLength) throws IOException
+```
 
 #### 设计一个键值数据库BasicDB
 
+🔖
 
 
-### 14.3 内存映射文件
 
-内存映射文件不是Java引入的概念，而是操作系统提供的一种功能，大部分操作系统都支持。
+> 总结：RandomAccessFile可以随机读写，更为接近操作系统的API，在实现一些系统程序时，它比流要更为方便高效。
+
+### 14.3 内存映射文件🔖
+
+> 内存映射文件不是Java引入的概念，而是操作系统提供的一种功能，大部分操作系统都支持。
+
+
 
 #### 基本概念
 
@@ -3918,7 +4080,7 @@ RandomAccessFile
 
 内存映射文件在日常普通的文件读写中，用到得比较少，但在**一些系统程序中，它却是经常被用到的一把利器**，可以高效地读写大文件，且能实现不同程序间的共享和通信。
 
-### 14.4 标准序列化机制
+### 14.4 标准序列化机制🔖
 
 简单来说，序列化就是将对象转化为字节流，反序列化就是将字节流转化为对象。
 
@@ -3950,7 +4112,7 @@ RandomAccessFile
 
 
 
-### 14.5 使用Jackson序列化为JSON/XML/MessagePack
+### 14.5 使用Jackson序列化为JSON/XML/MessagePack🔖🔖
 
 
 
