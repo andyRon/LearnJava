@@ -5243,13 +5243,13 @@ Type是一个接口，Class实现了Type, Type的其他子接口还有：
 
 ## 22 注解
 
-在Java中，注解就是给程序添加一些信息，用字符@开头，这些信息用于修饰它后面紧挨着的其他代码元素，比如类、接口、字段、方法、方法中的参数、构造方法等。注解可以被编译器、程序运行时和其他工具使用，用于增强或修改程序行为等。
+在Java中，注解就是给程序添加一些信息，用字符@开头，这些信息用于修饰它后面紧挨着的其他代码元素，比如<u>类、接口、字段、方法、方法中的参数、构造方法</u>等。注解可以被编译器、程序运行时和其他工具使用，用于增强或修改程序行为等。
 
 ### 22.1 内置注解
 
 #### @Override
 
-修饰方法，表示重写该方法。不写，也改变不了”重写“的本质，但还是加上，减少编程的错误。
+修饰方法，表示该方法不是当前类首先声明的。不写，也改变不了”重写“的本质，但还是加上，减少编程的错误。
 
 #### @Deprecated
 
@@ -5261,7 +5261,7 @@ Type是一个接口，Class实现了Type, Type的其他子接口还有：
 
 #### @SuppressWarnings
 
-表示压制Java的编译警告，它有一个必填参数，表示压制哪种类型的警告，它也可以修饰大部分代码元素，在更大范围的修饰也会对内部元素起效，比如，在类上的注解会影响到方法，在方法上的注解会影响到代码行。
+表示压制Java的编译警告，它有一个**必填参数**，表示压制哪种类型的警告，它也可以修饰大部分代码元素，在更大范围的修饰也会对内部元素起效，比如，在类上的注解会影响到方法，在方法上的注解会影响到代码行。
 
 ### 22.2 框架和库的注解
 
@@ -5279,9 +5279,24 @@ Jackson是一个通用的序列化库，其中一些注解可以对序列化进�
 
 现代Java开发经常利用某种框架**管理对象的生命周期及其依赖关系**。
 
+这个框架一般称为DI（Dependency Injection）容器。DI是指依赖注入，流行的框架有Spring、[Guice](https://github.com/google/guice)等。
+
+在使用这些框架时，程序员一般**不通过new创建对象，而是由容器管理对象的创建，对于依赖的服务，也不需要自己管理，而是使用注解表达依赖关系**。
+
+
+
 #### 3.Servlet 3.0
 
-Servlet是Java为Web应用提供的技术框架，早期的Servlet只能在web.xml中进行配置，而Servlet 3.0则开始支持注解，可以使用@WebServlet配置一个类为Servlet。
+Servlet是Java为Web应用提供的技术框架，早期的Servlet只能在web.xml中进行配置，而Servlet 3.0则开始支持注解，可以使用@WebServlet配置一个类为Servlet，比如：
+
+```java
+@WebServlet(urlPatterns = "/async", asyncSupported = true)
+public class AsyncDemoServlet extends HttpServlet {
+  ...
+}
+```
+
+
 
 #### 4.Web应用框架
 
@@ -5289,13 +5304,15 @@ Servlet是Java为Web应用提供的技术框架，早期的Servlet只能在web.x
 
 #### 5.神奇的注解
 
-在声明式编程风格中，程序都由三个组件组成：
+在**==声明式编程风格==**中，程序都由三个组件组成：
 
 - 声明的关键字和语法本身
 - 系统/框架/库，它们负责解释、执行声明式的语句
 - 应用程序，使用声明式风格写程序
 
 **在编程的世界里，访问数据库的SQL语言、编写网页样式的CSS，以及正则表达式、函数式编程都是这种风格，这种风格降低了编程的难度，为应用程序员提供了更为高级的语言，使得程序员可以在更高的抽象层次上思考和解决问题，而不是陷于底层的细节实现。**
+
+
 
 ### 22.3 创建注解
 
@@ -5326,7 +5343,7 @@ public @interface Override {
 
 - SOURCE：只在源代码中保留，编译器将代码编译为字节码文件后就会丢掉。
 - CLASS：保留到字节码文件中，但Java虚拟机将class文件加载到内存时不一定会在内存中保留。
-- UNTIME：一直保留到运行时。
+- RUNTIME：一直保留到运行时。
 
 没有声明@Retention，则默认为CLASS。
 
@@ -5349,7 +5366,7 @@ public @interface SuppressWarings {
 @SuppressWarings({"deprecation", "unused"})
 ```
 
-注解内参数的类型，可以是基本类型、String、Class、枚举、注解，以及这些类型的数组。
+注解内参数的类型，可以是<u>基本类型、String、Class、枚举、注解，以及这些类型的数组</u>。
 
 参数定义时可以使用default指定一个默认值，比如：
 
@@ -5361,7 +5378,7 @@ public @interface Inject {
 
 如果参数没有提供默认值，使用注解时必须提供具体的值，不能为null。
 
-元注解<u>@Documented</u>，表示注解信息包含到生成的文档中。
+元注解<u>@Documented</u>，表示**注解信息包含到生成的文档中**。
 
 注解不能继承。不过注解有一个与继承有关的元注解<u>@Inherited</u>：
 
@@ -5414,7 +5431,7 @@ public interface Annotation {
 }
 ```
 
-内部实现时，所有的注解类型都是扩展的Annotation。
+==内部实现时，所有的注解类型都是扩展的Annotation。==
 
 对于Method和Contructor，它们都有方法参数，而参数也可以有注解，因而它们有另外的方法：
 
@@ -5466,15 +5483,104 @@ public class MethodAnnotations {
 }
 ```
 
-
-
 定义了注解，通过反射获取到注解信息，但具体怎么利用这些信息呢？
-
-
 
 ### 22.5 注解的应用：定制序列化
 
-🔖
+定义两个注解：
+
+```java
+/**
+ * 定制输出字段的名称
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Label {
+    String value() default "";
+}
+/**
+ * 定义日期类型的输出格式
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Format {
+    String pattern() default "yyyy-MM-dd HH:mm:ss";
+    String timezone() default "GMT+8";
+}
+
+```
+
+使用注解来修饰要序列化的类字段：
+
+```java
+public class Student {
+  @Label("姓名")
+  String name;
+
+  @Label("出生日期")
+  @Format(pattern="yyyy/MM/dd")
+  Date born;
+
+  @Label("分数")
+  double score;
+ // ... 
+}  
+```
+
+获取处理注解：
+
+```java
+public class SimpleFormatter {
+
+    public static String format(Object obj) {
+        try {
+            Class<? > cls = obj.getClass();
+            StringBuilder sb = new StringBuilder();
+            for(Field f : cls.getDeclaredFields()) {
+                if(!f.isAccessible()) {
+                    f.setAccessible(true);
+                }
+                Label label = f.getAnnotation(Label.class);
+                String name = label != null ? label.value() : f.getName();
+                Object value = f.get(obj);
+                if(value != null && f.getType() == Date.class) {
+                    value = formatDate(f, value);
+                }
+                sb.append(name + ": " + value + "\n");
+            }
+            return sb.toString();
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Object formatDate(Field f, Object value) {
+        Format format = f.getAnnotation(Format.class);
+        if(format != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat(format.pattern());
+            sdf.setTimeZone(TimeZone.getTimeZone(format.timezone()));
+            return sdf.format(value);
+        }
+        return value;
+    }
+
+    public static void main(String[] args) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Student zs = new Student("张三", sdf.parse("2002-5-31"), 89.2d);
+        System.out.println(SimpleFormatter.format(zs));
+    }
+}
+```
+
+结果为：
+
+```
+姓名: 张三
+出生日期: 2002/05/31
+分数: 89.2
+```
+
+
 
 ### 22.6 注解的应用：DI容器
 
@@ -5548,6 +5654,8 @@ TraceProxy内部有一个IService的成员变量，指向实际对象，在构�
 
 代理类TraceProxy的代码是在写程序时固定的，所以称为**==静态代理==**。
 
+输出跟踪调试信息是一个通用需求。
+
 ### 23.2 Java SDK动态代理
 
 #### 用法
@@ -5573,7 +5681,7 @@ Java SDK动态代理的局限在于，它**只能为接口创建代理，返回�
 
 第三方的类库[cglib](https://github.com/cglib/cglib)
 
-
+🔖
 
 ### 23.4 Java SDK代理与cglib代理比较
 
@@ -5581,7 +5689,7 @@ Java SDK动态代理的局限在于，它**只能为接口创建代理，返回�
 
 ### 23.5 动态代理的应用：AOP
 
-
+🔖
 
 ## 24 类加载机制
 
