@@ -5693,21 +5693,29 @@ Java SDK动态代理的局限在于，它**只能为接口创建代理，返回�
 
 ## 24 类加载机制
 
-类加载器ClassLoader就是加载其他类的类，它负责将字节码文件加载到内存，创建Class对象。
+类加载器ClassLoader就是加载其他类的类，它负责**将字节码文件加载到内存**，创建Class对象。
 
 ClassLoader一般是系统提供的，不需要自己实现，不过，通过创建自定义的ClassLoader，可以实现一些强大灵活的功能，比如：
 
-1. 热部署。在不重启Java程序的情况下，动态替换类的实现。
+1. 热部署。在不重启Java程序的情况下，动态**替换类的实现**。
 
 2. 应用的模块化和相互隔离。不同的ClassLoader可以加载相同的类但互相隔离、互不影响。
 
    Web应用服务器如Tomcat利用这一点在一个程序中管理多个Web应用程序，每个Web应用使用自己的ClassLoader，这些Web应用互不干扰。
 
-   OSGI（Open Service Gateway Initiative，开放服务网关协议）和Java9利用这一点实现了一个动态模块化架构，每个模块有自己的ClassLoader，不同模块可以互不干扰。
+   **OSGI**（Open Service Gateway Initiative，开放服务网关协议）和Java9利用这一点实现了一个**动态模块化架构**，每个模块有自己的ClassLoader，不同模块可以互不干扰。
 
 3. 从不同地方灵活加载。
 
+   默认ClassLoader一般从本地的class文件或jar文件中加载字节码文件。
+
+   通过自定义的ClassLoader，也可以从**共享的Web服务器、数据库、缓存服务器**等其他地方加载字节码文件。
+
 ### 24.1 类加载的基本机制和过程
+
+运行Java程序，就是执行`java`命令，指定包含main方法的完整类名以及一个classpath（**类路径**）。
+
+类路径可以有多个。对于直接class文件，类路径就是class文件的根目录；对于jar包，类路径是jar包的完整路径（路径+jar包名）。
 
 负责加载类的类就是类加载器，它的输入是**完全限定的类名**，输出是**Class对象**。类加载器不是只有一个，一般程序运行时，都会有三个（java9引入模块化，有些变化）：
 
@@ -5715,9 +5723,15 @@ ClassLoader一般是系统提供的，不需要自己实现，不过，通过创
 2. **扩展类加载器**（Extension ClassLoader）：这个加载器的实现类是`sun.misc.Launcher$ExtClassLoader`，它负责加载Java的一些扩展类，一般是`<JAVA_HOME>/lib/ext`目录中的jar包。
 3. **应用程序类加载器**（Application ClassLoader）/**系统类加载器**（System ClassLoader）：这个加载器的实现类是`sun.misc.Launcher$AppClassLoader`，它负责加载应用程序的类，包括自己写的和引入的第三方法类库，即所有在类路径中指定的类。
 
-三个类加载器不是父子继承关系，而是父子委派关系。
+三个类加载器<u>不是父子继承关系，而是父子委派关系</u>（**双亲委派**）。子ClassLoader有一个变量parent指向父ClassLoader，在子ClassLoader加载类时，一般会首先通过父ClassLoader加载，过程：
 
-双亲委派
+1. 判断是否已经加载过了，加载过了，直接返回Class对象，一个类只会被一个ClassLoader加载一次。
+2. 如果没有被加载，先让父ClassLoader去加载，如果加载成功，返回得到的Class对象。
+3. 在父ClassLoader没有加载成功的前提下，自己尝试加载类。
+
+优先让父ClassLoader去加载，可以避免**Java类库被覆盖**的问题。
+
+🔖双亲委派的例外
 
 ### 24.2 理解ClassLoader
 
@@ -5779,13 +5793,48 @@ public class CLInitDemo {
 
 
 
+🔖ClassLoader的loadClass：
+
+```java
+protected Class<? > loadClass(String name, boolean resolve) throws ClassNotFoundException {
+  synchronized (getClassLoadingLock(name)) {
+    //首先，检查类是否已经被加载了
+    Class c = findLoadedClass(name);
+    if(c == null) {
+      //没被加载，先委派父ClassLoader或BootStrap ClassLoader去加载
+      try {
+        if(parent ! = null) {
+          //委派父ClassLoader, resolve参数固定为false
+          c = parent.loadClass(name, false);
+        } else {
+          c = findBootstrapClassOrNull(name);
+        }
+      } catch (ClassNotFoundException e) {
+        //没找到，捕获异常，以便尝试自己加载
+      }
+      if(c == null) {
+        //自己去加载，findClass才是当前ClassLoader的真正加载方法
+        c = findClass(name);
+      }
+    }
+    if(resolve) {
+      //链接，执行static语句块
+      resolveClass(c);
+    }
+    return c;
+  }
+}
+```
+
+
+
 
 
 ### 24.3 类加载的应用：可配置的策略
 
 > 什么情况需要自己加载类呢？
 
-很多应用使用面向接口的编程，接口具体的实现类可能有很多，适用于不同的场合，具体使用哪个实现类在配置文件中配置，通过更改配置，不用改变代码，就可以改变程序的行为，在设计模式中，这是一种策略模式。
+很多应用使用面向接口的编程，接口具体的实现类可能有很多，适用于不同的场合，具体使用哪个实现类在配置文件中配置，通过更改配置，不用改变代码，就可以改变程序的行为，在设计模式中，这是一种**策略模式**。
 
 ```java
 package com.andyron.bcdlj.c24.c243;
@@ -5878,6 +5927,8 @@ public class MyClassLoader extends ClassLoader {
 ```java
 protected ClassLoader(ClassLoader parent)
 ```
+
+🔖  ？java.lang.NoClassDefFoundError: IllegalName:
 
 
 
@@ -6003,7 +6054,7 @@ ambda表达式是一种紧凑的传递代码的方式。
 
 基于Lambda表达式，针对常见的集合数据处理，Java 8引入了一套新的类库，位于包java.util.stream下，称为**Stream API**。
 
-Stream API是对容器类的增强，它可以将对集合数据的多个操作以流水线的方式组合在一起。
+Stream API是对容器类的增强，它可以**将对集合数据的多个操作以流水线的方式组合在一起**。
 
 Java 8新增的CompletableFuture是对并发编程的增强，可以方便地**将多个有一定依赖关系的异步任务以流水线的方式组合在一起**，大大简化多异步任务的开发。
 
@@ -6013,29 +6064,269 @@ Java 8新增的CompletableFuture是对并发编程的增强，可以方便地**�
 
 #### 通过接口传递代码
 
+针对接口而非具体类型进行编程，可以降低程序的耦合性，提高灵活性，提高复用性。**接口常被用于传递代码**，比如：
+
+1. `File`有方法：
+
+   ```java
+   public File[] listFiles(FilenameFilter filter)
+   ```
+
+   listFiles需要的其实不是FilenameFilter对象，而是需要FilenameFilter对象中的方法`boolean accept(File dir, String name);`。
+
+   或者说，listFiles希望接受一段方法代码作为参数，但没有办法直接传递这个方法代码本身，只能传递一个接口。
+
+2. 类Collections中的很多方法都接受一个参数Comparator：
+
+   ```java
+   public static <T> void sort(List<T> list, Comparator<? super T> c)
+   ```
+
+   它们需要的也不是Comparator对象，而是需要它包含的方法`int compare(T o1, T o2);`
+
+3. 异步任务执行服务ExecutorService，提交任务的方法有：
+
+   ```java
+   <T> Future<T> submit(Callable<T> task);
+   Future<? > submit(Runnable task);
+   ```
+
+   Callable和Runnable接口也用于传递任务代码。
+
+通过接口传递行为代码，就要传递一个实现了该接口的实例对象，之前最简洁的方式是使用匿名内部类：
+
+```java
+File f = new File(".");
+File[] files = f.listFiles(new FilenameFilter() {
+  @Override
+  public boolean accept(File dir, String name) {
+    if (name.endsWith(".txt")) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+});
+// 将files按照文件名排序
+Arrays.sort(files, new Comparator<File>() {
+  @Override
+  public int compare(File o1, File o2) {
+    return o1.getName().compareTo(o2.getName());
+  }
+});
+for (File file : files) {
+  System.out.println(file.getName());
+}
+```
+
 
 
 #### Lambda语法
 
+java8提供了一个比匿名内部类更紧凑的传递代码的语法：Lambda表达式。
 
+```java
+File f = new File(".");
+File[] files = f.listFiles((File dir, String name) -> {
+  if (name.endsWith(".txt")) {
+    return true;
+  } else {
+    return false;
+  }
+});
+```
+
+简化：
+
+```java
+File[] files = f.listFiles((File dir, String name) -> {
+  return name.endsWith(".txt");
+});  
+```
+
+当主体代码只有一条语句的时候，括号和return语句也可以省略：
+
+```java
+File[] files = f.listFiles((File dir, String name) -> name.endsWith(".txt"));
+```
+
+方法的参数类型声明也可以省略：
+
+```java
+File[] files = f.listFiles((dir, name) -> name.endsWith(".txt"));
+```
+
+当参数只有一个的时候，参数部分的括号可以省略，比如File还有另外一个listFiles方法：
+
+```java
+public File[] listFiles(FileFilter filter)
+```
+
+```java
+public interface FileFilter {
+  boolean accept(File pathname);
+}
+```
+
+它的Lambda表达式为：
+
+```java
+File[] files = f.listFiles(path -> path.getName.endsWith(".txt"));
+```
+
+
+
+**Java会为每个匿名内部类生成一个类，但Lambda表达式不会。**
+
+Lambda表达式内部实现上，利用了Java 7引入的为支持动态类型语言引入的invokedynamic指令、方法句柄（method handle）等具体实现查看[Translation of Lambda Expressions](http://cr.openjdk.java.net/~briangoetz/lambda/lambda-translation.html)。🔖
 
 ### 函数式接口
 
+**==函数式接口==也是接口，但只能有一个抽象方法**（java8引入）。还是运行有静态方法和默认方法的。
 
+Lambda表达式就是函数接口，可以赋值给函数接口：
+
+```java
+FileFilter filter = path -> path.getName().endsWith(".txt");
+FilenameFilter filenameFilter= ((dir, name) -> name.endsWith(".txt"));
+```
+
+这些函数接口都有一个注解`@FunctionalInterface`，非必须。
 
 ### 预定义的函数接口
 
-java.util.function
+Java 8定义了大量的预定义函数式接口，用于常见类型的代码传递，在`java.util.function`包内。
+
+![](images/image-20220602152042189.png)
+
+#### 1 Predicate示例
+
+```java
+public class Student {
+  String name;
+  Double score;
+  // ...
+}
+```
+
+
+
+```java
+public class PredicateTest {
+    public static void main(String[] args) {
+        List<Student> students = Arrays.asList(new Student[]{
+            new Student("zhangsan", 87d),
+            new Student("lisi", 89d),
+            new Student("wangwu", 92d)
+        });
+        // 过滤90分以上
+        students = filter(students, t -> t.getScore() > 90);
+        for (Student s : students) {
+            System.out.println(s);
+        }
+    }
+
+    public static <E> List<E> filter(List<E> list, Predicate<E> pred) {
+        List<E> retList = new ArrayList<>();
+        for (E e : list) {
+            if (pred.test(e)) {
+                retList.add(e);
+            }
+        }
+        return retList;
+    }
+}
+
+```
+
+在日常开发中，列表处理的一个常见需求是**==过滤==**，**列表的类型**经常不一样，**过滤的条件**也经常变化，但主体逻辑都是类似的，可以借助Predicate写一个通用的方法。
+
+#### 2 Function示例
+
+列表处理的另一个常见需求是转换。比如，给定一个学生列表，需要返回名称列表，或者将名称转换为大写返回，可以借助Function写一个通用的方法:
+
+```java
+public class FunctionTest {
+    public static <T, R> List<R> map(List<T>list, Function<T, R> mapper) {
+        List<R> retList = new ArrayList<>(list.size());
+        for (T e : list) {
+            retList.add(mapper.apply(e));
+        }
+        return retList;
+    }
+
+    public static void main(String[] args) {
+        List<Student> students = Arrays.asList(new Student[]{
+                new Student("zhangsan", 87d),
+                new Student("lisi", 89d),
+                new Student("wangwu", 92d)
+        });
+        List<String> names = map(students, t -> t.getName());
+        System.out.println(names);
+
+        students = map(students, t -> new Student(t.getName().toUpperCase(), t.getScore()));
+        for (Student s : students) {
+            System.out.println(s);
+        }
+    }
+}
+```
+
+####  3 Consumer示例
+
+直接修改原对象
+
+```java
+public class ConsumerTest {
+    public static <E> void foreach(List<E> list, Consumer<E> consumer) {
+        for (E e : list) {
+            consumer.accept(e);
+        }
+    }
+
+    public static void main(String[] args) {
+        List<Student> students = Arrays.asList(new Student[]{
+                new Student("zhangsan", 87d),
+                new Student("lisi", 89d),
+                new Student("wangwu", 92d)
+        });
+        foreach(students, t -> t.setName(t.getName().toUpperCase()));
+        for (Student s : students) {
+            System.out.println(s);
+        }
+    }
+}
+```
+
+> 以上这些示例主要用于演示函数式接口的基本概念，实际中可以直接使用流API。
 
 ### 方法引用
 
+Lambda表达式经常用于调用对象的某个方法，比如：
 
+```java
+List<String> names = map(students, t -> t.getName());
+```
+
+可简化为：
+
+```java
+List<String> names = map(students,  Student::getName);
+```
+
+`Student::getName`这种写法是Java 8引入对Lambda表达式简写的一种新语法，称为**==方法引用==**。
+
+`::`前面是类名或变量名，后面是方法名。方法可以是实例方法，也可以是静态方法，但含义不同。
+
+🔖
 
 ### 函数的复合
 
 函数式接口和Lambda表达式还可用作方法的返回值，传递代码回调用者，将这两种用法结合起来，可以构造复合的函数，使程序简洁易读。
 
-### 26.2 函数式数据处理：基本用法
+🔖
+
+### 26.2 函数式数据处理：基本用法🔖
 
 #### 基本示例
 
@@ -6115,7 +6406,7 @@ java.util.function
 
 流定义了很多数据处理的基本函数，对于一个具体的数据处理问题，解决的主要思路就是组合利用这些基本函数，以声明式的方式简洁地实现期望的功能，这种思路就是函数式数据处理思维，相比直接利用容器类API的命令式思维，思考的层次更高。
 
-### 26.3 函数式数据处理：强大方便的收集器
+### 26.3 函数式数据处理：强大方便的收集器🔖
 
 #### 理解collect
 
@@ -6141,7 +6432,7 @@ java.util.function
 
 
 
-### 26.4 组合式异步编程 
+### 26.4 组合式异步编程 🔖
 
 java.time
 

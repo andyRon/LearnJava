@@ -10,8 +10,9 @@ public class MyClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
-        String fileName = name.replace("\\.", "/");
-        fileName = BASE_DIR + fileName + ".class";
+        String fileName = name.replaceAll("\\.", "/");
+//        fileName = BASE_DIR + fileName + ".class";
+
         try {
             byte[] bytes = BinaryFileUtils.readFileToByteArray(fileName);
             return defineClass(fileName, bytes, 0, bytes.length);
@@ -19,4 +20,5 @@ public class MyClassLoader extends ClassLoader {
             throw new ClassNotFoundException("failed to load class " + name, e);
         }
     }
+
 }
