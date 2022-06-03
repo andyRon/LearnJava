@@ -8,7 +8,11 @@ import java.util.Scanner;
  */
 public class SocketTest {
     public static void main(String[] args) throws IOException {
-        try (Socket s = new Socket("time-a.nist.gov", 13);
+//        String url = "time-a.nist.gov";
+//        int port = 13;
+        String url = "www.baidu.com";
+        int port = 80;
+        try (Socket s = new Socket(url, port);
              Scanner in = new Scanner(s.getInputStream(), "UTF-8")){
 
             while (in.hasNextLine()) {
