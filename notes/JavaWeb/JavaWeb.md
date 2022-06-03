@@ -890,7 +890,9 @@ URLDecoder.decode(cookie.getValue(),"UTF-8")
 
 ### 7.4、Session（重点）
 
-<img src="https://img-blog.csdnimg.cn/2020050618262991.png" style="zoom:50%;" />
+![](https://img-blog.csdnimg.cn/2020050618262991.png)
+
+
 
 什么是Session：
 
@@ -987,7 +989,7 @@ session.invalidate();
 
 ```
 
-<img src="https://img-blog.csdnimg.cn/2020050618301064.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2JlbGxfbG92ZQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" style="zoom:50%;" />
+<img src="https://img-blog.csdnimg.cn/2020050618301064.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2JlbGxfbG92ZQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"  />
 
 
 
