@@ -815,3 +815,509 @@ System.out.println(y % x);
 #### 三元运算符
 
 #### instanceof 运算符
+
+
+
+Java基础补充
+------------
+
+
+
+https://www.bilibili.com/video/BV12J41137hu
+
+
+
+编程语言：
+
+编译型   compile 编译器 C/C++
+
+解释型	解释器	
+
+
+
+Java 两种结合 先预编译成字节码（.class）然后再解释
+
+
+
+### 标识符 关键字
+
+#### 标识符
+
+Java中标识符是为变量名、类名、方法名或其他用户定义项所定义的名称。标识符的构成规则：
+
+1. 标识符由26个英文字符大小写（`a~z`，`A~Z`）、数字(`0~9`)、下划线(_)和美元符号($)组成；
+2. 不能以数字开头，不能是关键字；
+3. 严格区分大小写；
+4. 标识符的可以为任意长度；
+
+
+
+#### 关键字
+
+关键字（或者保留字）是对编译器有特殊意义的固定单词，不能在程序中做其他目的使用。关键字具有专门的意义和用途，和自定义的标识符不同，不能当作一般的标识符来使用。
+
+保留字是为 Java 预留的关键字，它们虽然现在没有作为关键字，但在以后的升级版本中有可能作为关键字。
+
+Java 语言目前定义了 51 个关键字，这些关键字不能作为名来使用。以下对这些关键字进行了分类。
+
+1. 数据类型：boolean、int、long、short、byte、float、double、char、class、interface。
+2. 流程控制：if、else、do、while、for、switch、case、default、break、continue、return、try、catch、finally。
+3. 修饰符：public、protected、private、final、void、static、strict、abstract、transient、synchronized、volatile、native。
+4. 动作：package、import、throw、throws、extends、implements、this、supper、instanceof、new。
+5. 保留字：true、false、null、goto、const。
+
+https://www.nowcoder.com/questionTerminal/f049440648ae4a1d83c2205bfa87289e
+
+
+
+https://www.nowcoder.com/questionTerminal/dc5651a872ff44a187afd7034a1708ba
+
+
+
+
+
+[1]Java标识符只能由数字、字母、下划线“_”或“$”符号以及Unicode字符集组成
+
+[2]Java标识符必须以字母、下划线“_”或“$”符号以及Unicode字符集开头
+[3]Java标识符不可以是Java关键字、保留字（const、goto）和字面量（true、false、null）
+[4]Java标识符区分大小写，是大小写敏感的
+
+
+
+### 数据类型
+
+Java是**强类型语言**（要求变量的使用要严格符合规定，所有变量都必须先定义后才能使用）
+
+弱类型语言
+
+Java的数据类型分为两大类：
+
+- 基本类型
+
+  数值类型：整数类型（byte、short、int、long），浮点类型（float、double），字符类型（char）
+
+  boolean类型（占1位）：true、false
+
+- 引用类型
+
+### 类型转换
+
+由于Java是强类型语言，所以要进行有些运算的时候，需要类型转换。
+
+```java
+byte,short,char -> int -> long -> float -> double
+```
+
+运算中，不同类型的数据先转化为统一类型，然后进行运算。
+
+
+
+强制类型转换：高->低   (类型)变量名
+
+自动类型转换：低->高
+
+> 1. 不能对布尔值进行转换
+> 2. 不能把对象类型转换为不相干的类型
+> 3. 转换的时候可能存在内存溢出，或者精度问题
+
+### 数组
+
+- 长度确定，一旦被创建大小不可以改变
+
+- 元素必须是相同类型
+
+- 数组中的元素可以使任何数据类型
+
+- 数组变量是引用类型，数组也可以看出对象，数组中的每个元素相当于该对象的成员变量。
+
+  Java中对象时在堆中的，因此数组无论保存原始类型还是其它对象类型，<font color=#FF8C00>数组对象本身在堆中的</font>。
+
+数组工具类`java.util.Arrays`
+
+#### 稀疏数组
+
+一种数据结构
+
+当一个数据中大部分元素为0，或者为同一个值的数组是，可以用稀疏数组哎保存该数组。
+
+稀疏数组的处理方式：
+
+- 记录数组一共有几行几列，有多少个不同值
+- 把具有不同值的元素和行列及值记录在一个小规模的数组中，从而缩小程序的规模
+
+![image-20210920164908333](images/image-20210920164908333.png)
+
+### 面向对象
+
+#### 构造器
+
+和类名相同，没有返回值。
+
+使用new关键字，本质是在调用构造器。
+
+一旦定义了有参构造，无参就必须显示定义。
+
+#### 对象内存分析
+
+https://www.bilibili.com/video/BV12J41137hu?p=65&spm_id_from=pageDriver
+
+![image-20210920170350459](images/image-20210920170350459.png)
+
+
+
+#### 重写
+
+1. 需要有继承关系，子类重写父类的方法！
+2. 方法名必须相同
+3. 参数列表必须相同
+4. 修饰符范围可以扩大但不能缩小
+5. 抛出异常范围可以被缩小但不能扩大
+
+为什么需要重写：父类的功能，子类不一定需要，或者不一定满足。
+
+#### 多态
+
+一个对象的实际类型时确定的：
+
+```java
+new Student();
+new Person();
+```
+
+可以指向的引用类型就不确定了，父类的引用可以指向子类：
+
+```java
+Student s1 = new Student();
+Person s2 = new Student();
+Object s3 = new Student();
+```
+
+对象能执行那些方法，主要看左边的类型，和右边关系不大！
+
+> 多态注意：
+>
+> 1. 多态是方法的多态，属性没有多态
+> 2. 存在条件：继承关系，方法重写，父类引用指向子类对象
+
+**多态**即同一方法可以根据发送对象的不同而采用多种不同的行为方式。
+
+
+
+
+
+
+
+### 集合总结
+
+那些常用？
+
+总分类体系
+
+各自的用途
+
+那些是线程安全的
+
+
+
+
+
+Java容器/集合
+------
+
+Java容器/集合有两大接口：
+
+一个是 `Collecton`接口，主要用于存放单一元素，另有三个主要的子接口：`List`、`Set` 和 `Queue`；
+
+另一个是 `Map` 接口，主要用于存放键值对。
+
+<img src="https://snailclimb.gitee.io/javaguide/docs/java/collection/images/java-collection-hierarchy.png" alt="img" style="zoom: 25%;" />
+
+> 上图只列举了主要的继承派生关系，省略了`AbstractList`, `NavigableSet`等抽象类以及其他的一些辅助类。
+
+
+
+<img src="images/7010483_1496884090913_9553A95A1845661EB80E51191737B9FF.png" alt="img" style="zoom:50%;" />
+
+
+
+
+
+| Map集合类     | key                | value        |
+| ------------- | ------------------ | ------------ |
+| HashMap       | 可为null，不重复   | 允许为null   |
+| TreeMap       | 不可为null，不重复 | 允许为null   |
+| ConcurrentMap | 不可为null         | 不允许为null |
+| HashTable     | 不可为null，不重复 | 不允许为null |
+
+
+
+### 线程安全
+
+如果你的代码所在的进程中有多个线程在同时运行，而这些线程可能会同时运行这段代码。如果每次运行结果和单线程运行的结果是一样的，而且其他的变量的值也和预期的是一样的，就是**线程安全**的。线程安全问题都是由**全局变量**及**静态变量**引起的。
+
+若每个线程中对全局变量、静态变量只有读操作，而无写操作，一般来说，这个全局变量是线程安全的；若有多个线程同时执行写操作，一般都需要考虑**<font color=#FF8C00>线程同步</font>**，否则的话就可能影响线程安全。
+
+
+
+LinkedList 和 ArrayList 都是不同步的，线程不安全； 
+
+Vector 和 Stack 都是同步的，线程安全； 
+
+Set是线程不安全的； 
+
+Hashtable的方法是同步的，线程安全； 
+
+HashMap的方法不是同步的，线程不安全；
+
+
+
+StringBuffer 是线程安全，而 StringBuilder 是线程不安全的
+
+
+
+### HashMap HashTable
+
+- 继承不同
+
+  ```java
+  public class HashMap<K,V> extends AbstractMap<K,V>
+      implements Map<K,V>, Cloneable, Serializable
+  
+  public class Hashtable<K,V>
+      extends Dictionary<K,V>
+      implements Map<K,V>, Cloneable, java.io.Serializable
+  ```
+
+- Hashtable中的方法同步线程安全，HashMap需要自己同步线程不安全
+
+- Hashtable中，key和value都不允许出现null值。 
+
+  在HashMap中，null可以作为键，这样的键只有一个；可以有一个或多个键所对应的值为null。当get()方法返回null值时，即可以表示  HashMap中没有该键，也可以表示该键所对应的值为null。因此，在HashMap中不能由get()方法来判断HashMap中是否存在某个键，  而应该用containsKey()方法来判断。
+
+- 遍历方式：Hashtable、HashMap都使用了 Iterator。而由于历史原因，Hashtable还使用了Enumeration的方式 。
+
+- 哈希值的使用不同，HashTable直接使用对象的hashCode。而HashMap重新计算hash值。
+
+- 初始大小和扩容的方式都不同
+
+
+
+
+
+### 更多
+
+collection类型的集合（ArrayList,LinkedList）只能装入对象类型的数据，该题中装入了0，是一个基本类型，但是JDK5以后提供了自动装箱与自动拆箱，所以int类型自动装箱变为了Integer类型。
+
+
+
+https://www.nowcoder.com/questionTerminal/b41c88359c8a4d69a35c2f37400e49f0
+
+
+
+https://snailclimb.gitee.io/javaguide/#/docs/java/collection/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6%E5%B8%B8%E8%A7%81%E9%9D%A2%E8%AF%95%E9%A2%98
+
+https://snailclimb.gitee.io/javaguide/#/docs/java/collection/Java%E9%9B%86%E5%90%88%E4%BD%BF%E7%94%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9%E6%80%BB%E7%BB%93
+
+
+
+
+
+
+
+## Java IO
+
+https://github.com/fuzhengwei/itstack-demo-netty
+
+BIO NIO AIO netty
+
+### Java NIO
+
+JAVA NIO有两种解释：一种叫非阻塞IO（Non-blocking I/O），另一种也叫新的IO（New I/O），其实是同一个概念。
+
+### NIO VS IO
+
+NIO（JDK1.4）模型是一种同步非阻塞IO，主要有三大核心部分：Channel(通道)，Buffer(缓冲区), Selector（多路复用器）。传统IO基于字节流和字符流进行操作，而NIO基于Channel和Buffer(缓冲区)进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。Selector(多路复用器)用于监听多个通道的事件（比如：连接打开，数据到达）。因此，单个线程可以监听多个数据通道。
+ NIO和传统IO（一下简称IO）之间第一个最大的区别是，IO是面向流的，NIO是面向缓冲区的。 Java IO面向流意味着每次从流中读一个或多个字节，直至读取所有字节，它们没有被缓存在任何地方。此外，它不能前后移动流中的数据。如果需要前后移动从流中读取的数据，需要先将它缓存到一个缓冲区。NIO的缓冲导向方法略有不同。数据读取到一个它稍后处理的缓冲区，需要时可在缓冲区中前后移动。这就增加了处理过程中的灵活性。但是，还需要检查是否该缓冲区中包含所有您需要处理的数据。而且，需确保当更多的数据读入缓冲区时，不要覆盖缓冲区里尚未处理的数据。
+ IO的各种流是阻塞的。这意味着，当一个线程调用read() 或 write()时，该线程被阻塞，直到有一些数据被读取，或数据完全写入。该线程在此期间不能再干任何事情了。 NIO的非阻塞模式，使一个线程从某通道发送请求读取数据，但是它仅能得到目前可用的数据，如果目前没有数据可用时，就什么都不会获取。而不是保持线程阻塞，所以直至数据变的可以读取之前，该线程可以继续做其他的事情。 非阻塞写也是如此。一个线程请求写入一些数据到某通道，但不需要等待它完全写入，这个线程同时可以去做别的事情。 线程通常将非阻塞IO的空闲时间用于在其它通道上执行IO操作，所以一个单独的线程现在可以管理多个输入和输出通道（channel）。
+
+#### NIO优点：
+
+1. 通过Channel注册到Selector上的状态来实现一种客户端与服务端的通信。
+2. Channel中数据的读取是通过Buffer , 一种非阻塞的读取方式。
+3. Selector 多路复用器  单线程模型，  线程的资源开销相对比较小。
+
+
+
+https://www.zhihu.com/question/29005375
+
+https://blog.csdn.net/forezp/article/details/88414741
+
+https://www.cnblogs.com/lfs2640666960/p/9970353.html
+
+https://tech.meituan.com/2016/11/04/nio.html
+
+https://www.cnblogs.com/minikobe/p/12166280.html
+
+
+
+使用场景
+
+
+
+https://www.zhihu.com/question/67535292/answer/1248887503
+
+
+
+https://segmentfault.com/a/1190000040458363
+
+
+
+## Java8新特性
+
+https://www.runoob.com/java/java8-new-features.html
+
+
+
+### Lambda 表达式
+
+Lambda 允许把函数作为一个方法的参数（函数作为参数传递到方法中）。
+
+语法：
+
+```java
+(parameters) -> expression
+或
+(parameters) ->{ statements; }
+```
+
+lambda表达式的特征:
+
+- **可选类型声明：**不需要声明参数类型，编译器可以统一识别参数值。
+- **可选的参数圆括号：**一个参数无需定义圆括号，但多个参数需要定义圆括号。
+- **可选的大括号：**如果主体包含了一个语句，就不需要使用大括号。
+- **可选的返回关键字：**如果主体只有一个表达式返回值则编译器会自动返回值，大括号需要指定表达式返回了一个数值。
+
+
+
+例子：
+
+```java
+// 1. 不需要参数,返回值为 5  
+() -> 5  
+  
+// 2. 接收一个参数(数字类型),返回其2倍的值  
+x -> 2 * x  
+  
+// 3. 接受2个参数(数字),并返回他们的差值  
+(x, y) -> x – y  
+  
+// 4. 接收2个int型整数,返回他们的和  
+(int x, int y) -> x + y  
+  
+// 5. 接受一个 string 对象,并在控制台打印,不返回任何值(看起来像是返回void)  
+(String s) -> System.out.print(s)
+```
+
+
+
+
+
+### 方法引用
+
+方法引用通过方法的名字来指向一个方法；可以使语言的构造更紧凑简洁，减少冗余代码。
+
+方法引用使用一对冒号 `::` 。
+
+4 种不同方法的引用：
+
+```java
+package com.runoob.main;
+ 
+@FunctionalInterface
+public interface Supplier<T> {
+    T get();
+}
+ 
+class Car {
+    //Supplier是jdk1.8的接口，这里和lamda一起使用了
+    public static Car create(final Supplier<Car> supplier) {
+        return supplier.get();
+    }
+ 
+    public static void collide(final Car car) {
+        System.out.println("Collided " + car.toString());
+    }
+ 
+    public void follow(final Car another) {
+        System.out.println("Following the " + another.toString());
+    }
+ 
+    public void repair() {
+        System.out.println("Repaired " + this.toString());
+    }
+}
+```
+
+1. **构造器引用：**语法是`Class::new`，或者更一般的`Class< T >::new`。
+
+```java
+final Car car = Car.create( Car::new );
+final List<Car> cars = Arrays.asList(car);
+```
+
+2. **静态方法引用：**语法是`Class::static_method`。
+
+```java
+cars.forEach(Car::collide);
+```
+
+3. **特定类的任意对象的方法引用：**语法是`Class::method`。
+
+```java
+cars.forEach(Car::repair);
+```
+
+4. **特定对象的方法引用：**语法是`instance::method`。
+
+```java
+final Car police = Car.create(Car::new);
+cars.forEach(police::follow);
+```
+
+
+
+### 函数式接口
+
+函数式接口(Functional Interface)就是一个有且仅有一个抽象方法，但是可以有多个非抽象方法的接口。
+
+函数式接口可以被隐式转换为 lambda 表达式。
+
+
+
+### 默认方法
+
+简单说，默认方法就是接口可以有实现方法，而且不需要实现类去实现其方法。`default`
+
+
+
+
+
+### Stream API
+
+新添加的Stream API（java.util.stream） 把真正的函数式编程风格引入到Java中。
+
+
+
+### Date Time API
+
+加强对日期与时间的处理。
+
+
+
+### Optional 类
+
+用来解决空指针异常。
+
+
+
+### Base64
