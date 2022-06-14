@@ -1769,7 +1769,99 @@ try {
 
 
 
-## 15、超市管理项目smbms
+## 15、超市管理系统smbms
+
+Supermarket bill managing system
+
+```
+smbms
+	登录注销
+	用户管理
+	订单管理
+	供应商管理
+```
+
+### 数据库创建
+
+### 项目搭建
+
+1. 新建maven web项目，用模板方式。
+
+![](images/image-20220613095020962.png)
+
+web.xml （可从Tomcat中拷贝）
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                      https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+         version="5.0"
+         metadata-complete="true">
+  
+</web-app>
+```
+
+新建`java`目录作为java源文件根目录；新建`resources`目录作为资源目录。
+
+2. 配置Tomcat
+
+3. 测试运行
+
+4. 导入jar包
+
+5. 创建项目包结构
+
+6. 编写实体类。ORM映射：表-类映射
+
+7. 编写基础公共类
+
+   - 数据库配置文件
+
+   - 编写数据库的公共类
+
+   - 字符编码过滤器
+
+     ```java
+     public class CharacterEncodingFilter implements Filter {
+         @Override
+         public void init(FilterConfig filterConfig) throws ServletException {
+         }
+     
+         @Override
+         public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+             request.setCharacterEncoding("UTF-8");
+             response.setCharacterEncoding("UTF-8");
+             // 过滤器放行
+             chain.doFilter(request, response);
+         }
+     
+         @Override
+         public void destroy() {
+     
+         }
+     }
+     ```
+
+     ```xml
+     		<filter>
+             <filter-class>com.andyron.filter.CharacterEncodingFilter</filter-class>
+             <filter-name>CharacterEncodingFilter</filter-name>
+         </filter>
+         <filter-mapping>
+             <filter-name>CharacterEncodingFilter</filter-name>
+             <url-pattern>/*</url-pattern>
+         </filter-mapping>
+     ```
+
+     
+
+8. 导入静态资源
+9. 编写servlet
+10. 注册servlet
+
+p31🔖
 
 
 
