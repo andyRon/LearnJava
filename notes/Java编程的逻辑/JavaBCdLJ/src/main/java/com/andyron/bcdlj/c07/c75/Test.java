@@ -1,5 +1,6 @@
 package com.andyron.bcdlj.c07.c75;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -49,6 +50,21 @@ public class Test {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日 E HH时mm分ss秒");
         System.out.println(sdf.format(calendar.getTime()));
 
+        // 获得月份的最大天数
+        System.out.println(calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+
+        test();
+    }
+
+    static void test() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String str1 = "2021 09 08 14 38 05";
+
+        //write your code here......
+        String[] strarr = str1.split(" ");
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.HOUR_OF_DAY, -12);
+        System.out.println(sdf.format(cal.getTime()));
 
 
     }
