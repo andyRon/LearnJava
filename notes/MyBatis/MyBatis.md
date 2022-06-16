@@ -98,7 +98,7 @@ DAO层，Service层，Controller层.....
 
 - 不用MyBatis也可以，更容易上手。**技术没有高低之分**
 - 优点
-  - 简单易学：本身就很小且简单。没有任何第三方依赖，最简单安装只要两个jar文件+配置几个sql映射文件易于学习，易于使用，通过文档和源代码，可以比较完全的掌握它的设计思路和实现。
+  - 简单易学：本身就很小且简单。**没有任何第三方依赖**，最简单安装只要<u>两个jar文件+配置几个sql映射文件</u>易于学习，易于使用，通过文档和源代码，可以比较完全的掌握它的设计思路和实现。
   - 灵活：mybatis不会对应用程序或者数据库的现有设计强加任何影响。 sql写在xml里，便于统一管理和优化。通过sql语句可以满足操作数据库的所有需求。
   - 解除sql与程序代码的耦合：通过提供DAO层，将业务逻辑和数据访问逻辑分离，使系统的设计更清晰，更易维护，更易单元测试。sql和代码的分离，提高了可维护性。
   - 提供映射标签，支持对象与数据库的orm字段关系映射
@@ -230,8 +230,17 @@ public class MybatisUtils {
           select * from mybatis.user
       </select>
   </mapper>
+  
   ```
+  
+- 把xxxMapper.xml在核心配置文件中注册
 
+  ```xml
+  		<mappers>
+          <mapper class="com.andyron.dao.UserMapper"/>
+      </mappers>
+  ```
+  
   
 
 ### 2.4 测试
@@ -288,7 +297,14 @@ public class MybatisUtils {
 > org.apache.ibatis.exceptions.PersistenceException
 > ```
 >
-> 
+
+- dao接口与mapper配置文件在做映射绑定的时候出现问题
+
+  ```
+  org.apache.ibatis.binding.BindingException: Invalid bound statement (not found)
+  ```
+
+  
 
 测试代码：
 
@@ -468,7 +484,11 @@ MyBatis 可以配置成适应多种环境
 
 #### 事务管理器（transactionManager）
 
-MyBatis中有两种类型的事务管理器（type="[JDBC|MANAGED]"）
+MyBatis中有两种类型的事务管理器（type="[JDBC|MANAGED]"）。
+
+
+
+> 使用用 Spring + MyBatis，则没有必要配置事务管理器，因为 Spring 模块会使用自带的管理器来覆盖前面的配置。
 
 #### 数据源（dataSource）
 

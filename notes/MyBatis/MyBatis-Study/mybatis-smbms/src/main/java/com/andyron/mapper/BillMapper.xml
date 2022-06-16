@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.andyron.mapper.BillMapper">
+    <insert id="add" parameterType="Bill">
+        insert into smbms.smbms_bill (id, billCode, productName, productDesc, productUnit, productCount, totalPrice, isPayment, providerid, createdBy, creationDate)
+        values (#{id}, #{billCode}, #{productName}, #{productDesc}, #{productUnit}, #{productCount}, #{totalPrice}, #{isPayment}, #{providerid}, #{createdBy}, #{creationDate})
+    </insert>
+
+    <update id="modify">
+        update smbms.smbms_bill set productName = #{productName}, productDesc=#{productDesc}, productUnit=#{productUnit},
+            productCount=#{productCount},  totalPrice=#{totalPrice}, isPayment=#{isPayment}, modifyBy=#{modifyBy}, modifyDate=#{modifyDate}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBillById">
+        delete from smbms.smbms_bill where id = #{id}
+    </delete>
+
+    <select id="getBillById" resultMap="billResultMap" parameterType="long">
+        select b.*, p.proName from smbms.smbms_bill b, smbms.smbms_provider p
+        where b.providerId = p.id and b.id=#{id}
+    </select>
+    <resultMap id="billResultMap" type="Bill">
+        <result column="proName" property="providerName"/>
+    </resultMap>
+
+    <select id="getBillCountByProviderId" resultType="java.lang.Integer">
+        select count(1) as billCount from smbms.smbms_bill where providerId = #{providerId}
+    </select>
+
+    <select id="getAllBill" resultType="Bill">
+        select * from smbms.smbms_bill
+    </select>
+
+    <select id="getBillList" resultType="Bill">
+        select b.*, p.proName as providerName from smbms.smbms_bill b, smbms.smbms_provider p where b.providerId = p.id
+        <if test="productName != null">
+            and productName like #{productName}
+        </if>
+        <if test="providerId > 0">
+            and providerId = #{providerId}
+        </if>
+        <if test="isPayment > 0">
+            and isPayment = #{isPayment}
+        </if>
+    </select>
+</mapper>

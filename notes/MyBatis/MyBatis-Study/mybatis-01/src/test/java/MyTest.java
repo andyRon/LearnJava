@@ -6,13 +6,8 @@ public class MyTest {
     @Test
     public void test() {
         JdbcType type = JdbcType.CLOB;
-        System.out.println(type.ordinal());
-//        for (JdbcType value : JdbcType.values()) {
-//            System.out.println(value);
-//        }
-        System.out.println(type.TYPE_CODE);
-
-        Environment.Builder dfdf = new Environment.Builder("dfdf");
-
+        for (JdbcType value : JdbcType.values()) {
+            System.out.println(value.toString() + " " + value.ordinal() + " " +value.TYPE_CODE);
+        }
     }
 }
