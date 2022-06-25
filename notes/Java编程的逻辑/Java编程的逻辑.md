@@ -425,7 +425,7 @@ char多种赋值方式：
 
 ## 3 类的基础
 
-程序主要就是**数据以及对数据的操作**，为方便理解和操作，高级语言使用了**数据类型**这个概念。
+程序主要就是**数据以及对数据的操作**，为方便理解和操作，高级语言使用了**数据类型**这个概念。 
 
 ### 3.1 类的基础概念
 
@@ -531,7 +531,7 @@ this的两个用法：this(0,0)表示调用其它构造方法；this.x表示当�
     }
 ```
 
-![image-20220311170836304](images/image-20220311170836304.png)
+![](images/image-20220311170836304.png)
 
 start、end、line三个引用型变量分配在栈中，保存的是实际内容的地址，实际内容保存在堆中，line的两个实例变量line.start和line.end还是引用，同样保存的是实际内容的地址。
 
@@ -539,7 +539,7 @@ start、end、line三个引用型变量分配在栈中，保存的是实际内�
 
 电商系统中最基本的有产品、用户和订单。
 
-想想现实问题有哪些概念，这些概念有哪些属性、哪些行为，概念之间有什么关系，然后定义类、定义属性、定义方法、定义类之间的关系。概念的属性和行为可能是非常多的，但定义的类只需要包括那些与现实问题相关的就行了。
+想想现实问题有哪些概念，这些概念有哪些属性、哪些行为，概念之间有什么关系，然后定义类、定义属性、定义方法、定义类之间的关系。概念的属性和行为可能是非常多的，但定义的类<u>只需要包括那些与现实问题相关的</u>就行了。
 
 #### 用类描述人之间的血缘关系
 
@@ -553,9 +553,7 @@ start、end、line三个引用型变量分配在栈中，保存的是实际内�
 
 类中应该定义哪些变量和方法，这是与要解决的问题密切相关的。
 
-类之间的组合关系在Java中实现的都是引用，但在逻辑关系上，有两种明显不同的关系，一种是**包含**，另一种是**单纯引用**。比如，在订单类Order中，Order与User的关系就是单纯引用，User是独立存在的；而Order与OrderItem的关系就是包含，OrderItem总是从属于某一个Order。
-
-
+类之间的组合关系在Java中实现的都是**引用**，但在逻辑关系上，有两种明显不同的关系，一种是**包含**，另一种是**单纯引用**。比如，在订单类Order中，Order与User的关系就是单纯引用，User是独立存在的；而Order与OrderItem的关系就是包含，OrderItem总是从属于某一个Order。
 
 **分解现实问题中涉及的概念以及概念间的关系，将概念表示为多个类，通过类之间的组合来表达更为复杂的概念以及概念间的关系，是计算机程序的一种基本思维方式。**
 
@@ -563,7 +561,7 @@ start、end、line三个引用型变量分配在栈中，保存的是实际内�
 
 ### 3.3 代码的组织机制
 
-使用任何语言进行编程都有一个类似的问题，那就是**如何组织代码？** 具体就是：<u>如何避免命名冲突？如何合理组织各种源文件？如何使用第三方库？各种代码和依赖库如何编译链接为一个完整的程序？</u>
+使用任何语言进行编程都有一个类似的问题，那就是**==如何组织代码？==** 具体就是：<u>如何避免命名冲突？如何合理组织各种源文件？如何使用第三方库？各种代码和依赖库如何编译链接为一个完整的程序？</u>
 
 #### 包的概念
 
@@ -571,19 +569,19 @@ start、end、line三个引用型变量分配在栈中，保存的是实际内�
 
 Java API中所有的类和接口都位于包java或javax下，java是标准包，javax是扩展包。
 
-包声明语句应该位于源代码的最前面，前面不能有注释外的其他语句。
+包声明语句应该位于源代码的最前面，前面**不能有注释外的其他语句**。
 
-包名和文件目录结构必须匹配。
+**包名和文件目录结构必须匹配**。
 
 如果代码需要公开给其他人用，最好有一个域名以确保唯一性。
 
-包可以方便模块化开发，不同功能可以位于不同包内，不同开发人员负责不同的包。包也可以方便封装，供外部使用的类可以放在包的上层，而内部的实现细节则可以放在比较底层的子包内。
+包可以方便模块化开发，不同功能可以位于不同包内，不同开发人员负责不同的包。包也可以方便封装，<u>供外部使用的类可以放在包的上层，而内部的实现细节则可以放在比较底层的子包内。</u>🔖怎么理解？
 
-同一个包下的类之间互相引用是不需要包名的。不同包，两种方式使用：**一种是通过类的完全限定名；另外一种是将用到的类引入当前类**。只有一个例外，<u>java.lang包下的类可以直接使用，不需要引入</u>，也不需要使用完全限定名，比如String类、System类，其他包内的类则不行。
+同一个包下的类之间互相引用是不需要包名的。不同包，两种方式使用：**一种是通过类的完全限定名；另外一种是将用到的类引入当前类**。只有一个例外，**java.lang包下的类可以直接使用，不需要引入**，也不需要使用完全限定名，比如String类、System类，其他包内的类则不行。
 
-`import java.util.*`，这个引入不能递归，它只会引入java.util包下的直接类，而不会引入java.util下嵌套包内的类。
+`import java.util.*`，引入不能递归，它只会引入java.util包下的直接类，而不会引入java.util下嵌套包内的类。
 
-静态导入不应过度使用，否则难以区分访问的是哪个类的代码。
+**静态导入**：可以直接导入类的公开静态方法和成员。静态导入不应过度使用，否则难以区分访问的是哪个类的代码。
 
 同一个包指的是同一个直接包，子包下的类并不能访问。
 
@@ -593,9 +591,11 @@ Java API中所有的类和接口都位于包java或javax下，java是标准包�
 
 在Java中，编译后的一个或多个包的Java class文件可以打包为一个文件，Java中打包命令为jar，打包后的文件扩展名为`.jar`，一般称之为jar包。jar包其实就是一个压缩文件。
 
-Java类库、第三方类库都是以jar包形式提供的。如何使用jar包呢？将其加入类路径（classpath）中即可。
+```
+jar -cvf <包名>.jar <最上层包名>
+```
 
-
+Java类库、第三方类库都是以jar包形式提供的。如何使用jar包呢？将其加入**类路径（classpath）**中即可。
 
 #### 程序的编译与链接
 
@@ -623,7 +623,7 @@ import是编译时概念，用于确定完全限定名，在运行时，只根�
 
 每个类有且只有一个父类，没有声明父类的，其父类为Object，子类继承了父类非private的属性和方法，可以增加自己的属性和方法，以及重写父类的方法实现。
 
-new过程中，父类先进行初始化，可通过super调用父类相应的构造方法，没有使用super的情况下，调用父类的默认构造方法（super必须放在第一行）。
+<u>new过程中，父类先进行初始化，可通过super调用父类相应的构造方法，没有使用super的情况下，调用父类的默认构造方法（super必须放在第一行）</u>。
 
 子类变量和方法与父类重名的情况下，可通过super强制访问父类的变量和方法。
 
@@ -662,7 +662,7 @@ public class ShapeManager {
 
 子类对象赋值给父类引用变量，这叫**向上转型**。
 
-变量shape可以引用任何Shape子类类型的对象，这叫**多态**，**即一种类型的变量，可引用多种实际类型对象**。
+参数`Shape shape`中的变量shape可以引用任何Shape子类类型的对象，这叫**多态**，**即一种类型的变量，可引用多种实际类型对象**。
 
 这样，对于变量shape，它就有两个类型：类型Shape，我们称之为shape的**静态类型**；类型Circle/Line/ArrowLine，我们称之为shape的**动态类型**。在ShapeManager的draw方法中，shapes[i].draw()调用的是其对应动态类型的draw方法，这称之为方法的**动态绑定**。
 
@@ -672,7 +672,7 @@ public class ShapeManager {
 
 <font color=#FF8C00>**多态和动态绑定是计算机程序的一种重要思维方式，使得操作对象的程序不需要关注对象的实际类型，从而可以统一处理不同对象，但又能实现每个对象的特有行为。**</font>
 
-总结：子类对象可以赋值给父类引用变量，这叫多态；实际执行调用的是子类实现，这叫动态绑定。
+总结：**子类对象可以赋值给父类引用变量，这叫多态；实际执行调用的是子类实现，这叫动态绑定。**
 
 ### 4.2 继承的细节
 
@@ -731,7 +731,7 @@ public class Child extends Base {
         child static: child_base
 ```
 
-当通过b（静态类型Base）访问时，访问的是Base的变量和方法，当通过c（静态类型Child）访问时，访问的是Child的变量和方法，这称之为**静态绑定**，即访问绑定到变量的静态类型。静态绑定在程序编译阶段即可决定，而动态绑定则要等到程序运行时。**实例变量、静态变量、静态方法、private方法，都是静态绑定的**。
+当通过b（静态类型Base）访问时，访问的是Base的变量和方法，当通过c（静态类型Child）访问时，访问的是Child的变量和方法，这称之为**静态绑定**，即<u>访问绑定到变量的静态类型</u>🔖。静态绑定在程序编译阶段即可决定，而动态绑定则要等到程序运行时。**实例变量、静态变量、静态方法、private方法，都是静态绑定的**。
 
 #### 重载和重写
 
@@ -764,7 +764,7 @@ public boolean canCast(Base b) {
 
 #### 可见性重写
 
-重写方法时，一般并不会修改方法的可见性；如果要修改，子类方法不能降低父类方法的可见性。
+重写方法时，一般并不会修改方法的可见性；如果要修改，**子类方法不能降低父类方法的可见性**。
 
 > 为什么要这样规定呢？
 >
@@ -914,7 +914,7 @@ Java中，所谓类的加载是指将类的相关信息加载到内存。在Java
 2. 对所有实例变量赋默认值；
 3. 执行实例初始化代码。
 
-分配的内存包括本类和所有父类的实例变量，但不包括任何静态变量。实例初始化代码的执行从父类开始，再执行子类的。但在任何类执行初始化代码之前，所有实例变量都已设置完默认值。
+分配的内存包括<u>本类和所有父类的实例变量</u>，但不包括任何静态变量。实例初始化代码的执行从父类开始，再执行子类的。但在任何类执行初始化代码之前，所有实例变量都已设置完默认值。
 
 每个对象除了保存类的实例变量之外，还保存着实际类信息的引用。
 
@@ -1056,7 +1056,7 @@ public class Child extends Base {
 
 ## 5 类的扩展
 
-类相当于是自定义数据类型，通过类的组合和继承可以表示和操作各种事物或者说对象。
+类相当于是<u>自定义数据类型</u>，通过类的组合和继承可以表示和操作各种事物或者说对象。
 
 ### 5.1 接口的本质
 
@@ -1640,7 +1640,7 @@ Throwable initCause(Throwable cause)
 
 #### 异常类体系
 
-![image-20220313115559942](images/image-20220313115559942.png)
+![](images/image-20220313115559942.png)
 
 Error表示系统错误或资源耗尽，由Java系统自己使用，应用程序不应抛出和处理，比如虚拟机错误（VirtualMacheError）及其子类内存溢出错误（OutOfMemory-Error）和栈溢出错误（StackOverflowError）。
 
@@ -4768,7 +4768,7 @@ public class HelloRunnable implements Runnable {
 }
 ```
 
-结果为(HelloThread没执行完，main线程可能就执行完了)：
+结果可能为(HelloThread没执行完，main线程可能就执行完了)：
 
 ```
 world
@@ -4791,6 +4791,8 @@ public class HelloRunnable implements Runnable {
 }
 ```
 
+一直为：
+
 ```
 hello
 world
@@ -4812,17 +4814,124 @@ public final void resume()
 
 每个线程表示一条单独的执行流，有自己的程序计数器，有自己的栈，但**线程之间可以共享内存，它们可以访问和操作相同的对象**。
 
+```java
+public class ShareMemoryDemo {
+    private static int shared = 0;
+    private static void incrShared(){
+        shared ++;
+    }
+    static class ChildThread extends Thread {
+        List<String> list;
+        public ChildThread(List<String> list) {
+            this.list = list;
+        }
+        @Override
+        public void run() {
+            incrShared();
+            list.add(Thread.currentThread().getName());
+        }
+    }
+    public static void main(String[] args) throws InterruptedException {
+        List<String> list = new ArrayList<String>();
+        Thread t1 = new ChildThread(list);
+        Thread t2 = new ChildThread(list);
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        System.out.println(shared);
+        System.out.println(list);
+    }
+}
+```
 
+ChildThread的run方法访问了共享的变量shared和list,main方法最后输出了共享的shared和list的值，大部分情况会输出：
+
+```
+2
+[Thread-0, Thread-1]
+```
+
+通过此例子说明**执行流、内存和程序代码**之间的关系：
+
+- 该例中有三条执行流，一条执行main方法，另外两条执行ChildThread的run方法。
+- 不同执行流可以访问和操作相同的变量。
+- 不同执行流可以执行相同的程序代码，如本例中incrShared方法，ChildThread的run方法，被两条ChildThread执行流执行，incrShared方法是在外部定义的，但被ChildThread的执行流执行。**在分析代码执行过程时，理解代码在被哪个线程执行是很重要的**。
+- 当多条执行流执行相同的程序代码时，**每条执行流都有单独的栈**，方法中的参数和局部变量都有自己的一份。
+
+当多条执行流可以操作相同的变量时，可能会出现一些意料之外的结果：
 
 ##### 1.竟态条件（race condition）
 
 竞态条件（race condition）是指，当多个线程访问和操作同一个对象时，最终执行结果与执行时序有关，可能正确也可能不正确。
 
+```java
+public class CounterThread extends Thread {
+    private static int counter = 0;
+    @Override
+    public void run() {
+        for (int i = 0; i < 1000; i++) {
+            counter++;
+        }
+    }
+    public static void main(String[] args) throws InterruptedException {
+        int num = 1000;
+        Thread[] threads = new Thread[num];
+        for (int i = 0; i < num; i++) {
+            threads[i] = new CounterThread();
+            threads[i].start();
+        }
+        for (int i = 0; i < num; i++) {
+            threads[i].join();
+        }
+        System.out.println(counter);
+    }
+}
+```
+
+期望结果值为1000000，但一般都是不是。因为counter++这个操作不是原子操作，它分为三个步骤：
+
+1. 取counter的当前值；
+2. 在当前值基础上加1；
+3. 将新值重新赋值给counter。
+
+两个线程可能同时执行第一步，取到了相同的counter值，比如都取到了100，第一个线程执行完后counter变为101，而第二个线程执行完后还是101，最终的结果就与期望不符。
+
+解决办法：
+
+- 使用synchronized关键字；
+- 使用显式锁；
+- 使用原子变量。
+
 ##### 2.内存可见性
+
+```java
+public class VisibilityDemo {
+    private static boolean shutdown = false;
+    static class HelloThread extends Thread {
+        @Override
+        public void run() {
+            while (!shutdown) {
+
+            }
+            System.out.println("exit hello");
+        }
+    }
+    
+    public static void main(String[] args) throws InterruptedException {
+        new HelloThread().start();
+        Thread.sleep(1000);
+        shutdown = true;
+        System.out.println("exit main");
+    }
+}
+```
+
+期望的结果是两个线程都退出，但实际执行时，很可能会发现HelloThread永远都不会退出。也就是说，在HelloThread执行流看来，shutdown永远为false，即使main线程已经更改为了true。
 
 **内存可见性问题**。在计算机系统中，除了内存，数据还会被缓存在CPU的寄存器以及各级缓存中，当访问一个变量时，可能直接从寄存器或CPU缓存中获取，而不一定到内存中去取，当修改一个变量时，也可能是先写到缓存中，稍后才会同步更新到内存中。
 
-在单线程的程序中，这一般不是问题，但在多线程的程序中，尤其是在有多CPU的情况下，这就是严重的问题。<u>一个线程对内存的修改，另一个线程看不到，一是修改没有及时同步到内存，二是另一个线程根本就没从内存读。</u>
+在单线程的程序中，这一般不是问题，但在多线程的程序中，尤其是在有多CPU的情况下，这就是严重的问题。**一个线程对内存的修改，另一个线程看不到，一是修改没有及时同步到内存，二是另一个线程根本就没从内存读。**
 
 解决办法：
 
@@ -4855,19 +4964,143 @@ synchronized可以用于修饰类的实例方法、静态方法和代码块。
 
 ##### 1.实例方法
 
-synchronized实例方法实际保护的是同一个对象的方法调用。
+```java
+public class Counter {
+    private int count;
+    public synchronized void incr() {
+        count++;
+    }
+    public synchronized int getCount() {
+        return count;
+    }
+}
 
 
+public class CounterThread extends Thread {
+    Counter counter;
+    public CounterThread(Counter counter) {
+        this.counter = counter;
+    }
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 1000; i++) {
+            counter.incr();
+        }
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        int num = 1000;
+        Counter counter = new Counter();
+        Thread[] threads = new Thread[num];
+        for (int i = 0; i < num; i++) {
+            threads[i] = new CounterThread(counter);
+            threads[i].start();
+        }
+        for (int i = 0; i < num; i++) {
+            threads[i].join();
+        }
+        System.out.println(counter.getCount());
+    }
+}
+```
+
+创建了1000个线程，传递了相同的counter对象，每个线程主要就是调用Counter的incr方法1000次，main线程等待子线程结束后输出counter的值，不论运行多少次结果都是100万。
+
+**synchronized实例方法实际保护的是同一个==对象==的方法调用**（同时只能有一个线程执行同一对象的实例方法）。
+
+synchronized实例方法保护的是当前实例对象，即this, this对象有**一个锁和一个等待队列**，锁只能被一个线程持有，其他试图获得同样锁的线程需要等待。执行synchronized实例方法的过程大致如下：
+
+1. 尝试获得锁，如果能够获得锁，继续下一步，否则加入等待队列，阻塞并等待唤醒。
+2. 执行实例方法体代码。
+3. 释放锁，如果等待队列上有等待的线程，从中取一个并唤醒，如果有多个等待的线程，唤醒哪一个是不一定的，不保证公平性。
+
+当前线程不能获得锁的时候，它会加入等待队列等待，线程的状态会变为**BLOCKED**。
+
+**==synchronized保护的是对象而非代码，只要访问的是同一个对象的synchronized方法，即使是不同的代码，也会被同步顺序访问。==**比如，对于Counter中的两个实例方法getCount和incr，对同一个Counter对象，一个线程执行getCount，另一个执行incr，它们是不能同时执行的，会被synchronized同步顺序执行。
+
+synchronized方法不能防止非synchronized方法被同时执行。比如，如果给Counter类增加一个非synchronized方法：
+
+```java
+public void decr() {
+  count--;
+}
+```
+
+则该方法可以和synchronized的incr方法同时执行，这通常会出现非期望的结果，所以，**==一般在保护变量时，需要在所有访问该变量的方法上加上synchronized==**。
 
 ##### 2.静态方法
 
+```java
+public class StaticCounter {
+  private static int count = 0;
+  public static synchronized void incr() {
+    count++;
+  }
+  public static synchronized int getCount() {
+    return count;
+  }
+}
+```
 
+对于静态方法，synchronized保护的是类对象，也就是StaticCounter.class。实际上，每个对象都有一个锁和一个等待队列，类对象也不例外。
 
 ##### 3.代码块
 
+```java
+public class Counter {
+  private int count;
+  public void incr() {
+    synchronized(this) {
+      count++;
+    }
+  }
+  public int getCount() {
+    synchronized(this) {
+      return count;
+    }
+  }
+}
+```
+
+```java
+public class StaticCounter {
+  private static int count = 0;
+  public static void incr() {
+    synchronized(StaticCounter.class){
+      count++;
+    }
+  }
+  public static int getCount() {
+    synchronized(StaticCounter.class){
+      return count;
+    }
+  }
+}
+```
+
+synchronized同步的对象可以是任意对象，**==任意对象都有一个锁和等待队列==**，或者说，任何对象都可以作为锁对象。比如，Counter类的等价代码还可以是：
+
+```java
+public class Counter {
+  private int count;
+  private Object lock = new Object();
+  public void incr(){
+    synchronized(lock){
+      count ++;
+    }
+  }
+  public int getCount() {
+    synchronized(lock){
+      return count;
+    }
+  }
+}
+```
 
 
-#### 进一步了解synchronized
+
+#### 进一步了解synchronized🔖
 
 ##### 1.可重入性
 
@@ -4881,7 +5114,7 @@ synchronized实例方法实际保护的是同一个对象的方法调用。
 
 
 
-#### 同步容器及其注意事项
+#### 同步容器及其注意事项🔖
 
 ##### 1.复合操作
 
@@ -4898,7 +5131,7 @@ synchronized实例方法实际保护的是同一个对象的方法调用。
 
 
 
-### 15.3 线程的基本协作机制
+### 15.3 线程的基本协作机制🔖🔖
 
 #### 协作场景
 
@@ -4912,7 +5145,7 @@ synchronized实例方法实际保护的是同一个对象的方法调用。
 
 #### wait/notify
 
-
+除了用于锁的等待队列，每个对象还有另一个等待队列，表示条件队列，该队列用于线程间的协作。
 
 #### 生产者/消费者模式
 
@@ -4947,11 +5180,32 @@ Java提供了专门的阻塞队列实现：
 
 #### 取消/关闭的场景
 
+线程的start方法启动一个线程后，线程开始执行run方法，run方法运行结束后线程退出，那为什么还需要结束一个线程呢？
+
+1. 很多线程的运行模式是死循环
+2. 在一些图形用户界面程序中，线程是用户启动的，完成一些任务，比如从远程服务器上下载一个文件，在下载过程中，用户可能会希望取消该任务。
+3. 在一些场景中，比如从第三方服务器查询一个结果，我们希望在限定的时间内得到结果，如果得不到，我们会希望取消该任务
+4. 有时，我们会启动多个线程做同一件事，比如类似抢火车票，我们可能会让多个好友帮忙从多个渠道买火车票，只要有一个渠道买到了，我们会通知取消其他渠道。
+
 
 
 #### 取消/关闭的机制
 
-在Java中，停止一个线程的主要机制是中断，中断并不是强迫终止一个线程，它是一种协作机制，是给线程传递一个取消信号，但是由线程来决定如何以及何时退出。
+在Java中，停止一个线程的主要机制是**==中断==**，**中断并不是强迫终止一个线程，它是一种协作机制，是给线程传递一个取消信号，但是由线程来决定如何以及何时退出**。
+
+Thread类关于中断的方法：
+
+```java
+public boolean isInterrupted()
+public void interrupt()
+public static boolean interrupted()
+```
+
+- isInterrupted：返回对应线程的中断标志位是否为true。
+- interrupt：表示中断对应的线程。
+- interrupted：返回当前线程的中断标志位是否为true（会调用Thread. currentThread()），但它还有一个重要的副作用，就是清空中断标志位，也就是说，连续两次调用interrupted()，第一次返回的结果为true，第二次一般就是false（除非同时又发生了一次中断）。
+
+
 
 
 
@@ -4976,8 +5230,6 @@ Java提供了专门的阻塞队列实现：
 
 
 #### 如何正确地取消/关闭线程
-
-
 
 
 
