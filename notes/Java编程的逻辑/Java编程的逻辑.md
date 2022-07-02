@@ -569,7 +569,9 @@ start、end、line三个引用型变量分配在栈中，保存的是实际内�
 
 Java API中所有的类和接口都位于包java或javax下，java是标准包，javax是扩展包。
 
-包声明语句应该位于源代码的最前面，前面**不能有注释外的其他语句**。
+包声明语句应该位于源代码的最前面，前面**不能有注释外的其他**
+
+**语句**。
 
 **包名和文件目录结构必须匹配**。
 
@@ -2103,11 +2105,11 @@ StringBuilder和StringBuffer类，这两个类的方法基本是完全一样的�
 
 
 
-
-
 #### String的+和+=运算符
 
+这是Java编译器提供的支持，背后，Java编译器一般会生成StringBuilder, +和+=操作会转换为append。
 
+对于简单的情况，可以直接使用String的+和+=，对于复杂的情况，尤其是有循环的时候（编译器没那么智能，可能会生成多个StringBuilder），应该直接使用StringBuilder。
 
 ### 7.4 剖析Arrays
 
@@ -4678,7 +4680,7 @@ Jackson还支持很多其他格式，如YAML、AVRO、Protobuf、Smile等。
 
 继承Thread并重写其run方法来实现一个线程。
 
-run方法的方法签名是固定的， public，没有参数，没有返回值，不能抛出受检异常。
+run方法的方法**签名是固定的**， public，没有参数，没有返回值，不能抛出受检异常。
 
 start方法表示启动该线程，使其成为一条单独的执行流，操作系统会分配线程相关的资源，每个线程会有单独的程序执行计数器和栈，操作系统会把这个线程作为一个独立的个体进行调度，分配时间片让它执行，执行的起点就是run方法。
 
@@ -5133,19 +5135,110 @@ public class Counter {
 
 ### 15.3 线程的基本协作机制🔖🔖
 
+多线程之间除了竞争访问同一个资源外，也经常需要相互协作。协作的基本机制是wait/notify。
+
+
+
 #### 协作场景
 
 1. 生产者/消费者协作模式
+
+   常见的协作模式，生产者线程和消费者线程通过**共享队列**进行协作，生产者将数据或任务放到队列上，而消费者从队列上取数据或任务，如果队列长度有限，在队列满的时候，生产者需要等待，而在队列为空的时候，消费者需要等待。
+
 2. 同时开始
+
+   类似运动员比赛，在听到比赛开始枪响后同时开始，在一些程序，尤其是**模拟仿真程序**中，要求多个线程能同时开始
+
 3. 等待结束
+
+   **主从协作模式**也是一种常见的协作模式，主线程将任务分解为若干子任务，为每个子任务创建一个线程，主线程在继续执行其他任务之前需要等待每个子任务执行完毕。
+
 4. 异步结果
+
+   在主从协作模式中，主线程手工创建子线程的写法往往比较麻烦，一种常见的模式是将子线程的管理封装为**异步调用**，异步调用马上返回，但返回的不是最终的结果，而是一个一般称为**Future**的对象，通过它可以在随后获得最终的结果。
+
 5. 集合点
 
 
 
 #### wait/notify
 
-除了用于锁的等待队列，每个对象还有另一个等待队列，表示条件队列，该队列用于线程间的协作。
+线程协作的基本方法定义在根父类Object里，是每个对象都可以调用这些方法。
+
+wait方法有：
+
+```java
+public final void wait() throws InterruptedException
+public final native void wait(long timeout) throws InterruptedException;
+public final void wait(long timeout, int nanos) throws InterruptedException
+```
+
+带时间参数的表示最多等待这么长时间，参数为0表示无限期等待；不带时间参数的就表示无限期等待。
+
+**除了用于锁的等待队列，每个对象还有另一个等待队列，表示==条件队列==，该队列用于线程间的协作。**
+
+调用wait就会把当前线程<u>放到条件队列上并阻塞</u>，表示当前线程执行不下去了，它需要等待一个条件，这个条件它自己改变不了，需要其他线程改变。
+
+当其他线程改变了条件后，应该调用Object的notify方法：
+
+```java
+public final native void notify();
+public final native void notifyALL();
+```
+
+notify做的事情就是**从条件队列中选一个线程，将其从队列中移除并唤醒**，notifyAll和notify的区别是，它会**移除条件队列中所有的线程并全部唤醒**。
+
+一个线程启动后，在执行一项操作前，它需要等待主线程给它指令，收到指令后才执行：
+
+```java
+public class WaitThread extends Thread {
+    private volatile boolean fire = false;
+
+    @Override
+    public void run() {
+        try {
+            synchronized (this) {
+                while (!fire) {
+                    wait();
+                }
+            }
+            System.out.println("fired");
+        } catch (InterruptedException e) {
+
+        }
+    }
+
+    public synchronized void fire() {
+        this.fire = true;
+        notify();
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        WaitThread waitThread = new WaitThread();
+        waitThread.start();
+        Thread.sleep(1000);
+        System.out.println("fire");
+        waitThread.fire();
+    }
+}
+```
+
+两个线程，一个是主线程，一个是WaitThread，协作的条件变量是fire, WaitThread等待该变量变为true，在不为true的时候调用wait，主线程设置该变量并调用notify。
+
+实际上，**==wait/notify方法只能在synchronized代码块内被调用==**，如果调用wait/notify方法时，当前线程没有持有对象锁，会抛出异常`java.lang.IllegalMonitorStateException`。
+
+**虽然是在synchronized方法内，但调用wait时，线程会释放对象锁**。wait的具体过程是：
+
+1. 把当前线程放入条件等待队列，释放对象锁，阻塞等待，线程状态变为**WAITING**或**TIMED_WAITING**。
+2. 等待时间到或被其他线程调用notify/notifyAll从条件队列中移除，这时，要重新竞争对象锁：
+   - 如果能够获得锁，线程状态变为**RUNNABLE**，并从wait调用中返回。
+   - 否则，该线程加入对象锁等待队列，线程状态变为**BLOCKED**，只有在获得锁后才会从wait调用中返回。
+
+> wait等的到底是什么？ 而notify通知的又是什么?
+
+它们被不同的线程调用，但共享相同的锁和条件等待队列（相同对象的synchronized代码块内），它们围绕一个<u>共享的条件变量</u>进行协作，这个条件变量是程序自己维护的，当条件不成立时，线程调用wait进入条件等待队列，另一个线程修改了条件变量后调用notify，调用wait的线程唤醒后需要重新检查条件变量。从多线程的角度看，它们围绕共享变量进行协作，从调用wait的线程角度看，它阻塞等待一个条件的成立。
+
+计多线程协作时，需要**==想清楚协作的共享变量和条件是什么==**，这是协作的核心。
 
 #### 生产者/消费者模式
 
@@ -5169,6 +5262,8 @@ Java提供了专门的阻塞队列实现：
 
 
 #### 异步结果
+
+Callable
 
 
 
@@ -5716,9 +5811,9 @@ getPackage返回的是包信息。
 
 > 数组类型的getName，`[`表示数组，几个就表示几维数组；
 >
-> 数组的类型用一个大写字符表示，L表示类或接口，I表示int，其它基本类型：boolean(Z)、byte(B)、char(C)、double(D)、float(F)、long(J)、short(S)；
+> 数组的类型用一个大写字符表示，`L`表示类或接口，`I`表示int，其它基本类型：boolean(Z)、byte(B)、char(C)、double(D)、float(F)、long(J)、short(S)；
 >
-> 对于引用类型的数组，注意最后有一个分号。
+> 对于**引用类型的数组**，注意最后有一个分号`;`。
 
 #### 2.字段信息
 
