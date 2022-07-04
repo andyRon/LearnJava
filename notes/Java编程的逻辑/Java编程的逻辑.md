@@ -5334,7 +5334,9 @@ java.util.concurrent
 
 ### 16.1 原子变量和CAS
 
-Java并发包中的基本原子变量类型有很多种。
+对于count++这种操作来说，使用synchronized**成本太高**了，需要<u>先获取锁，最后需要释放锁，获取不到锁的情况下需要等待，还会有线程的上下文切换</u>，这些都需要成本。
+
+可使用原子变量替代，Java并发包中的基本**==原子变量==**类型有很多种。
 
 - AtomicBoolean：原子Boolean类型，常用来在程序中表示一个标志位。
 - AtomicInteger：原子Integer类型。
@@ -5343,13 +5345,13 @@ Java并发包中的基本原子变量类型有很多种。
 
 另外还又针对数组的类：AtomicLongArray、AtomicReferenceArray，以及用于以原子方式更新对象中的字段的类，如AtomicIntegerFieldUpdater、AtomicReferenceFieldUpdater等。
 
-Java 8之后增加了几个类，在高并发统计汇总的场景中更为适合，包括LongAdder、LongAccumulator、Double-Adder和DoubleAccumulator。
+Java 8之后增加了几个类，在高并发统计汇总的场景中更为适合，包括LongAdder、LongAccumulator、DoubleAdder和DoubleAccumulator。
 
 #### AtomicInteger
 
 ##### 1.基本用法
 
-之所以称为原子变量，是因为它包含一些以原子方式实现组合操作的方法。如：
+之所以称为原子变量，是因为它包含一些**以原子方式实现组合操作的方法**。如：
 
 ```java
 //以原子方式获取旧值并设置新值
@@ -5374,42 +5376,71 @@ public final int addAndGet(int delta)
 public final boolean compareAndSet(int expect, int update)
 ```
 
-compareAndSet是一个非常重要的方法，比较并设置，我们以后将简称为**CAS**。该方法有两个参数expect和update，以原子方式实现了如下功能：如果当前值等于expect，则更新为update，否则不更新，如果更新成功，返回true，否则返回false。
+compareAndSet是一个非常重要的方法，比较并设置，我们以后将简称为**CAS**。该方法有两个参数expect和update，以原子方式实现了如下功能：<u>如果当前值等于expect，则更新为update，否则不更新，如果更新成功，返回true，否则返回false。</u>
 
 ##### 2.基本原理和思维
 
+AtomicInteger的主要内部成员：
+
+```java
+private volatile int value;
+```
+
+volatile是必需的，以保证**内存可见性**。
+
 与synchronized锁相比，**这种原子更新方式代表一种不同的思维方式**。synchronized是**悲观**的，它假定更新很可能冲突，所以先获取锁，得到锁后才更新。原子变量的更新逻辑是**乐观**的，它假定冲突比较少，但使用CAS更新，也就是进行冲突检测，如果确实冲突了，那也没关系，继续尝试就好了。
 
-synchronized代表一种**阻塞式**算法，得不到锁的时候，进入锁等待队列，等待其他线程唤醒，有上下文切换开销。原子变量的更新逻辑是**非阻塞式**的，更新冲突的时候，它就重试，不会阻塞，不会有上下文切换开销。对于大部分比较简单的操作，无论是在低并发还是高并发情况下，这种乐观非阻塞方式的性能都远高于悲观阻塞式方式。
+synchronized代表一种**阻塞式**算法，得不到锁的时候，进入锁等待队列，等待其他线程唤醒，有上下文切换开销。原子变量的更新逻辑是**非阻塞式**的，更新冲突的时候，它就重试，不会阻塞，不会有上下文切换开销。对于大部分比较简单的操作，无论是在低并发还是高并发情况下，这种乐观非阻塞方式的**性能都远高于**悲观阻塞式方式。
 
  ConcurrentLinkedQueue和ConcurrentLinkedDeque：非阻塞并发队列。 
 
 ConcurrentSkipListMap和ConcurrentSkipListSet：非阻塞并发Map和Set。
 
-一般的计算机系统都在硬件层次上直接支持CAS指令
-
-🔖
+`sun.misc.Unsafe`是Sun的私有实现，名字的意思是是“不安全”，一般应用程序不应该直接使用。原理上，**一般的计算机系统都在硬件层次上直接支持CAS指令**。
 
 ##### 3.实现锁
 
+基于CAS，除了可以实现乐观非阻塞算法之外，还可以实现悲观阻塞式算法，比如锁。
 
+实际上，Java并发包中的所有阻塞式工具、容器、算法也都是基于CAS的（不过，也需要一些别的支持）。
 
 #### ABA问题
 
 使用CAS方式更新有一个ABA问题：假设当前值为A，如果另一个线程先将A修改成B，再修改回成A，当前线程的CAS操作无法分辨当前值发生过变化。
 
-
+🔖
 
 >  CAS是Java并发包的基础，基于它可以实现高效的、乐观、非阻塞式数据结构和算法，它也是并发包中锁、同步工具和各种容器的基础。
 
 ### 16.2 显式锁
 
+Java并发包中的显式锁可以解决synchronized的一些局限性。
+
 `java.util.concurrent.locks`，主要接口和类有：
 
-- 锁接口Lock，主要实现类是ReentrantLock；
-- 读写锁接口ReadWriteLock，主要实现类是ReentrantReadWriteLock。
+- 锁接口Lock，主要实现类是`ReentrantLock`；
+- 读写锁接口`ReadWriteLock`，主要实现类是`ReentrantReadWriteLock`。
 
 #### 接口Lock
+
+```java
+public interface Lock {
+  void lock();
+  void lockInterruptibly() throws InterruptedException;
+  boolean tryLock();
+  boolean tryLock(long time, TimeUnit unit) throws InterruptedException;
+  void unlock();
+  Condition newCondition();
+}
+```
+
+- lock()：普通的获取锁，会阻塞直到成功；unlock()：释放锁方法。
+- lockInterruptibly()：与lock()的不同是，它可以响应中断，如果被其他线程中断了，则抛出InterruptedException。
+- tryLock()：只是尝试获取锁，立即返回，不阻塞，如果获取成功，返回true，否则返回false。
+- tryLock(long time, TimeUnit unit)：先尝试获取锁，如果能成功则立即返回true，否则阻塞等待，但等待的最长时间由指定的参数设置，在等待的同时响应中断，如果发生了中断，抛出InterruptedException，如果在等待的时间内获得了锁，返回true，否则返回false。
+- newCondition：新建一个条件，一个Lock可以关联多个条件。
+
+相比synchronized，**显式锁支持以非阻塞方式获取锁、可以响应中断、可以限时**。
 
 
 
@@ -5417,25 +5448,69 @@ ConcurrentSkipListMap和ConcurrentSkipListSet：非阻塞并发Map和Set。
 
 ##### 1.基本用法
 
+构造方法：
+
+```java
+public ReentrantLock()
+public ReentrantLock(boolean fair)
+```
+
+参数fair，默认是false，表示不公平。所谓公平指，**等待时间最长的线程优先获得锁**。
+
+**保证公平会影响性能**，一般也不需要，所以默认不保证，synchronized锁也是不保证公平的。
+
+```java
+public class Counter {
+    private final Lock lock = new ReentrantLock();
+    private volatile int count;
+    
+    public void incr() {
+        lock.lock();
+        try {
+            count++;
+        } finally {
+            lock.unlock();
+        }
+    }
+    public int getCount() {
+        return count;
+    }
+}
+```
+
 ##### 2.使用tryLock避免死锁
 
-
+🔖
 
 #### ReentrantLock的实现原理
 
 ##### 1.LockSupport
 
+```java
+	public static void park()
+  public static void parkNanos(long nanos)
+  public static void parkUntil(long deadline)
+  public static void unpark(Thread thread)
+```
 
+park使得当前线程放弃CPU，进入等待状态（WAITING）；当有其他线程对它调用了unpark, unpark使参数指定的线程恢复可运行状态，操作系统对其进行再调度。
+
+> park不同于Thread.yield(), yield只是告诉操作系统可以先让其他线程运行，但自己依然是可运行状态，而park会放弃调度资格，使线程进入WAITING状态。
+
+park的两个变体：
+
+- parkNanos：可以指定等待的最长时间，参数是相对于当前时间的纳秒数；
+- parkUntil：可以指定最长等到什么时候，参数是绝对时间，是相对于纪元时的毫秒数。
 
 ##### 2.AQS
 
 抽象类AbstractQueuedSynchronizer，简称AQS。
 
-
+🔖
 
 ##### 3.ReentrantLock
 
-
+🔖
 
 
 
@@ -5445,7 +5520,7 @@ synchronized代表一种**声明式编程思维**，程序员更多的是表达�
 
 
 
-### 16.3 显式条件
+### 16.3 显式条件🔖
 
 显式条件在不同上下文中也可以被称为**条件变量、条件队列、或条件**。
 
@@ -5454,6 +5529,30 @@ synchronized代表一种**声明式编程思维**，程序员更多的是表达�
 锁用于解决竞态条件问题，条件是线程间的协作机制。
 
 显式锁与synchronized相对应，而显式条件与wait/notify相对应。wait/notify与synchronized配合使用，显式条件与显式锁配合使用。
+
+Lock接口定义了创建方法：
+
+```java
+Condition newCondition();
+```
+
+```java
+public interface Condition {
+  void await() throws InterruptedException;
+  void awaitUninterruptibly();
+  long awaitNanos(long nanosTimeout) throws InterruptedException;
+  boolean await(long time, TimeUnit unit) throws InterruptedException;
+  boolean awaitUntil(Date deadline) throws InterruptedException;
+  void signal();
+  void signalAll();
+}
+```
+
+
+
+await在进入等待队列后，会释放锁，释放CPU，当其他线程将它唤醒后，或等待超时后，或发生中断异常后，它都需要重新获取锁，获取锁后，才会从await方法中退出。
+
+
 
 #### 生产者/消费者模式
 
