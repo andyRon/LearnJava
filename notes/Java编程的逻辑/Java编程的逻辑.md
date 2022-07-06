@@ -5572,13 +5572,36 @@ Copy-On-Write即写时复制，或称写时拷贝，是解决并发问题的一�
 
 #### CopyOnWriteArrayList
 
+CopyOnWriteArrayList的用法与其他List（如ArrayList）基本是一样的。它的特点如下：
 
+- 线程安全
+- 迭代器不支持修改操作，但也不会抛出ConcurrentModificationException
+- 以原子方式支持一些复合操作
+
+两个原子方法：
+
+```java
+//不存在才添加，如果添加了，返回true，否则返回false
+public boolean addIfAbsent(E e)
+//批量添加c中的非重复元素，不存在才添加，返回实际添加的个数
+public int addAllAbsent(Collection<? extends E> c)
+```
+
+CopyOnWriteArrayList的内部也是一个数组，但这个数组是以原子方式被整体更新的。每次修改操作，都会新建一个数组，复制原数组的内容到新数组，在新数组上进行需要的修改，然后以原子方式设置内部的数组引用，这就是**==写时复制==**。
+
+
+
+> **写时复制是一种重要的思维，用于各种计算机程序中，比如操作系统内部的进程管理和内存管理。**在进程管理中，子进程经常共享父进程的资源，只有在写时才复制。在内存管理中，当多个程序同时访问同一个文件时，操作系统在内存中可能只会加载一份，只有程序要写时才会复制，分配自己的内存，复制可能也不会全部复制，只会复制写的位置所在的。
 
 #### CopyOnWriteArraySet
+
+CopyOnWriteArraySet内部是通过CopyOnWriteArrayList实现的。
 
 
 
 ### 17.2 ConcurrentHashMap
+
+HashMap的并发版本，与HashMap相比，它有如下特点：
 
 #### 并发安全
 
@@ -5586,11 +5609,16 @@ Copy-On-Write即写时复制，或称写时拷贝，是解决并发问题的一�
 
 #### 原子复合操作
 
+实现了ConcurrentMap接口
+
 
 
 #### 高并发的基本机制
 
+- 分段锁 
+- 读不需要锁
 
+同步容器使用synchronized，所有方法竞争同一个锁；而ConcurrentHashMap**采用分段锁技术，将数据分为多个段，而每个段有一个独立的锁**，每一个段相当于一个独立的哈希表，分段的依据也是哈希值，无论是保存键值对还是根据键查找，都先根据键的哈希值映射到段，再在段对应的哈希表上进行操作。
 
 #### 迭代安全
 
@@ -5602,7 +5630,17 @@ Copy-On-Write即写时复制，或称写时拷贝，是解决并发问题的一�
 
 ### 17.3 基于跳表的Map和Set
 
+Java并发包中与TreeMap/TreeSet对应的并发版本是ConcurrentSkipListMap和ConcurrentSkipListSet。
+
 #### 基本概念
+
+ConcurrentSkipListSet也是基于ConcurrentSkipListMap实现的。
+
+> 并发版本为什么采用跳表而不是树呢？
+>
+> 原因也很简单，因为跳表更易于实现高效并发算法。
+
+
 
 
 
