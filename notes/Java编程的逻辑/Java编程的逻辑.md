@@ -5779,21 +5779,70 @@ ScheduledThreadPoolExecutor与Timer主要不同：
 
 ### 19.1 读写锁ReentrantReadWriteLock
 
+synchronized和显式锁ReentrantLock这两种锁对于同一受保护对象的访问，无论是读还是写，它们都要求获得相同的锁。在一些场景中，这是没有必要的，多个线程的读操作完全可以并行，在读多写少的场景中，**让读操作并行可以明显提高性能**。
 
+```java
+public interface ReadWriteLock {
+  Lock readLock();
+  Lock writeLock();
+}
+```
+
+只有“读-读”操作是可以并行的，“读-写”和“写-写”都不可以。
 
 ### 19.2 信号量Semaphore
+
+之前介绍的锁都是**限制只有一个线程可以同时访问一个资源**。
+
+现实中，资源往往有多个，但每个同时只能被一个线程访问，比如，饭店的饭桌、火车上的卫生间。有的单个资源即使可以被并发访问，但并发访问数多了可能影响性能，所以希望**限制并发访问的线程数**。还有的情况，与软件的授权和计费有关，对不同等级的账户，限制不同的最大并发访问数。
+
+信号量类Semaphore就是用来解决这类问题。
+
+```java
+public Semaphore(int permits)
+public Semaphore(int permits, boolean fair)
+```
+
+fire表示公平，permits表示许可数量。
+Semaphore的方法与锁是类似的，主要的方法有两类，获取许可和释放许可：
+
+```java
+//阻塞获取许可
+public void acquire() throws InterruptedException
+//阻塞获取许可，不响应中断
+public void acquireUninterruptibly()
+//批量获取多个许可
+public void acquire(int permits) throws InterruptedException
+public void acquireUninterruptibly(int permits)
+//尝试获取
+public boolean tryAcquire()
+//限定等待时间获取
+public boolean tryAcquire(int permits, long timeout, TimeUnit unit) throws InterruptedException
+//释放许可
+public void release()
+```
 
 
 
 ### 19.3 倒计时门栓CountDownLatch
 
+CountDownLatch相当于是一个门栓，一开始是关闭的，所有希望通过该门的线程都需要等待，然后开始倒计时，倒计时变为0后，门栓打开，等待的所有线程都可以通过，它是一次性的，打开后就不能再关上了。
+
 
 
 ### 19.4 循环栅栏CyclicBarrier
 
+CyclicBarrier相当于是一个栅栏，所有线程在到达该栅栏后都需要等待其他线程，等所有线程都到达后再一起通过，它是循环的，可以用作重复的同步。
+
 
 
 ### 19.5 理解ThreadLocal
+
+实现线程安全的特殊概念：线程本地变量
+
+#### 基本概念和用法
+
+线程本地变量是说，**每个线程都有同一个变量的独有拷贝**。
 
 
 
@@ -5846,7 +5895,10 @@ ScheduledThreadPoolExecutor与Timer主要不同：
 
 #### 并发容器
 
-
+- 写时复制的List和Set。
+- ConcurrentHashMap。
+- 基于SkipList的Map和Set。
+- 各种队列。
 
 ### 20.4 任务执行服务
 
