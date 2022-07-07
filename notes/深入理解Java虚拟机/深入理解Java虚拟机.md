@@ -777,38 +777,184 @@ add，age，alloc，annotation，aot，arguments，attach，barrier，biasedlock
 
 ### 4.2 基础故障处理工具
 
+根据软件可用性和授权的不同，划分三类
+
 - 商业授权工具
 - 正式支持工具
 - 实验性工具
 
-真正的功能代码是实现在JDK的工具类库中。
+这些工具体积比较小，真正的功能代码是实现在JDK的工具类库中(`jdk-home/jmods/`)。
 
 #### jps：虚拟机进程状况工具
 
 JDK的很多小工具的名字都参考了UNIX命令的命名方式。
 
-jps（JVM ProcessStatus Tool），列出正在运行的虚拟机进程，并显示虚拟机执行主类（Main Class，main()函数所在的类）名称以及这些进程的**本地虚拟机唯一ID**（LVMID，LocalVirtual Machine Identifier）。
+**jps（JVM ProcessStatus Tool）**，功能类似`ps`命令：列出正在运行的虚拟机进程，并显示虚拟机执行主类（Main Class，main()函数所在的类）名称以及这些进程的**本地虚拟机唯一ID**（LVMID，LocalVirtual Machine Identifier）。
 
-LVMID与操作系统的进程ID（PID，Process Identifier）是一致的。
+> 对于本地虚拟机进程来说，LVMID与操作系统的进程ID（PID，Process Identifier）是一致的。
+
+```
+jps [options] [hostid]
+
+
+-q	只输出LVMID，省略主类的名称
+-m	输出虚拟机进程启动时传递给主类 main()函数的參数
+-l	输出主类的全名，如果进程执行的是JAR 包，则输出 JAR 路径
+-v 	输出虚拟机进程启动时的 JVM 参数
+```
+
+
 
 
 #### jstat：虚拟机统计信息监视工具
 
-jstat（JVM Statistics Monitoring Tool），用于监视虚拟机各种运行状态信息。可以显示本地或者远程虚拟机进程中的类加载、内存、垃圾收集、即时编译等运行时数据。
+jstat（JVM Statistics Monitoring Tool），用于监视虚拟机各种运行状态信息。可以显示本地或者远程虚拟机进程中的**类加载、内存、垃圾收集、即时编译**等运行时数据。
+
+格式：
+
+```
+jstat [ option vmid [interval[s|ms] [count]] ]
+```
+
+> interval和count代表查询间隔和次数，如果省略这2个参数，说明只查询一次。
+>
+> 本地虚拟机进程，VMID与LVMID是一致的；如果是远程虚拟机进程，那VMID的格式应当是：
+>
+> ```
+> [protocol:][//]lvmid[@hostname[:port]/servername]
+> ```
+
+每250毫秒查询一次进程78335的垃圾收集状况，总共查询10次：
+
+```
+jstat -gc 78325 250 10
+```
+
+option代表用户希望查询的虚拟机信息，主要分为三类：**类加载、垃圾收集、运行期编译状况**。主要选项有：
+
+- -class	监视类装载、卸载数量、总空间及类装载所耗费的时间
+- -gc  监视Java堆状况，包括Eden区、2个Survivor区、老年代、永久代等的容量，已用空间，垃圾收集时间合计等信息
+
+- -gccapacity  监视内容与-gc基本相同，但输出主要关注Java堆各个区域使用到的最大和最小空间
+
+- -gcutil  监视内容与-gc基本相同，但输出主要关注已使用空间占总空间的百分比
+
+- -gccause   与-gcutil功能一样，但是会额外输出导致上一次GC产生的原因
+
+- -gcnew   监视新生代GC的状况
+
+- -gcnewcapacity  监视内容与-gcnew基本相同，输出主要关注使用到的最大和最小空间
+
+- -gcold  监视老年代GC的状况
+
+- -gcoldcapacity  监视内容与——gcold基本相同，输出主要关注使用到的最大和最小空间
+
+- -gcpermcapacity  输出永久代使用到的最大和最小空间
+
+- -compiler  输出JIT编译器编译过的方法、耗时等信息
+
+- -printcompilation  输出已经被JIT编译的方法
 
 
+
+```shell
+$ jstat -gcutil 78325
+  S0     S1     E      O      M     CCS    YGC     YGCT    FGC    FGCT    CGC    CGCT     GCT
+  0.00   0.00   3.02   4.86  97.68  94.19      2    0.032     1    0.014     -        -    0.046
+```
+
+- 2个Survivor区（S0、S1，表示Survivor0、Survivor1）里面都是空的
+- 新生代Eden区（E，表示Eden）使用了3.02%的空间
+
+- 老年代（O，表示Old）和元空间（M 代表Metaspace）则分别使用了4.86%和97.68%的空间。永久代（P，表示Permanent）jdk8之后移除。
+
+- 程序运行以来共发生Minor GC（YGC，表示Young GC）2次，总耗时0.032秒；
+
+  发生Full GC（FGC，表示Full GC）1次，总耗时（FGCT，表示Full GC Time）为0.014秒；
+
+  所有GC总耗时（GCT，表示GC Time）为0.046秒。
+
+> 可视化的监视工具：JMC、VisualVM等
 
 #### jinfo：Java配置信息工具
 
 jinfo（Configuration Info for Java）的作用是实时查看和调整虚拟机各项参数。
 
+```
+jinfo [ option ] pid
+```
+
 `-v`参数可以查看虚拟机启动时显式指定的参数列表。
+
+```
+jinfo -v 78325
+```
+
+`-flag`，如果想知道未被显式指定的参数的系统默认值，除了去找资料外，就只能通过jinfo的-flag选项查询。也可以使用-flag[+|-]name或者-flag name=value在运行期修改一部分运行期可写的虚拟机参数值
+
+```shell
+$ jinfo -flag CMSInitiatingOccupancyFraction 78325
+-XX:CMSInitiatingOccupancyFraction=-1
+```
+
+`-sysprops`选项把虚拟机进程的System.getProperties()的内容打印出来
+
+```
+jinfo -sysprops 78325
+```
 
 
 
 #### jmap：Java内存映像工具
 
-jmap（Memory Map for Java）命令用于生成堆转储快照（一般称为heapdump或dump文件）
+jmap（Memory Map for Java）命令用于生成堆转储快照（一般称为heapdump或dump文件），还可以查询finalize执行队列、Java堆和方法区的详细信息，如空间使用率、当前用的是哪种收集器等。
+
+```
+jmap [option] vimid
+```
+
+主要选项：
+
+- -dump  生成Java堆转储快照。格式为`-dump:[live,]format=b,file=<filename>`，几种live自参数说明是否值dump出存活对象
+- -finalizerinfo  显示在F-Queve 中等待 Finalizer 线程执行 finalize 方法的对象。只在Linux/Solaris平台下有效
+- -heap  显示 Java 堆详细信息，如使用哪种回收器、参数配置、分代状况等。只在Linux/Solaris 平台下有效
+- -histo  显示堆中对象统计信息，包括类、实例数量、合计容量
+- -permstat  以 ClassI oader 为统计口径显示永久代内存状态。只在Linux/Solaris 平台下有效
+- -F  当虚拟机进程对 -dump 选项没有响应时，可使用这个选项强制生成 dunp 快照。只在Linux/Solaris 平台下有效
+
+```shell
+$ jmap -dump:format=b,file=IDEA.bin  78325
+```
+
+```shell
+$ jmap -histo  78325
+ num     #instances         #bytes  class name
+----------------------------------------------
+   1:          1736        7333952  [I
+   2:         19378        1933480  [C
+   3:          1779         738944  [B
+   4:          3711         413816  java.lang.Class
+   5:         16818         403632  java.lang.String
+   6:          4084         315160  [Ljava.lang.Object;
+   7:          7814         250048  java.util.concurrent.ConcurrentHashMap$Node
+   8:          7152         114432  java.lang.Object
+   9:          1011          88968  java.lang.reflect.Method
+  10:            64          66400  [Ljava.util.concurrent.ConcurrentHashMap$Node;
+  11:          1678          53696  java.util.HashMap$Node
+  12:          1204          47808  [S
+  13:           635          45720  java.lang.reflect.Field
+  14:            80          43520  io.netty.util.internal.shaded.org.jctools.queues.atomic.MpscAtomicArrayQueue
+  15:           927          37080  java.util.LinkedHashMap$Entry
+  16:           325          36560  [Ljava.util.HashMap$Node;
+  
+  ....
+  
+  1382:             1             16  sun.util.locale.provider.SPILocaleProviderAdapter
+  1383:             1             16  sun.util.locale.provider.TimeZoneNameUtility$TimeZoneNameGetter
+  1384:             1             16  sun.util.resources.LocaleData
+  1385:             1             16  sun.util.resources.LocaleData$LocaleDataResourceBundleControl
+  Total         89736       12745656
+```
 
 
 
@@ -816,13 +962,29 @@ jmap（Memory Map for Java）命令用于生成堆转储快照（一般称为hea
 
 jhat（JVM Heap Analysis Tool），搭配jmap，分析jmap生成的堆转储快照。
 
+jhat内置了一个微型的HTTP/Web服务器，生成堆转储快照的分析结果后，可以在浏览器中查看。
+
 
 
 #### jstack：Java堆栈跟踪工具
 
-jstack（Stack Trace for Java）命令用于生成虚拟机当前时刻的线程快照（一般称为threaddump或者javacore文件）。
+jstack（Stack Trace for Java）命令用于生成虚拟机**当前时刻的线程快照**（一般称为threaddump或者javacore文件）。
 
+线程快照就是当前虚拟机内每一条线程正在执行的方法堆栈的集合。
 
+生成线程快照的目的通常是定位线程出现长时间停顿的原因，如线程间死锁、死循环、请求外部资源导致的长时间挂起等，都是导致线程长时间停顿的常见原因。
+
+```
+jstack [ option ] vmid
+```
+
+主要选项：
+
+- -F  当正常输出的请求不被响应时，强制输出线程堆栈
+- -l  除堆栈外，显示关于锁的附加信息
+- -m  如果调用到本地方法的话、可以显示C/C++的堆栈
+
+从JDK 5起，java.lang.Thread类新增了一个getAllStackTraces()方法用于获取虚拟机中所有线程的StackTraceElement对象。使用这个方法可以通过简单的几行代码完成jstack的大部分功能。
 
 #### 基础工具总结
 
@@ -938,13 +1100,31 @@ VisualVM（All-in-One Java Troubleshooting Tool）是功能最强大的运行监
 
 ## 6 类文件结构
 
-代码编译的结果从本地机器码转变为字节码，是存储格式发展的一小步，却是编程语言发展的一大步。
+代码编译的结果从**本地机器码**（Native Code）转变为**字节码**，是**存储格式**发展的一小步，却是编程语言发展的一大步。
 
 ### 6.1 概述
 
-越来越多的程序语言选择了与操作系统和机器指令集无关的、平台中立的格式作为程序编译后的存储格式。
+越来越多的程序语言选择了<u>与操作系统和机器指令集无关的、平台中立的格式作为程序编译后的存储格式</u>。
 
 ### 6.2 无关性的基石
+
+各种不同平台的Java虚拟机，以及所有平台都统一支持的程序存储格式——字节码（Byte Code）是构成平台无关性的基石。
+
+**语言无关性**正在越来越被开发者所重视。
+
+刻意把Java的规范拆分成了《Java语言规范》（The Java Language Specification）及《Java虚拟机规范》（The Java Virtual Machine Specification）两部分（https://docs.oracle.com/javase/specs/）。
+
+实现语言无关性的基础仍然是**虚拟机和字节码存储格式**。
+
+Class文件中包含了Java虚拟机**指令集、符号表以及若干其他辅助信息**。
+
+基于安全方面的考虑，《Java虚拟机规范》中要求在Class文件必须应用许多**强制性的语法和结构化约束**，但**图灵完备的字节码格式**，保证了任意一门**功能性语言**都可以表示为一个能被Java虚拟机所接受的有效的Class文件。
+
+Class文件是**交付媒介**。
+
+![](images/image-20220706192259956.png)
+
+Java语言中的各种语法、关键字、常量变量和运算符号的语义最终都会由多条字节码指令组合来表达，这决定了**==字节码指令==所能提供的语言描述能力必须比Java语言本身更加强大才行**。
 
 
 
@@ -954,43 +1134,152 @@ Java技术能够一直保持着非常良好的向后兼容性，**Class文件结
 
 尽管不同版本的《Java虚拟机规范》对Class文件格式进行了几次更新，但基本上**只是在原有结构基础上新增内容、扩充功能，并未对已定义的内容做出修改**。
 
-任何一个Class文件都对应着唯一的一个类或接口的定义信息，但是反过来说，类或接口并不一定都得定义在文件里（譬如类或接口也可以动态生成，直接送入类加载器）。
+**任何一个Class文件都对应着唯一的一个类或接口的定义信息**，但是反过来说，类或接口并不一定都得定义在文件里（譬如类或接口也可以动态生成，直接送入类加载器）。
 
-Class文件是一组以8个字节为基础单位的二进制流，各个数据项目严格按照顺序紧凑地排列在文件之中，中间没有添加任何分隔符。
+> 其实也有反例，譬如package-info.class、module-info.class这些文件就属于**完全描述性**的。
 
-![](images/image-20220504103119099.png)
+Class文件是一组以**8个字节**为基础单位的二进制流，各个数据项目**严格按照顺序**紧凑地排列在文件之中，中间没有添加任何分隔符。
+
+当遇到需要占用8个字节以上空间的数据项时，则会按照**高位在前**的方式分割成若干个8个字节进行存储。
+
+> **高位在前**，这种顺序称为“Big-Endian”，具体顺序是指按高位字节在地址最低位，最低字节在地址最高位来存储数据，它是SPARC、PowerPC等处理器的默认多字节存储顺序，而x86等处理器则是使用了相反的“Little-Endian”顺序来存储数据。
+
+![数据项按严格顺序排列](images/image-20220504103119099.png)
+
+容量计数器
+
+
 
 #### 魔数与Class文件的版本
 
-每个Class文件的头4个字节被称为**魔数（Magic Number）**。
+每个Class文件的头4个字节被称为**魔数（Magic Number）**，它的作用是确定这个文件是否为一个能被虚拟机接受的Class文件。Class文件的魔数是**==0xCAFEBABE==**（咖啡宝贝？）。
+
+> 很多文件格式标准中都有使用魔数来进行身份识别的习惯。
+
+紧接着魔数的4个字节存储的是**Class文件的版本号**：第5和第6个字节是次版本号（Minor Version），第7和第8个字节是主版本号（Major Version）。
 
 ![](images/image-20220504103327822.png)
 
+示例（本章之后的也用这个）
+
+```java
+package org.fenixsoft.clazz;
+
+public class TestClass {
+
+    private int m;
+
+    public int inc() {
+        return m + 1;
+    }
+}
+```
+
+它的Class文件用十六进制编辑器查看（vscode配合插件）：
+
+![](images/image-20220706234826431.png)
+
+前四个字节为0xCAFEBABE，表示次版本号的第5、6个字节值为0x0000，表示主版本号的第7、8字节值为0x0037，也就是十进制55，对应JDK11。
+
+![书籍中的](images/image-20220707093702461.png)
+
 #### 常量池
 
-紧接着主、次版本号之后的是常量池入口，常量池可以比喻为Class文件里的**资源仓库**，它是Class文件结构中与其他项目关联最多的数据，通常也是占用Class文件空间最大的数据项目之一，另外，它还是在Class文件中第一个出现的表类型数据项目。
+紧接着主、次版本号之后的是**常量池入口**，常量池可以比喻为Class文件里的**资源仓库**，它是Class文件结构中<u>与其他项目关联最多的数据</u>，通常也是<u>占用Class文件空间最大的数据项目之一</u>，另外，它还是在Class文件中第一个出现的表类型数据项目。
 
-常量池容量计数值（constant_pool_count）
+由于常量池中常量的数量是<u>不固定</u>的，所以在常量池的入口需要放置一项u2类型的数据，代表**==常量池容量计数值（constant_pool_count）==**。就是第9、10字节值，为0x0013，也就十进19，表示常量池中有19项常量，索引值范围为1~19。
 
-常量池中主要存放两大类常量：字面量（Literal）和符号引用（SymbolicReferences）。
+> 常量池容量计数值的计数设计与平常习惯不同，从1开始，这样之后就可以把索引值设置为0用来表示“不引用任何一个常量池项目”的含义。
+>
+> 对于其他集合类型，包括接口索引集合、字段表集合、方法表集合等的容量计数都是从0开始的。
+
+常量池中主要存放两大类常量：**字面量（Literal）**和**符号引用（SymbolicReferences）**。
+
+字面量比较接近于Java语言层面的常量概念，如**文本字符串、被声明为final的常量值**等。
+
+符号引用则属于编译原理方面的概念，主要包括下面几类常量：
+
+- 被模块导出或者开放的包（Package）
+- 类和接口的全限定名（Fully Qualified Name）
+- 字段的名称和描述符（Descriptor）
+- 方法的名称和描述符
+- 方法句柄和方法类型（Method Handle、Method Type、Invoke Dynamic）
+- 动态调用点和动态常量（Dynamically-Computed Call Site、Dynamically-Computed Constant）
+
+Java代码在进行Javac编译的时候，并不像C和C++那样有“连接”这一步骤，而是在虚拟机加载Class文件的时候进行**动态连接**。
 
 ![](images/image-20220504103920852.png)
+
+常量池这17种常量类型各自有着完全独立的数据结构，两两之间并没有什么共性和联系。tag值表示17类型。
+
+
+
+常量池的第一项常量，它的标志位（偏移地址：0x0000000A）是0x07，常量类型为CONSTANT_Class_info，这种类型只有tag、和name_index（u2，占用两个字节，就是0x0002）;
+
+第二项常量，标志位（偏移地址：0x0000000D）是0x01，类型为CONSTANT_Utf8_info。
+
+![](images/image-20220707093816372.png)
+
+第二项常量的length就是 0x001D，也就是29个字节，往后的29个字节表示的字符串内容为：`org/fenixsoft/clazz/TestClass`。
+
+![](images/image-20220707092831829.png)
+
+其余常量，可通过工具javap来分析：
+
+```shell
+>javap -verbose TestClass
+Compiled from "TestClass.java"
+public class org.fenixsoft.clazz.TestClass extends java.lang.Object
+    SourceFile: "TestClass.java"
+    minor version: 0
+    major version: 50
+    Constant pool:
+const #1 = class        #2;     //  org/fenixsoft/clazz/TestClass
+const #2 = Asciz        org/fenixsoft/clazz/TestClass;
+const #3 = class        #4;     //  java/lang/Object
+const #4 = Asciz        java/lang/Object;
+const #5 = Asciz        m;
+const #6 = Asciz        I;
+const #7 = Asciz        <init>;
+const #8 = Asciz        ()V;
+const #9 = Asciz        Code;
+const #10 = Method      #3.#11; //  java/lang/Object."<init>":()V
+const #11 = NameAndType #7:#8;//  "<init>":()V
+const #12 = Asciz       LineNumberTable;
+const #13 = Asciz       LocalVariableTable;
+const #14 = Asciz       this;
+const #15 = Asciz       Lorg/fenixsoft/clazz/TestClass;;
+const #16 = Asciz       inc;
+const #17 = Asciz       ()I;
+const #18 = Field       #1.#19; // org/fenixsoft/clazz/TestClass.m:I
+const #19 = NameAndType #5:#6;  // m:I
+const #20 = Asciz       SourceFile;
+const #21 = Asciz       TestClass.java;
+```
 
 
 
 ![常量池中的17种数据类型的结构总表](images/常量池中的17种数据类型的结构总表.png)
 
+UTF-8缩略编码
+
+
+
 #### 访问标志
 
-2个字节，访问标志（access_flags），这个标志用于**识别一些类或者接口层次的访问信息**，包括：这个Class是类还是接口；是否定义为public类型；是否定义为abstract类型；如果是类的话，是否被声明为final等等。
+常量池后紧接着的2个字节是**访问标志（access_flags）**，这个标志用于**识别一些类或者接口层次的访问信息**，包括：这个Class是类还是接口；是否定义为public类型；是否定义为abstract类型；如果是类的话，是否被声明为final等等。
 
 ![](images/image-20220504104825861.png)
 
 #### 类索引、父类索引与接口索引集合
 
-类索引（this_class）和父类索引（super_class）都是一个u2类型的数据，而接口索引集合（interfaces）是一组u2类型的数据的集合，Class文件中由这三项数据来确定该类型的继承关系。
+**类索引（this_class）**和**父类索引（super_class）**都是一个u2类型的数据，而**接口索引集合（interfaces）**是一组u2类型的数据的集合，Class文件中由这三项数据来确定该类型的继承关系。
 
+类索引用于确定这个类的全限定名，父类索引用于确定这个类的父类的全限定名。
 
+接口索引集合就用来描述这个类实现了哪些接口。
+
+接口计数器（interfaces_count）
 
 #### 字段表集合
 
@@ -998,11 +1287,23 @@ Class文件是一组以8个字节为基础单位的二进制流，各个数据�
 
 Java语言中的“字段”（Field）包括类级变量以及实例级变量，但不包括在方法内部声明的局部变量。
 
+字段可以包括的修饰符<u>有字段的作用域（public、private、protected修饰符）、是实例变量还是类变量（static修饰符）、可变性（final）、并发可见性（volatile修饰符，是否强制从主内存读写）、可否被序列化（transient修饰符）、字段数据类型（基本类型、对象、数组）、字段名称</u>。
+
+上述这些信息中，各个修饰符都是**布尔值**，要么有某个修饰符，要么没有，很适合使用标志位来表示。
+
 ![](images/image-20220504105301760.png)
+
+
+
+![](images/image-20220707095850332.png)
+
+
+
+![](images/image-20220707095943460.png)
 
 #### 方法表集合
 
-Class文件存储格式中对方法的描述与对字段的描述采用了几乎完全一致的方式，方法表的结构如同字段表一样，依次包括访问标志（access_flags）、名称索引（name_index）、描述符索引（descriptor_index）、属性表集合（attributes）。
+Class文件存储格式中**对方法的描述与对字段的描述采用了几乎完全一致**的方式，方法表的结构如同字段表一样，依次包括访问标志（access_flags）、名称索引（name_index）、描述符索引（descriptor_index）、属性表集合（attributes）。
 
 
 
@@ -1012,29 +1313,41 @@ Class文件存储格式中对方法的描述与对字段的描述采用了几乎
 
 ##### 1.Code属性
 
+Java程序方法体里面的代码经过Javac编译器处理之后，最终变为字节码指令存储在Code属性内。
 
+![](images/image-20220707100208332.png)
 
 ##### 2.Exceptions属性
 
-
+![](images/image-20220707100344773.png)
 
 ##### 3.LineNumberTable属性
 
+描述Java源码行号与字节码行号（字节码的偏移量）之间的对应关系。
 
+![](images/image-20220707100449061.png)
 
 ##### 4.LocalVariableTable及LocalVariableTypeTable属性
+
+LocalVariableTable属性用于**描述栈帧中局部变量表的变量与Java源码中定义的变量之间的关系**。
+
+LocalVariableTypeTable与LocalVariableTable类似，仅仅是把**记录的字段描述符的descriptor_index替换成了字段的特征签名（Signature）**。
 
 
 
 ##### 5.SourceFile及SourceDebugExtension属性
 
+SourceFile属性用于记录生成这个Class文件的源码文件名称。
+
 
 
 ##### 6.ConstantValue属性
 
-
+ConstantValue属性的作用是通知虚拟机自动为静态变量赋值。
 
 ##### 7.InnerClasses属性
+
+InnerClasses属性用于记录内部类与宿主类之间的关联。
 
 
 
@@ -1124,6 +1437,8 @@ Java虚拟机的指令由一个字节长度的、代表着某种特定操作含�
 
 
 #### 对象创建与访问指令
+
+虽然类实例和数组都是对象，但Java虚拟机对类实例和数组的创建与操作使用了不同的字节码指令。
 
 - 创建类实例的指令：new
 - 创建数组的指令：newarray、anewarray、multianewarray
