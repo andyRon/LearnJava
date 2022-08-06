@@ -1650,7 +1650,7 @@ Exception表示应用程序错误，它有很多子类，应用程序也可以�
 
 RuntimeException比较特殊，它的名字有点误导，因为其他异常也是运行时产生的，它表示的实际含义是**未受检异常**（unchecked exception），相对而言，Exception的其他子类和Exception自身则是**受检异常**（checked exception）,Error及其子类也是未受检异常。
 
-受检（checked）和未受检（unchecked）的区别在于Java如何处理这两种异常。<u>对于受检异常，Java会强制要求程序员进行处理，否则会有编译错误，而对于未受检异常则没有这个要求。</u>
+受检（checked）和未受检（unchecked）的区别在于Java如何处理这两种异常。<u>对于受检异常（必检异常），Java会强制要求程序员进行处理，否则会有编译错误，而对于未受检异常（免检异常）则没有这个要求。</u>
 
 ![](images/image-20220313115828549.png)
 
@@ -5924,17 +5924,17 @@ Java的动态特性：反射、注解、动态代理、类加载器等。
 
 每个已加载的类在内存都有一份类信息，每个对象都有指向它所属类信息的引用。
 
-1. 所有类的根父类Object有一个方法getClass，用于获取对象的Class对象：
+- 所有类的根父类Object有一个方法`getClass`，用于获取对象的Class对象：
 
-```
+```java
 public final native Class<? > getClass()
 ```
 
-Class是一个泛型类，有一个类型参数，getClass()并不知道具体的类型，所以返回Class<?>。
+Class是一个泛型类，有一个类型参数，getClass()并不知道具体的类型，所以返回`Class<?>`。
 
-2. 获取Class对象不一定需要实例对象，如果在写程序时就知道类名，可以使用`<类名>.class`获取Class对象。
+- 获取Class对象不一定需要实例对象，如果在写程序时就知道类名，可以使用`<类名>.class`获取Class对象。
 
-3. Class有一个静态方法forName（可能抛出ClassNotFoundException），可以根据类名直接加载Class，获取Class对象。
+- Class有一个静态方法`forName`（可能抛出ClassNotFoundException），可以根据类名直接加载Class，获取Class对象。
 
 ```java
 Class<Date> cls = Date.class;
@@ -5942,21 +5942,19 @@ Class<Date> cls = Date.class;
 Class<?> aClass = Class.forName("java.util.Date");
 ```
 
-
-
-接口也有Class对象：
+- 接口也有Class对象：
 
 ```java
 Class<Comparable> cls = Comparable.class;
 ```
 
-基本类型也有对应的Class对象，类型参数为对应的包装类型：
+- 基本类型也有对应的Class对象，类型参数为对应的包装类型：
 
 ```java
 Class<Integer> intCls = int.class; 
 ```
 
-对于数组，每种类型都有对应数组类型的Class对象，每个维度都有一个，即一维数组有一个，二维数组有一个不同的类型：
+- 对于数组，每种类型都有对应数组类型的Class对象，每个维度都有一个，即一维数组有一个，二维数组有一个不同的类型：
 
 ```java
 String[] strArr = new String[10];
@@ -5967,18 +5965,14 @@ Class<? extends int[][]> twoDimArrCls = twoDimArr.getClass();
 Class<? extends int[]> oneDimArrCls = oneDimArr.getClass();
 ```
 
-枚举类型也有对应的Class：
+- 枚举类型也有对应的Class：
 
 ```java
     enum Size {
         SMALL, MEDIUM, BIG
     }
-
-
 		Class<Size> sCls = Size.class;
 ```
-
-
 
 通过Class对象可以获得很多信息：
 
@@ -5988,7 +5982,7 @@ Class有四种与名称相关的方法。
 
  不同Class对象的各种名称方法的返回值：
 
-![image-20220325115839644](images/image-20220325115839644.png)
+![](images/image-20220325115839644.png)
 
 getSimpleName：名称不带包信息；
 
@@ -5998,7 +5992,7 @@ getCanonicalName：名称更为友好；
 
 getPackage返回的是包信息。
 
-> 数组类型的getName，`[`表示数组，几个就表示几维数组；
+> 数组类型的getName，`[`表示数组，几个就表示几维数组；比如上面的二位数组就是`[[I`
 >
 > 数组的类型用一个大写字符表示，`L`表示类或接口，`I`表示int，其它基本类型：boolean(Z)、byte(B)、char(C)、double(D)、float(F)、long(J)、short(S)；
 >
@@ -6082,9 +6076,11 @@ public Annotation[] getDeclaredAnnotations()
 public Method[] getMethods()
 //返回本类声明的所有方法，包括非public的，但不包括父类的
 public Method[] getDeclaredMethods()
+  
 //返回本类或父类中指定名称和参数类型的public方法，
 //找不到抛出异常NoSuchMethodException
 public Method getMethod(String name, Class<? >... parameterTypes)
+  
 //返回本类中声明的指定名称和参数类型的方法，找不到抛出异常NoSuchMethodException
 public Method getDeclaredMethod(String name, Class<? >... parameterTypes)
 ```
@@ -6100,10 +6096,10 @@ public String getName()
 public void setAccessible(boolean flag)
 //在指定对象obj上调用Method代表的方法，传递的参数列表为args
 public Object invoke(Object obj, Object... args) throws
-    IllegalAccessException, Illegal-ArgumentException, InvocationTargetException
+    IllegalAccessException, IllegalArgumentException, InvocationTargetException
 ```
 
- 对invoke方法，如果Method为静态方法，obj被忽略，可以为null, args可以为null，也可以为一个空的数组，方法调用的返回值被包装为Object返回，如果实际方法调用抛出异常，异常被包装为InvocationTargetException重新抛出，可以通过getCause方法得到原异常。
+ 对invoke方法，如果Method为静态方法，obj被忽略，可以为null, args可以为null，也可以为一个空的数组，方法调用的返回值被包装为Object返回，如果实际方法调用抛出异常，异常被包装为`InvocationTargetException`重新抛出，可以通过getCause方法得到原异常。
 
 ```java
 Class<Integer> icls = Integer.class;
@@ -6163,7 +6159,35 @@ Constructor还有很多获取关于构造方法信息（参数、修饰符、注
 
 #### 5.类型检查和转换
 
-🔖
+```java
+if (list instanceof ArrayList) {
+  System.out.println("array list");
+}
+```
+
+等价于：
+
+```java
+Class cls = Class.forName("java.util.ArrayList");
+if (cls.isIntance(list)) {
+  System.out.println("array list");
+}
+```
+
+动态的强制转换类型：
+
+```java
+cls.cast(obj);
+```
+
+判断Class之间的关系：
+
+```java
+// 检查参数类型cls能否赋给当前Class类型的变量
+public native boolean isAssignableFrom(Class<? > cls);
+
+Object.class.isAssignableFrom(String.class)
+```
 
 #### 6.Class的类型信息
 
@@ -6177,8 +6201,6 @@ public boolean isAnonymousClass()  //是否是匿名内部类
 public boolean isMemberClass()  //是否是成员类，成员类定义在方法外，不是匿名类
 public boolean isLocalClass()  //是否是本地类，本地类定义在方法内，不是匿名类
 ```
-
-
 
 #### 7.类的声明信息
 
@@ -6212,7 +6234,7 @@ public static Class<? > forName(String className)
 public static Class<? > forName(String name, boolean initialize,  ClassLoader loader)
 ```
 
-ClassLoader表示类加载器；initialize表示加载后，是否执行类的初始化代码（如static语句块）。第一个方法中没有传这些参数，相当于：
+ClassLoader表示类加载器；initialize表示加载后，<u>是否执行类的初始化代码</u>（如static语句块）。第一个方法中没有传这些参数，相当于：
 
 ```java
 Class.forName(className, true, currentLoader)
@@ -6226,7 +6248,13 @@ Class cls = Class.forName(name);
 System.out.println(cls == String[].class);
 ```
 
-
+> java9的添加的forName方法：
+>
+> ```java
+> public static Class<? > forName(Module module, String name)
+> ```
+>
+> 
 
 #### 9.反射与数组
 
@@ -6258,7 +6286,7 @@ public static native void set(Object array, int index, Object value)
 public static native int getLength(Object array)
 ```
 
-
+🔖
 
 #### 10.反射与枚举
 
@@ -6269,6 +6297,92 @@ public T[] getEnumConstants()
 ```
 
 ### 21.2 应用示例：实现简单的通用序列化/反序列化
+
+```java
+/**
+ * 利用反射实现一个简单的通用序列化/反序列化类SimpleMapper
+ * 只支持最简单的类，即有默认构造方法，成员类型只有基本类型、包装类或String。
+ */
+public class SimpleMapper {
+    public static String toString(Object obj) {
+        try {
+            Class<?> cls = obj.getClass();
+            StringBuilder sb = new StringBuilder();
+            sb.append(cls.getName() + "\n");
+            for (Field f : cls.getDeclaredFields()) {
+                if (! f.isAccessible()) {
+                    f.setAccessible(true);
+                }
+                sb.append(f.getName() + "=" + f.get(obj).toString() + "\n");
+            }
+            return sb.toString();
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object fromString(String str) {
+        try {
+            String[] lines = str.split("\n");
+            if (lines.length < 1) {
+                throw new IllegalArgumentException(str);
+            }
+            Class<?> cls = Class.forName(lines[0]);
+            Object obj = cls.newInstance();
+            if (lines.length > 1) {
+                for (int i = 1; i < lines.length; i++) {
+                    String[] fv = lines[i].split("=");
+                    if (fv.length != 2) {
+                        throw new IllegalArgumentException(lines[i]);
+                    }
+                    Field f = cls.getDeclaredField(fv[0]);
+                    if (! f.isAccessible()) {
+                        f.setAccessible(true);
+                    }
+                    setFieldValue(f, obj, fv[1]);
+                }
+            }
+            return obj;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 根据字段的类型，将字符串形式的值转换为了对应类型的值。
+     * 对于基本类型和String以外的类型，它假定该类型有一个以String类型为参数的构造方法。
+     * @param f 字段
+     * @param obj 对象
+     * @param value 字段的值
+     * @throws Exception
+     */
+    private static void setFieldValue(Field f, Object obj, String value) throws Exception {
+        Class<?> type = f.getType();
+        if (type == int.class) {
+            f.setInt(obj, Integer.parseInt(value));
+        } else if (type == byte.class) {
+            f.setByte(obj, Byte.parseByte(value));
+        } else if (type == long.class) {
+            f.setLong(obj, Long.parseLong(value));
+        } else if (type == short.class) {
+            f.setShort(obj, Short.parseShort(value));
+        } else if (type == float.class) {
+            f.setFloat(obj, Float.parseFloat(value));
+        } else if (type == double.class) {
+            f.setDouble(obj, Double.parseDouble(value));
+        } else if (type == char.class) {
+            f.setChar(obj, value.charAt(0));
+        } else if (type == boolean.class) {
+            f.setBoolean(obj, Boolean.parseBoolean(value));
+        } else if (type == String.class) {
+            f.set(obj, value);
+        } else {
+            Constructor<?> constructor = type.getConstructor(new Class[]{String.class});
+            f.set(obj, constructor.newInstance(value));
+        }
+    }
+}
+```
 
 
 
@@ -6308,7 +6422,7 @@ Type是一个接口，Class实现了Type, Type的其他子接口还有：
 - ParameterizedType：参数化的类型，有原始类型和具体的类型参数，比如`List<String>`；
 - WildcardType：通配符类型，比如？、? extends Number、? superInteger。
 
-；🔖
+🔖
 
 
 
