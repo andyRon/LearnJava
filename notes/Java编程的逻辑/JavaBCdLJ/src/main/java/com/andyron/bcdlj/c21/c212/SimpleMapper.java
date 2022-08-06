@@ -3,6 +3,10 @@ package com.andyron.bcdlj.c21.c212;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
+/**
+ * 利用反射实现一个简单的通用序列化/反序列化类SimpleMapper
+ * 只支持最简单的类，即有默认构造方法，成员类型只有基本类型、包装类或String。
+ */
 public class SimpleMapper {
     public static String toString(Object obj) {
         try {
@@ -48,6 +52,14 @@ public class SimpleMapper {
         }
     }
 
+    /**
+     * 根据字段的类型，将字符串形式的值转换为了对应类型的值。
+     * 对于基本类型和String以外的类型，它假定该类型有一个以String类型为参数的构造方法。
+     * @param f 字段
+     * @param obj 对象
+     * @param value 字段的值
+     * @throws Exception
+     */
     private static void setFieldValue(Field f, Object obj, String value) throws Exception {
         Class<?> type = f.getType();
         if (type == int.class) {
@@ -72,6 +84,5 @@ public class SimpleMapper {
             Constructor<?> constructor = type.getConstructor(new Class[]{String.class});
             f.set(obj, constructor.newInstance(value));
         }
-
     }
 }
