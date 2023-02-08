@@ -1013,7 +1013,7 @@ Java Server Pages ： Java服务器端页面，也和Servlet一样，用于动�
 Tomcat 中有一个 work 工作目录；
 IDEA 中使用 Tomcat 的会在 IDEA 中 Tomcat 中生产一个 work 目录
 
-<img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211022200101599.png" alt="image-20211022200101599" style="zoom:33%;" />
+<img src="images/image-20211022200101599.png" alt="image-20211022200101599" style="zoom:33%;" />
 
 发现页面转变成了 Java 程序
 

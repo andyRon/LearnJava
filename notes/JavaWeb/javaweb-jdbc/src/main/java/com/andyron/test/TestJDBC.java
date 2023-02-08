@@ -8,7 +8,9 @@ import java.sql.*;
 public class TestJDBC {
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
-        test3();
+//        test1();
+        String str = "adfafdasf";
+        System.out.println(Integer.toBinaryString(10));
     }
 
     static void test1() throws ClassNotFoundException, SQLException {
