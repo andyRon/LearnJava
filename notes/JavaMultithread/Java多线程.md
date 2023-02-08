@@ -691,7 +691,7 @@ Java提供了几个方法解决线程之间的通信问题：
 
 生产者将生产好的数据放入缓冲区，消费者从缓冲区拿出数据。
 
-<img src="/Users/andyron/Library/Application Support/typora-user-images/image-20211015102732215.png" style="zoom:50%;" />
+<img src="images/image-20211015102732215.png" style="zoom:50%;" />
 
 
 
