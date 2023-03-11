@@ -689,21 +689,32 @@ Exception in thread "main" java.lang.StackOverflowError
 >
 > 需要排查各种内存溢出、内存泄漏问题时，当垃圾收集成为系统达到更高并发量的==瓶颈==时，我们就必须对这些“自动化”的技术实施必要的==监控和调节==。
 
-Java堆和方法区有着很显著的不确定性：<u>一个接口的多个实现类需要的内存可能会不一样，一个方法所执行的不同条件分支所需要的内存也可能不一样，只有处于运行期间，我们才能知道程序究竟会创建哪些对象，创建多少个对象，这部分内存的分配和回收是动态的。</u>
+Java堆和方法区有着很显著的不确定性：**一个接口的多个实现类需要的内存可能会不一样，一个方法所执行的不同条件分支所需要的内存也可能不一样**，只有处于运行期间，我们才能知道程序究竟会创建哪些对象，创建多少个对象，这部分内存的分配和回收是动态的。
 
 ### 3.2 对象已死？
 
-#### 引用计数（Reference Counting）算法
+在堆里面存放着Java世界中几乎所有的对象实例，垃圾收集器在对堆进行回收前，第一件事情就是要确定这些对象之中==哪些还“存活”着，哪些已经“死去”==（“死去”即不可能再被任何途径使用的对象）了。
+
+#### 引用计数算法
+
+引用计数（Reference Counting）
 
 优点：原理简单，判定效率高
 
-缺点：需要额外的内存空间；有很多例外情况要考虑，必须要配合大量额外处理才能保证正确地工作。
+缺点：需要额外的内存空间；有很多==例外==情况要考虑，必须要配合==大量额外处理==才能保证正确地工作。
+
+应用案例：微软COM（Component Object Model）技术、使用ActionScript 3的FlashPlayer、Python语言以及在游戏脚本领域。
+
+主流的Java虚拟机都没有选用引用计数算法来管理内存。
 
 ```java
 /**
+ * 引用计数算法的缺陷 缺陷测试
  * testGC()方法执行后，objA和objB会不会被GC呢？
- * @author zzm
- */
+ *
+ * vm options： -verbose:gc -XX:+PrintGCDetails
+ * @Author: andyron
+ **/
 public class ReferenceCountingGC {
 
     public Object instance = null;
@@ -727,18 +738,42 @@ public class ReferenceCountingGC {
         // 假设在这行发生GC，objA和objB是否能被回收？
         System.gc();
     }
+  
+  	public static void main(String[] args) {
+    		testGC();
+    }
 }
 ```
 
+运行结果（vm options： `-verbose:gc -XX:+PrintGCDetails`）：
+
+```shell
+[GC (System.gc()) [PSYoungGen: 8028K->480K(76288K)] 8028K->488K(251392K), 0.0009473 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+[Full GC (System.gc()) [PSYoungGen: 480K->0K(76288K)] [ParOldGen: 8K->348K(175104K)] 488K->348K(251392K), [Metaspace: 3281K->3281K(1056768K)], 0.0026178 secs] [Times: user=0.01 sys=0.00, real=0.00 secs] 
+Heap
+ PSYoungGen      total 76288K, used 3277K [0x000000076ab00000, 0x0000000770000000, 0x00000007c0000000)
+  eden space 65536K, 5% used [0x000000076ab00000,0x000000076ae334e8,0x000000076eb00000)
+  from space 10752K, 0% used [0x000000076eb00000,0x000000076eb00000,0x000000076f580000)
+  to   space 10752K, 0% used [0x000000076f580000,0x000000076f580000,0x0000000770000000)
+ ParOldGen       total 175104K, used 348K [0x00000006c0000000, 0x00000006cab00000, 0x000000076ab00000)
+  object space 175104K, 0% used [0x00000006c0000000,0x00000006c00572f0,0x00000006cab00000)
+ Metaspace       used 3290K, capacity 4496K, committed 4864K, reserved 1056768K
+  class space    used 350K, capacity 388K, committed 512K, reserved 1048576K
+```
+
+**8028K->488K**，意味着虚拟机并没有因为这两个对象互相引用就放弃回收它们，也说明JVM并不是通过引用计数算法来判断对象是否存活的。
 
 
-#### 可达性分析（Reachability Analysis）算法
 
-当前主流的商用程序语言（Java、C#，上溯至前面提到的古老的Lisp）的内存管理子系统，都是通过可达性分析算法来判定对象是否存活的。
+#### 可达性分析算法
 
-基本思路：通过一系列称为“**GC Roots**”的根对象作为起始节点集，从这些节点开始，根据引用关系向下搜索，搜索过程所走过的路径称为“**引用链**”（Reference Chain），如果某个对象到GC Roots间没有任何引用链相连，或者用图论的话来说就是从GC Roots到这个对象不可达时，则证明此对象是不可能再被使用的。
+当前主流的商用程序语言（Java、C#，上溯至前面提到的古老的Lisp）的内存管理子系统，都是通过==可达性分析算法==（Reachability Analysis）来判定对象是否存活的。
+
+基本思路：通过一系列称为“**==GC Roots==**”的根对象作为起始节点集，从这些节点开始，根据引用关系向下搜索，搜索过程所走过的路径称为“**==引用链==**”（Reference Chain），如果某个对象到GC Roots间没有任何引用链相连，或者用图论的话来说就是从GC Roots到这个对象==不可达时==，则证明此对象是不可能再被使用的。
 
 ![](images/image-20220517110028202.png)
+
+对象object 5、object 6、object 7虽然互有关联，但是它们到GC Roots是不可达的，因此它们将会被判定为可回收的对象。
 
 在Java技术体系里面，固定可作为GC Roots的对象包括以下几种：
 
@@ -746,19 +781,33 @@ public class ReferenceCountingGC {
 - 在方法区中类静态属性引用的对象，譬如Java类的引用类型静态变量。
 - 在方法区中常量引用的对象，譬如字符串常量池（String Table）里的引用。
 - 在本地方法栈中JNI（即通常所说的Native方法）引用的对象。
-- Java虚拟机内部的引用，如基本数据类型对应的Class对象，一些常驻的异常对象（比如NullPointExcepiton、OutOfMemoryError）等，还有系统类加载器。
-- 所有被同步锁（synchronized关键字）持有的对象。
-- 反映Java虚拟机内部情况的JMXBean、JVMTI中注册的回调、本地代码缓存等。
+- **Java虚拟机内部的引用**，如基本数据类型对应的Class对象，一些常驻的异常对象（比如NullPointExcepiton、OutOfMemoryError）等，还有系统类加载器。
+- 所有被**同步锁**（`synchronized`）持有的对象。
+- 反映Java虚拟机内部情况的==JMXBean==、==JVMTI==中注册的回调、本地代码缓存等。
 
+#### 再谈==引用==
 
+> 引用计数算法和可达性分析算法，判定对象是否存活都和“引用”离不开关系。
 
-#### 再谈引用
+JDK 1.2版之前，传统有点狭隘的**引用**的定义：如果reference类型的数据中存储的数值代表的是另外一块内存的起始地址，就称该reference数据是代表某块内存、某个对象的引用。也就是“被引用”或者“未被引用”两种状态。
 
-JDK 1.2版之前，优点狭隘的**引用**的定义：如果reference类型的数据中存储的数值代表的是另外一块内存的起始地址，就称该reference数据是代表某块内存、某个对象的引用。也就是“被引用”或者“未被引用”两种状态。
+JDK 1.2版之后，扩充引用的定义，引用强度由强到弱分为：
 
-JDK 1.2版之后，扩充引用的定义，分为**强引用（StronglyRe-ference）、软引用（Soft Reference）、弱引用（Weak Reference）和虚引用（Phantom Reference）**，引用强度依次逐渐减弱。
+- **强引用（StronglyRe-ference）**：传统引用
 
-#### 生存还是死亡？
+- **软引用（Soft Reference）**：描述一些还有用，但非必须的对象。`SoftReference`
+
+  只被**软引用**关联着的对象，在系统将要发生内存溢出异常前，会把这些对象列进回收范围之中进行第二次回收，如果这次回收还没有足够的内存，才会抛出内存溢出异常。
+
+- **弱引用（Weak Reference）** `WeakReference`
+
+  被弱引用关联的对象只能生存到下一次垃圾收集发生为止。当垃圾收集器开始工作，无论当前内存是否足够，都会回收掉只被弱引用关联的对象。
+
+- **虚引用（Phantom Reference）** 也称为“幽灵引用”或者“幻影引用”。 `PhantomReference`
+
+  一个对象是否有虚引用的存在，完全不会对其生存时间构成影响，也无法通过虚引用来取得一个对象实例。为一个对象设置虚引用关联的唯一目的<u>只是为了能在这个对象被收集器回收时收到一个系统通知</u>。
+
+#### 生存还是死亡？🔖
 
 标记过程
 
@@ -766,31 +815,144 @@ finalize()
 
 F-Queue
 
+```java
+/**
+ * 此代码演示了两点：
+ * 1.对象可以在被GC时自我拯救。
+ * 2.这种自救的机会只有一次，因为一个对象的finalize()方法最多只会被系统自动调用一次
+ * @author zzm
+ */
+public class FinalizeEscapeGC {
+
+    public static FinalizeEscapeGC SAVE_HOOK = null;
+
+    public void isAlive() {
+        System.out.println("yes, i am still alive :)");
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        System.out.println("finalize method executed!");
+        FinalizeEscapeGC.SAVE_HOOK = this;
+    }
+
+    public static void main(String[] args) throws Throwable {
+        SAVE_HOOK = new FinalizeEscapeGC();
+
+        //对象第一次成功拯救自己
+        SAVE_HOOK = null;
+        System.gc();
+        // 因为Finalizer方法优先级很低，暂停0.5秒，以等待它
+        Thread.sleep(500);
+        if (SAVE_HOOK != null) {
+            SAVE_HOOK.isAlive();
+        } else {
+            System.out.println("no, i am dead :(");
+        }
+
+        // 下面这段代码与上面的完全相同，但是这次自救却失败了
+        SAVE_HOOK = null;
+        System.gc();
+        // 因为Finalizer方法优先级很低，暂停0.5秒，以等待它
+        Thread.sleep(500);
+        if (SAVE_HOOK != null) {
+            SAVE_HOOK.isAlive();
+        } else {
+            System.out.println("no, i am dead :(");
+        }
+    }
+}
+```
+
+
+
+finalize()方法是对象逃脱死亡命运的最后一次机会。
+
+
+
+建议尽量避免使用finalize()，因为并不能等同于C和C++语言中的析构函数。
+
 #### 回收方法区
+
+方法区垃圾收集的“性价比”通常也是比较低的：在Java堆中，尤其是在新生代中，对常规应用进行一次垃圾收集通常可以回收70%至99%的内存空间，相比之下，方法区回收囿于苛刻的判定条件，其区域垃圾收集的回收成果往往远低于此。
+
+方法区的垃圾收集主要回收两部分内容：==废弃的常量和不再使用的类型==。
+
+回收废弃常量与回收Java堆中的对象非常类似。常量池中其他类（接口）、方法、字段的符号引用也与此类似。
+
+判定一个类型是否属于“不再被使用的类”的条件就比较苛刻了。需要同时满足：
+
+- 该类所有的实例都已经被回
+- 加载该类的类加载器已经被回收
+- 该类对应的java.lang.Class对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法
 
 🔖
 
+`-Xnoclassgc`
+
+`-verbose：class`
+
+`-XX：+TraceClassLoading`
+
+`-XX：+TraceClassUnLoading`
+
+在大量使用反射、动态代理、CGLib等字节码框架，动态生成JSP以及OSGi这类频繁自定义类加载器的场景中，通常都需要Java虚拟机具备类型卸载的能力，以保证不会对方法区造成过大的内存压力。
+
 ### 3.3 垃圾收集算法
 
-收集理论和几种算法思想及其发展过程
+介绍分代收集理论和几种算法思想及其发展过程。
+
+> 垃圾收集算法的实现涉及大量的程序细节，且各个平台的虚拟机操作内存的方法都有差异，可参考[《垃圾回收算法手册》](https://book.douban.com/subject/26740958/)第2-4章。
+
+从如何判定对象消亡的角度出发，垃圾收集算法可以划分为“==引用计数式垃圾收集==”（Reference Counting GC）和“==追踪式垃圾收集==”（Tracing GC）两大类，这两类也常被称作“==直接垃圾收集==”和“==间接垃圾收集==”。
+
+前者在主流JVM中位涉及，因而主要介绍后者。
 
 #### 分代收集理论
 
+一致的设计**原则**：收集器应该将Java堆<u>划分出不同的区域</u>，然后将回收对象依据其年龄（年龄即对象熬过垃圾收集过程的次数）分配到不同的区域之中存储。
 
+如果一个区域中大多数对象都是朝生夕灭，难以熬过垃圾收集过程的话，那么把它们集中放在一起，每次回收时**只关注如何保留少量存活而不是去标记那些大量将要被回收的对象**，就能以较低代价回收到大量的空间；如果剩下的都是难以消亡的对象，那把它们集中放在一块，虚拟机便可以使用较低的频率来回收这个区域，这就同时兼顾了垃圾收集的时间开销和内存的空间有效利用。
+
+设计者一般至少会把Java堆划分为==新生代（Young Generation）==和==老年代（Old Generation）==两个区域。
+
+🔖
 
 #### 标记-清除算法
 
+1960，最早出现也是最基础的垃圾收集算法是==“标记-清除”（Mark-Sweep）==算法。
 
+算法分为“标记”和“清楚”两个阶段：首先标记出所有需要回收的对象，在标记完成后，统一回收掉所有被标记的对象。
+
+也可以反过来，标记存活的对象，统一回收所有未被标记的对象。**标记过程就是对象是否属于垃圾的判定过程**。
+
+两个缺点：
+
+- 执行效率不稳定
+- 内存空间的碎片化问题
+
+![](images/image-20230311170618229.png)
 
 #### 标记-复制算法
 
+为了了解决标记-清除算法面对大量可回收对象时执行效率低的问题，1969年Fenichel提出了一种称为**“半区复制”（Semispace Copying）**的垃圾收集算法，它**将可用内存按容量划分为大小相等的两块，每次只使用其中的一块。当这一块的内存用完了，就将还存活着的对象复制到另外一块上面，然后再把已使用过的内存空间一次清理掉。**
 
+🔖
+
+![](images/image-20230311170639490.png)
 
 #### 标记-整理算法
 
+针对老年代对象的存亡特征，1974年Edward Lueders提出了另外一种有针对性的==“标记-整理”（Mark-Compact）==算法，其中的标记过程仍然与“标记-清除”算法一样，但后续步骤不是直接对可回收对象进行清理，而是**让所有存活的对象都向内存空间一端移动**，然后直接清理掉边界以外的内存。
 
+![](images/image-20230311170653614.png)
 
-### 3.4 HotSpot的算法细节实现
+🔖
+
+### 3.4 HotSpot的算法细节实现🔖
+
+Java虚拟机实现这些算法时，必须==对算法的执行效率有严格的考量==，才能保证虚拟机高效运行。
 
 #### 根节点枚举
 
@@ -820,37 +982,88 @@ F-Queue
 
 收集算法是内存回收的方法论，垃圾收集器就是内存回收的实践者。
 
+各款经典收集器之间的关系：
+
 ![](images/image-20220503215445077.png)
+
+如果两个收集器之间存在连线，就说明它们可以==搭配==使用。
+
+学习各种收集器，==并非为了挑选一个最好的收集器出来，而是为了选择对具体应用最合适的收集器==。
 
 #### Serial收集器
 
+最早的单线程串行垃圾收集器。“单线程”两层意义：
 
+- 只会使用一个处理器或一条收集线程去完成垃圾收集工作
+
+- 它进行垃圾收集时，必须暂停其他所有工作线程，直到它收集结束。
+
+![](images/image-20230311172845493.png)
+
+目前Serial收集器依然是HotSpot虚拟机运行在客户端模式下的==默认新生代收集器==，简单而高效。
 
 #### ParNew收集器
 
+ParNew收集器实质上是Serial收集器的==多线程并行版本==，除了同时使用多条线程进行垃圾收集之外，其余的行为包括Serial收集器可用的所有控制参数（例如：`-XX:SurvivorRatio`、`-XX:PretenureSizeThreshold`、`-XX：HandlePromotionFailure`等）、收集算法、Stop The World、对象分配规则、回收策略等都与Serial收集器完全一致。
 
+![](images/image-20230311173151124.png)
 
 #### Parallel Scavenge收集器
 
+基于标记-复制算法实现的收集器，也是能够并行收集的多线程收集器。表上类似ParNew。
 
+Parallel Scavenge收集器的目标则是达到一个可控制的==吞吐量（Throughput）==。
+
+> 吞吐量就是处理器用于运行用户代码的时间与处理器总消耗时间的比值：
+>
+> ![](images/image-20230311174823465.png)
 
 #### Serial Old收集器
+
+Serial收集器的老年代版本，使用标记-整理算法
+
+![](images/image-20230311175003659.png)
 
 
 
 #### Parallel Old收集器
 
+Parallel Scavenge收集器的老年代版本，支持多线程并发收集，基于标记-整理算法实现。
+
+![](images/image-20230311175047267.png)
+
+#### CMS收集器🔖
+
+==CMS（Concurrent Mark Sweep）==收集器是一种以获取==最短回收停顿时间==为目标的收集器。
+
+目前很大一部分的Java应用集中在互联网网站或者基于浏览器的B/S系统的服务端上，这类应用通常都会较为关注服务的响应速度，希望系统停顿时间尽可能短，以给用户带来良好的交互体验。CMS收集器就非常符合这类应用的需求。
+
+CMS收集器，四个步骤：
+
+1. 初始标记（CMS initial mark）
+2. 并发标记（CMS concurrent mark）
+3. 重新标记（CMS remark）
+4. 并发清除（CMS concurrent sweep）
+
+![](images/image-20230311175318794.png)
+
+#### Garbage First收集器🔖
+
+Garbage First（简称==G1==）收集器是垃圾收集器技术发展历史上的里程碑式的成果，它开创了收集器==面向局部收集的设计思路==和==基于Region的内存布局==形式。
+
+![](images/image-20230311175514033.png)
+
+### 3.6 低延迟垃圾收集器🔖
+
+衡量垃圾收集器的三项最重要的指标是：==内存占用（Footprint）、吞吐量（Throughput）和延迟（Latency）==。
+
+随着计算机硬件的发展，内存和吞吐量不是那么重要，延迟的重要性日益凸显。
+
+![](images/image-20230311175925756.png)
+
+浅色阶段表示必须挂起用户线程，深色表示收集器线程与用户线程是并发工作的。
 
 
-#### CMS收集器
-
-
-
-#### Garbage First收集器
-
-
-
-### 3.6 低延迟垃圾收集器
 
 #### Shenandoah收集器
 
@@ -864,7 +1077,9 @@ F-Queue
 
 #### Epsilon收集器
 
+G1、Shenandoah或者ZGC这些越来越复杂、越来越先进。
 
+Epsilon“反其道而行”
 
 #### 收集器的权衡
 
@@ -872,25 +1087,31 @@ F-Queue
 
 #### 虚拟机及垃圾收集器日志
 
+阅读分析虚拟机和垃圾收集器的日志是处理Java虚拟机内存问题必备的基础技能。
 
+JDK 9后，HotSpot所有功能的日志都收归到了“-Xlog”参数上：
 
 ```
 -Xlog[:[selector][:[output][:[decorators][:output-options]]]]
 ```
 
+命令行中最关键的参数是==选择器（Selector）==，它由==标签（Tag）==和==日志级别（Level）==共同组成。
 
+标签可理解为虚拟机中某个功能模块的名字，它告诉日志框架用户希望得到虚拟机哪些功能的日志输出。垃圾收集器的标签名称为“gc”，由此可见，垃圾收集器日志只是HotSpot众多功能日志的其中一项，全部支持的功能模块标签名如下所示：
 
 ```
 add，age，alloc，annotation，aot，arguments，attach，barrier，biasedlocking，blocks，bot，breakpoint，bytecode，census，class，classhisto，cleanup，compaction，comparator，constraints，constantpool，coops，cpu，cset，data，defaultmethods，dump，ergo，event，exceptions，exit，fingerprint，freelist，gc，hashtables，heap，humongous，ihop，iklass，init，itables，jfr，jni，jvmti，liveness，load，loader，logging，mark，marking，metadata，metaspace，method，mmu，modules，monitorinflation，monitormismatch，nmethod，normalize，objecttagging，obsolete，oopmap，os，pagesize，parser，patch，path，phases，plab，preorder，promotion，protectiondomain，purge，redefine，ref，refine，region，remset，resolve，safepoint，scavenge，scrub，setting，stackmap，stacktrace，stackwalk，start，startuptime，state，stats，stringdedup，stringtable，subclass，survivor，sweep，system，task，thread，time，timer，tlab，unload，update，verification，verify，vmoperation，vtables，workgang
 ```
 
+🔖
 
+![](images/image-20230311175927756.png)
 
 #### 垃圾收集器参数总结
 
+![垃圾收集相关的常用参数](images/垃圾收集相关的常用参数.png)
 
-
-### 3.8 实战：内存分配与回收策略
+### 3.8 实战：内存分配与回收策略🔖🔖
 
 #### 对象优先在Eden分配
 
