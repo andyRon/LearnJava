@@ -1962,9 +1962,9 @@ e.getMessage()获取异常消息，e.printStackTrace()打印异常栈到标准�
 
 #### 基本用法
 
-各个包装类都可以与其对应的基本类型相互转换，转换代码结构是类似的，每种包装类都有一个静态方法**valueOf()**，接受基本类型，返回引用类型，也都有一个实例方法**xxxValue()**返回对应的基本类型。
+各个包装类都可以与其对应的基本类型相互转换，转换代码结构是类似的，每种包装类都有一个静态方法`valueOf()`，接受基本类型，返回引用类型，也都有一个实例方法`xxxValue()`返回对应的基本类型。
 
-将基本类型转换为包装类的过程，一般称为“**装箱**”，而将包装类型转换为基本类型的过程，则称为“**拆箱**”。Java 5引入自动装箱和拆箱:
+将基本类型转换为包装类的过程，一般称为“**==装箱==**”，而将包装类型转换为基本类型的过程，则称为“**==拆箱==**”。Java 5引入自动装箱和拆箱:
 
 ```java
 Integer a = 100;
@@ -1984,7 +1984,15 @@ int b = a.intValue();
 
 ##### 1 重写了Object的方法
 
-1. equals
+```java
+        boolean equals(Object obj)
+        int hashCode()
+        String toString()
+```
+
+
+
+- equals
 
 Object类的默认实现是比较地址，对于两个变量，<u>只有这两个变量指向同一个对象时</u>，equals才返回true，和比较运算符（==）的结果是一样的。
 
@@ -2008,7 +2016,7 @@ Object类的默认实现是比较地址，对于两个变量，<u>只有这两�
     }
 ```
 
-静态方法floatToIntBits()，将float的二进制表示看作int。**只有两个float的二进制表示完全一样的时候，equals才会返回true**。但小数计算，就算把浮点数看作整数，计算机运算结果可能不同的。
+🔖静态方法`floatToIntBits()`，将float的二进制表示看作int。**只有两个float的二进制表示完全一样的时候，equals才会返回true**。但小数计算，就算把浮点数看作整数，计算机运算结果可能不同的。
 
 ```java
 Float f1 = 0.01f;
@@ -2028,15 +2036,15 @@ false
 
 
 
-2. hashCode
+- hashCode
 
 hashCode返回一个对象的哈希值（一个int类型的数），由对象中**一般不变的属性映射得来，用于快速对对象进行区分、分组等**。
 
-一个对象的哈希值不能改变，相同对象的哈希值必须一样。不同对象的哈希值一般应不同，但这不是必需的，可以有对象不同但哈希值相同的情况。
+==一个对象的哈希值不能改变，相同对象的哈希值必须一样==。不同对象的哈希值一般应不同，但这不是必需的，可以有对象不同但哈希值相同的情况。
 
-**对两个对象，如果equals方法返回true，则hashCode也必须一样**。反之不要求，equal方法返回false时，hashCode可以一样，也可以不一样，但应该尽量不一样。
+**==对两个对象，如果equals方法返回true，则hashCode也必须一样==**。反之不要求，equal方法返回false时，hashCode可以一样，也可以不一样，但应该尽量不一样。
 
-hashCode的默认实现一般是**将对象的内存地址转换为整数**，子类如果重写了equals方法，也必须重写hashCode。之所以有这个规定，是因为Java API中很多类依赖于这个行为，尤其是容器中的一些类。
+hashCode的默认实现一般是**将对象的内存地址转换为整数**，==子类如果重写了equals方法，也必须重写hashCode==。之所以有这个规定，是因为Java API中很多类依赖于这个行为，尤其是容器中的一些类。
 
 包装类都重写了hashCode，根据包装的基本类型值计算hashCode，对于Byte、Short、Integer、Character, hashCode就是其内部值，代码类似：
 
@@ -2083,7 +2091,7 @@ public static int hashCode(double value) {
 }
 ```
 
-3. toString
+- toString
 
 ##### 2 Comparable
 
@@ -2093,14 +2101,14 @@ public static int hashCode(double value) {
 
 ##### 3 包装类和String
 
-除了Character外，每个包装类都有一个静态的`valueOf(String)`方法，根据字符串表示返回包装类对象，如：
+除了`Character`外，每个包装类都有一个静态的`valueOf(String)`方法，==根据字符串表示返回包装类对象==，如：
 
 ```java
 Boolean b = Boolean.valueOf("true");
 Float f = Float.valueOf("123.45f");
 ```
 
-除了Character外，每个包装类都有一个静态的`parseXXX(String)`方法，根据字符串表示返回基本类型值，如：
+除了Character外，每个包装类都有一个静态的`parseXXX(String)`方法，==根据字符串表示返回基本类型值==，如：
 
 ```java
 boolean b = Boolean.parseBoolean("true");
@@ -2132,13 +2140,6 @@ Boolean：
 ```java
 public static final Boolean TRUE = new Boolean(true);
 public static final Boolean FALSE = new Boolean(false);
-
-public static final int    MIN_VALUE = 0x80000000;
-public static final int    MAX_VALUE = 0x7fffffff;
-
-public static final double POSITIVE_INFINITY = 1.0 / 0.0; //正无穷
-public static final double NEGATIVE_INFINITY = -1.0 / 0.0; //负无穷
-public static final double NaN = 0.0d / 0.0; //非数值
 ```
 
 所有数值类型的包装类都定义了MAⅩ_VALUE和MIN_VALUE，比如Float：
@@ -2149,6 +2150,12 @@ public static final float MIN_VALUE = 0x0.000002P-126f; // 1.4e-45f
 ```
 
 Float和Double还定义了一些特殊数值，比如正无穷、负无穷、非数值。
+
+```java
+public static final double POSITIVE_INFINITY = 1.0 / 0.0; //正无穷
+public static final double NEGATIVE_INFINITY = -1.0 / 0.0; //负无穷
+public static final double NaN = 0.0d / 0.0; //非数值
+```
 
 
 
@@ -2179,9 +2186,9 @@ double doubleValue()
 
 
 
-#### 剖析Integer与二进制算法🔖
+#### 剖析Integer与二进制算法
 
-
+Long与Integer类似
 
 ##### 1 位翻转
 
@@ -2201,7 +2208,143 @@ int rb = Integer.reverseBytes(a);
 System.out.println(Integer.toHexString(rb));
 ```
 
+输出：
 
+```
+10010001101000101011001111000
+11110011010100010110001001000
+78563412
+```
+
+十六进制两位代表一个字节，`78`，`12`等都是一个字节，因此`0x12345678`经过按字节互换变成`0x78563412`。
+
+按位互换要补全32位，就看出了：
+
+```
+00010010001101000101011001111000
+00011110011010100010110001001000
+```
+
+reverseBytes的代码：
+
+```java
+    public static int reverseBytes(int i) {
+        return ((i >>> 24)           ) |
+               ((i >>   8) &   0xFF00) |
+               ((i <<   8) & 0xFF0000) |
+               ((i << 24));
+    }
+```
+
+以`0x12345678`为例，分析执行过程：
+
+1. `i >>> 24` 无符号右移，最高字节挪到最低位，结果是`0x00000012`；
+2. `i >> 8`结果是`0x00123456`，在进行`& 0xFF00`，保留右边第二字节，得到`0x000034`；`(i >> 8) & 0xFF00`最终的结果是左边第二个字节挪到右边第二个；
+3. `(i << 8) & 0xFF0000`，类似第二步，就是右边第二个字节挪到左边第二个，得到`0x00560000`；
+4. `i<<24`，结果是`0x78000000`；
+
+5. 4个结果再进行`|`操作，就完成了字节互换。
+
+reverse的代码：
+
+```java
+    public static int reverse(int i) {
+        // HD, Figure 7-1
+        i = (i & 0x55555555) << 1 | (i >>> 1) & 0x55555555;
+        i = (i & 0x33333333) << 2 | (i >>> 2) & 0x33333333;
+        i = (i & 0x0f0f0f0f) << 4 | (i >>> 4) & 0x0f0f0f0f;
+        i = (i << 24) | ((i & 0xff00) << 8) |
+            ((i >>> 8) & 0xff00) | (i >>> 24);
+        return i;
+    }
+```
+
+HD, Figure 7-1表示出处位： [Hacker's Delight，中文版为《算法心得：高效算法的奥秘》](https://book.douban.com/subject/25837031/)的图7-1。
+
+高效实现位翻转的基本思路是：==首先交换相邻的单一位，然后以两位为一组，再交换相邻的位，接着是4位一组交换、然后是8位、16位，16位之后就完成了==。这个思路不仅适用于二进制，而且适用于十进制。
+
+以十进制为例，对数字12345678进行翻转：
+
+1. 第一轮，相邻单一数字进行互换：
+
+> 21 43 65 87
+
+2. 第二轮，以两个数字为一组交换相邻的：
+
+> 43 21 87 65
+
+3. 第三轮，以4个数字为一组交换相邻的：
+
+>         8765 4321
+
+翻转完成。
+
+对十进制而言，这个效率并不高，但对于二进制而言，却是高效的，因为==二进制可以在一条指令中交换多个相邻位==。
+
+```java
+x = (x & 0x55555555) <<   1 | (x & 0xAAAAAAAA) >>>   1;
+```
+
+5的二进制表示是`0101`，`0x55555555`的二进制表示就是：
+
+```java
+01010101010101010101010101010101
+```
+
+`x & 0x55555555`就是取x的奇数位。
+
+A的二进制表示是`1010`，`0xAAAAAAAA`的二进制表示就是：
+
+```java
+10101010101010101010101010101010
+```
+
+`x & 0xAAAAAAAA`就是取x的偶数位。
+
+
+
+```java
+(x & 0x55555555) << 1 | (x & 0xAAAAAAAA) >>>   1;
+```
+
+表示的就是x的奇数位向左移，偶数位向右移，然后通过`|`合并，达到相邻位互换的目的。
+
+再进行小的优化，使用一个常量`0x55555555`，后半部分先移位再进行与操作，变为：
+
+```java
+(i & 0x55555555) << 1 | (i >>> 1) & 0x55555555;
+```
+
+同理
+
+```java
+// 以两位为一组，对相邻位进行互换：
+i = (i & 0x33333333) << 2 | (i & 0xCCCCCCCC)>>>2;
+// 0x33333333的二进制表示是：
+00110011001100110011001100110011
+// x & 0x33333333就是取x以两位为一组的低半部分。
+// 0xCCCCCCCC的二进制表示是：
+11001100110011001100110011001100
+// 同样，x & 0xCCCCCCCC就是取x以两位为一组的高半部分：
+(i & 0x33333333) << 2 | (i & 0xCCCCCCCC)>>>2;
+// 去掉常量0xCCCCCCCC，代码可以优化为：
+(i & 0x33333333) << 2 | (i >>> 2) & 0x33333333;
+
+// 同理，以4位为一组进行交换的代码：
+i = (i & 0x0f0f0f0f) << 4 | (i >>> 4) & 0x0f0f0f0f;
+
+// 以8位为单位交换时，就是字节翻转了，代码和reverseBytes基本一样
+i = (i << 24) | ((i & 0xff00) << 8) |
+    ((i >>> 8) & 0xff00) | (i >>> 24);
+```
+
+
+
+
+
+CPU指令并不能高效地操作单个位，它操作的最小数据单位一般是32位（32位机器），另外，CPU可以高效地实现移位和逻辑运算，但实现加、减、乘、除运算则比较慢。
+
+reverse是==在充分利用CPU的这些特性，并行高效地进行相邻位的交换==。
 
 ##### 2 循环移位
 
@@ -2210,9 +2353,32 @@ public static int rotateLeft(int i, int distance)
 public static int rotateRight(int i, int distance)
 ```
 
-循环移位，是相对于普通的移位而言的，普通移位，比如左移2位，原来的最高两位就没有了，右边会补0，而如果是循环左移两位，则原来的最高两位会移到最右边，就像一个左右相接的环一样。
+循环移位，是相对于普通的移位而言的，普通移位，比如左移2位，原来的最高两位就没有了，右边会补0；
 
-##### 3 valueOf的实现
+而如果是循环左移两位，则原来的最高两位会移到最右边，就像一个左右相接的环一样。
+
+```java
+int a = 0x12345678;
+int b = Integer.rotateLeft(a, 8);
+System.out.println(Integer.toHexString(b));
+int c = Integer.rotateRight(a, 8);
+System.out.println(Integer.toHexString(c));
+```
+
+```
+34567812
+78123456
+```
+
+🔖
+
+
+
+
+
+##### 3 valueOf的实现 🔖
+
+`IntegerCache`表示Integer缓存
 
 享元模式
 
@@ -2220,17 +2386,64 @@ public static int rotateRight(int i, int distance)
 
 #### 剖析Character🔖
 
+Character有很多静态方法，封装了**Unicode字符级别的各种操作**，是**Java文本处理的基础**。
+
 ##### 1. Unicode基础
 
-Unicode给世界上每个字符分配了一个编号，编号范围为0x000000～0x10FFFF。编号范围在0x0000～0xFFFF的字符为常用字符集，称**BMP（Basic MultilingualPlane）字符**。编号范围在0x10000～0x10FFFF的字符叫做**增补字符（supplementary character）**。
+Unicode给世界上每个字符分配了一个==编号==，编号范围为0x000000～0x10FFFF（约110多万）。编号范围在0x0000～0xFFFF的字符为常用字符集，称**BMP（Basic MultilingualPlane）字符**。
+
+编号范围在0x10000～0x10FFFF的字符叫做**增补字符（supplementary character）**。
+
+Unicode主要规定了编号，但没有规定如何把编号映射为二进制。
+
+UTF-16是一种==编码方式==，或者叫==映射方式==，它将编号映射为两个或4个字节，对BMP字符，它直接用两个字节表示，对于增补字符，使用4个字节表示，前两个字节叫==高代理项（high surrogate）==，范围为0xD800～0xDBFF，后两个字节叫==低代理项（low surrogate）==，范围为0xDC00～0xDFFF。
+
+UTF-16定义了一个公式，可以将编号与4字节表示进行相互转换。
+
+**Java内部采用UTF-16编码**，==char表示一个字符，但只能表示BMP中的字符==，对于增补字符，需要使用两个char表示，一个表示高代理项，一个表示低代理项。
+
+使用int可以表示任意一个Unicode字符，低21位表示Unicode编号(Unicode编号最大的`0x10FFFF`是20位)，高11位设为0。整数编号在Unicode中一般称为==代码点（code point）==，表示一个Unicode字符，与之相对，还有一个词==代码单元（code unit）==表示一个char。
 
 ##### 2 检查code point和char
+
+```java
+	//判断一个int是不是一个有效的代码点，小于等于0x10FFFF的为有效，大于的为无效
+	public static boolean isValidCodePoint(int codePoint)
+  //判断一个int是不是BMP字符，小于等于0xFFFF的为BMP字符，大于的不是
+  public static boolean isBmpCodePoint(int codePoint)
+  //判断一个int是不是增补字符，0x010000～0X10FFFF为增补字符
+  public static boolean isSupplementaryCodePoint(int codePoint)
+  //判断char是否是高代理项，0xD800～0xDBFF为高代理项
+  public static boolean isHighSurrogate(char ch)
+  //判断char是否为低代理项，0xDC00～0xDFFF为低代理项
+  public static boolean isLowSurrogate(char ch)
+  //判断char是否为代理项， char为低代理项或高代理项，则返回true
+  public static boolean isSurrogate(char ch)
+  //判断两个字符high和low是否分别为高代理项和低代理项
+  public static boolean isSurrogatePair(char high, char low)
+  //判断一个代码点由几个char组成，增补字符返回2, BMP字符返回1
+  public static int charCount(int codePoint)
+```
 
 
 
 ##### 3  code point与char的转换
 
+```java
+	//根据高代理项high和低代理项low生成代码点，这个转换有个公式，这个方法封装了这个公式
+	public static int toCodePoint(char high, char low)
+  //根据代码点生成char数组，即UTF-16表示，如果code point为BMP字符，则返回的char
+  //数组长度为1，如果为增补字符，长度为2, char[0]为高代理项，char[1]为低代理项
+  public static char[] toChars(int codePoint)
+  //将代码点转换为char数组，与上面方法类似，只是结果存入指定数组dst的指定位置index
+  public static int toChars(int codePoint, char[] dst, int dstIndex)
+  //对增补字符code point，生成低代理项
+  public static char lowSurrogate(int codePoint)
+  //对增补字符code point，生成高代理项
+  public static char highSurrogate(int codePoint)
+```
 
+🔖
 
 ##### 4 按code point处理char数组或序列
 
@@ -2238,9 +2451,117 @@ Unicode给世界上每个字符分配了一个编号，编号范围为0x000000�
 
 ##### 5 字符属性
 
+Unicode在给每个字符分配一个编号之外，还分配了一些属性，Character类封装了对Unicode字符属性的检查和操作。
 
+- **获取字符类型**（general category）：
+
+```java
+	public static int getType(int codePoint)
+  public static int getType(char ch)
+```
+
+![](images/image-20230312112126103.png)
+
+每个被定义的字符，其getType()返回值都不为0，如果返回值为0，表示无定义。
+
+- 检查字符是否在Unicode中被定义：
+
+```java
+	public static boolean isDefined(int codePoint)
+```
+
+> 注意：isValidCodePoint表只要unicode范围内（不大月`0x10FFFF`）都为true；但Unicode中还有很多编号没有定义字符，也就是getType()位0的。
+
+- 检查字符是否为数字：
+
+```java
+	public static boolean isDigit(int codePoint)
+```
+
+> 中文全角字符数字也可以。
+
+- 检查是否为字母（Letter）：
+
+```java
+	public static boolean isLetter(int codePoint)
+```
+
+- 检查是否为字母或数字:
+
+```java
+	public static boolean isLetterOrDigit(int codePoint)
+```
+
+- 检查是否为字母（Alphabetic）：
+
+```java
+	public static boolean isAlphabetic(int codePoint)
+```
+
+返回比isLetter大一点，包括getType()值为`LETTER_NUMBER`（罗马数字字符）。
+
+- 检查是否为空格字符：
+
+```java
+	public static boolean isSpaceChar(int codePoint)
+```
+
+不常用，只能严格匹配空格字符本身。
+
+- 更常用的检查空格：
+
+```java
+ public static boolean isWhitespace(int codePoint)
+```
+
+'\t'、'\n'、全角空格' '和半角空格' '的返回值都为true。
+
+- 检查是否为小写字符：
+
+- 检查是否为大写字符：
+- 检查是否为表意象形文字：
+
+```java
+	public static boolean isIdeographic(int codePoint)
+```
+
+大部分中文都返回为true。
+
+- 检查是否为ISO 8859-1编码中的控制字符：
+- 检查是否可作为Java标识符的第一个字符：
+- 检查是否可作为Java标识符的中间字符：
+- 检查是否为镜像（mirrowed）字符：
+
+```java
+	public static boolean isMirrored(int codePoint)
+```
+
+常见镜像字符有( )、{ }、< >、[ ]，都有对应的镜像。
 
 ##### 6 字符转换
+
+```java
+// 针对英文字符的大小转换
+public static int toLowerCase(int codePoint)
+public static int toUpperCase(int codePoint)
+  
+// 返回一个字符表示的数值
+public static int getNumericValue(int codePoint)
+  
+// 返回按给定进制表示的数值
+public static int digit(char ch, int radix)
+  
+// 返回给定数值的字符形式：
+public static char forDigit(int digit, int radix)
+```
+
+##### 7 按字节翻转
+
+类似Interger
+
+```java
+public static char reverseBytes(char ch)
+```
 
 
 
@@ -2276,7 +2597,7 @@ public String[] split(String regex) //分隔字符串，返回分隔后的子字
 
 
 
-#### 🔖走进String内部
+#### 走进String内部
 
 String类内部用一个**字符数组**表示字符串，实例变量定义为：
 
@@ -2291,13 +2612,44 @@ public String(char value[])
 public String(char value[], int offset, int count)
 ```
 
+String会根据参数新创建一个数组，并**复制**内容，而不会直接用参数中的字符数组。
 
+String中的大部分方法内部也都是操作的这个字符数组。比如：
+
+- `length()`方法返回的是这个数组的长度。
+- `substring()`方法是根据参数，调用构造方法`String(char value[], int offset, int count)`新建了一个字符串。
+- `indexOf()`方法查找字符或子字符串时是在这个数组中进行查找。
+
+```java
+//返回指定索引位置的char
+public char charAt(int index) 
+//返回字符串对应的char数组， 注意，返回的是一个复制后的数组，而不是原数组
+public char[] toCharArray()
+//将char数组中指定范围的字符复制入目标数组指定位置
+public void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin)
+```
+
+与Character类似的，按代码点对字符串进行处理方法：
+
+```java
+public int codePointAt(int index)
+public int codePointBefore(int index)
+public int codePointCount(int beginIndex, int endIndex)
+public int offsetByCodePoints(int index, int codePointOffset)
+```
 
 #### 编码转换
 
-String内部是按UTF-16BE处理字符的，对BMP字符，使用一个char，两个字节，对于增补字符，使用两个char，四个字节。
+String内部是按==UTF-16BE==处理字符的，对BMP字符，使用一个char，两个字节，对于增补字符，使用两个char，四个字节。
 
+`Charset`
 
+```java
+public static Charset defaultCharset()
+public static Charset forName(String charsetName)
+```
+
+🔖
 
 #### 不可变性
 
@@ -2305,39 +2657,196 @@ String类也声明为了final，不能被继承，内部char数组value也是fin
 
 #### 常量字符串
 
+Java中的字符串常量是非常特殊的，除了可以直接赋值给String变量外，它自己就像一个String类型的对象，可以直接调用String的各种方法。
+
 ```java
 System.out.println("老马说编程".length());
 System.out.println("老马说编程".contains("老马"));
 System.out.println("老马说编程".indexOf("编程"));
 ```
 
-这些常量就是String类型的对象，在内存中，它们被放在一个共享的地方，这个地方称为**字符串常量池**，它保存所有的常量字符串，每个常量只会保存一份，被所有使用者共享。**当通过常量的形式使用一个字符串的时候，使用的就是常量池中的那个对应的String类型的对象。**
+实际上，这些常量就是String类型的对象，在内存中，它们被放在一个共享的地方，这个地方称为**==字符串常量池==**，它保存所有的常量字符串，每个常量只会保存一份，被所有使用者共享。**当通过常量的形式使用一个字符串的时候，使用的就是常量池中的那个对应的String类型的对象。**
 
+```java
+        String name1 = "老马说编程";
+        String name2 = "老马说编程";
+        System.out.println(name1==name2);  // 输出 true
+```
 
+可以认为，"老马说编程"在常量池中有一个对应的String类型的对象，假定名称为laoma，那么上面的代码实际上就类似于：
+
+```java
+        String laoma = new String(new char[]{'老', '马', '说', '编', '程'});
+        String name1 = laoma;
+        String name2 = laoma;
+        System.out.println(name1==name2);
+```
+
+实际上只有一个String对象，三个变量都指向这个对象。
+
+**如果不是通过常量直接赋值，而是通过new创建，==就不会返回true了**：
+
+```java
+        String name1 = new String("老马说编程");
+        String name2 = new String("老马说编程");
+        System.out.println(name1==name2);  // 输出 false
+```
+
+类似于：
+
+```java
+        String laoma = new String(new char[]{'老', '马', '说', '编', '程'});
+        String name1 = new String(laoma);
+        String name2 = new String(laoma);
+        System.out.println(name1==name2);
+```
+
+name1和name2指向两个不同的String对象，只是这两个对象内部的value值指向相同的char数组。
+
+![](images/image-20230312170522192.png)
+
+所以，`name1==name2`不成立，但`name1.equals(name2)`是true。
 
 #### hashCode
 
+hash变量缓存了hashCode方法的值，第一次调用hashCode方法的时候，会把结果保存在hash这个变量中，以后再调用就直接返回保存的值。
 
+```java
+public int hashCode() {
+  int h = hash;
+  if(h == 0 && value.length > 0) {
+    char val[] = value;
+    for(int i = 0; i < value.length; i++) {
+      h = 31 ＊ h + val[i];
+    }
+    hash = h;
+  }
+  return h;
+}
+```
+
+如果缓存的hash不为0，就直接返回了，否则根据字符数组中的内容计算hash，计算方法是：
+
+```java
+s[0]＊31^(n-1) + s[1]＊31^(n-2) + ... + s[n-1]
+```
+
+> 为什么要用这个计算方法呢？
+>
+> 可以让hash值与每个字符的==值==有关，也与每个字符的==位置==有关。
+>
+> 使用31的原因：
+>
+> - 产生更分散的散列，即不同字符串hash值也一般不同；
+> - 计算效率比较高，`31*h`与 `32*h-h` 即`（h<<5）-h`等价，可以用更高效率的移位和减法操作代替乘法操作。🔖
 
 #### 正则表达式
 
+Java中有专门的类（如`Pattern`和`Matcher`）用于正则表达式，但对于简单的情况，String类提供了更为简洁的操作，String中接受正则表达式的方法有：
+
+```java
+	public String[] split(String regex)  //分隔字符串
+  public boolean matches(String regex) //检查是否匹配
+  public String replaceFirst(String regex, String replacement) //字符串替换
+  public String replaceAll(String regex, String replacement) //字符串替换
+```
+
+
+
+> Java 9对String的实现进行了优化，它的内部不是char数组，而是byte数组，如果字符都是ASCII字符，它就可以使用一个字节表示一个字符，而不用UTF-16BE编码，节省内存。
+
+
+
 ### 7.3 剖析StringBuilder
 
-StringBuilder和StringBuffer类，这两个类的方法基本是完全一样的，它们的实现代码也几乎一样，唯一的不同就在于**StringBuffer类是线程安全的，而StringBuilder类不是**。
+StringBuilder和StringBuffer类，这两个类的方法基本是完全一样的，它们的实现代码也几乎一样，唯一的不同就在于**==StringBuffer类是线程安全的，而StringBuilder类不是==**。
 
 #### 基本实现原理
 
+StringBuilder继承自抽象类`AbstractStringBuilder`
+
+```java
+    char[] value;
+    // 数组已经使用的字符个数
+    int count;
+
+    AbstractStringBuilder(int capacity) {
+      value = new char[capacity];
+    }
+
+    public AbstractStringBuilder append(StringBuffer sb) {
+      if (sb == null)
+        return appendNull();
+      int len = sb.length();
+      ensureCapacityInternal(count + len);
+      sb.getChars(0, len, value, count);
+      count += len;
+      return this;
+    }
+
+    private void ensureCapacityInternal(int minimumCapacity) {
+      // overflow-conscious code
+      if (minimumCapacity - value.length > 0) {
+        value = Arrays.copyOf(value,
+                              newCapacity(minimumCapacity));
+      }
+    }
+
+    private int newCapacity(int minCapacity) {
+        // overflow-conscious code
+        int newCapacity = (value.length << 1) + 2;
+        if (newCapacity - minCapacity < 0) {
+            newCapacity = minCapacity;
+        }
+        return (newCapacity <= 0 || MAX_ARRAY_SIZE - newCapacity < 0)
+            ? hugeCapacity(minCapacity)
+            : newCapacity;
+    }
+
+    private int hugeCapacity(int minCapacity) {
+        if (Integer.MAX_VALUE - minCapacity < 0) { // overflow
+            throw new OutOfMemoryError();
+        }
+        return (minCapacity > MAX_ARRAY_SIZE)
+            ? minCapacity : MAX_ARRAY_SIZE;
+    }
+```
 
 
 
+> 为什么要这么扩展呢？这是一种**折中策略**，一方面要减少内存分配的次数，另一方面要避免空间浪费。
+>
+> ==在不知道最终需要多长的情况下，指数扩展是一种常见的策略，广泛应用于各种内存分配相关的计算机程序中。==
 
-
+🔖
 
 #### String的+和+=运算符
 
 这是Java编译器提供的支持，背后，Java编译器一般会生成StringBuilder, +和+=操作会转换为append。
 
-对于简单的情况，可以直接使用String的+和+=，对于复杂的情况，尤其是有循环的时候（编译器没那么智能，可能会生成多个StringBuilder），应该直接使用StringBuilder。
+对于简单的情况，可以直接使用String的+和+=，对于复杂的情况，尤其是<u>有循环的时候（编译器没那么智能，可能会生成多个StringBuilder），应该直接使用StringBuilder。</u>
+
+```java
+        String hello = "hello";
+        for (int i=0; i<3; i++) {
+            hello += ", world";
+        }
+        System.out.println(hello);
+```
+
+编译器转换后：
+
+```java
+        String hello = "hello";
+        for (int i=0; i<3; i++) {
+            StringBuilder sb = new StringBuilder(hello);
+            sb.append(", world");
+            hello = sb.toString();
+        }
+        System.out.println(hello);
+```
+
+
 
 ### 7.4 剖析Arrays
 
@@ -2442,6 +2951,7 @@ public static void fill(int[] a, int val, int fromIndex, int toIndex, int val)
 - 哈希值
 
 ```java
+// 计算方式与String类似
 public static int hashCode(int a[])
 ```
 
@@ -2457,7 +2967,9 @@ arr[0] = new int[3];
 arr[0] = new int[5];
 ```
 
-Arrays中的toString、equals、hashCode都有对应的针对多维数组的deepⅩⅩⅩ方法：
+
+
+Arrays中的toString、equals、hashCode都有对应的针对多维数组的`deepⅩⅩⅩ`方法：
 
 ```java
 public static String deepToString(Object[] a)
@@ -2465,11 +2977,49 @@ public static boolean deepEquals(Object[] a1, Object[] a2)
 public static int deepHashCode(Object a[])
 ```
 
-#### 实现原理
+#### 实现原理🔖
 
-🔖
+##### 1．二分查找
 
-[Apache Commons](https://commons.apache.org/)是java工具包集合，其中[commons-lang](https://github.com/apache/commons-lang)的类ArrayUtils包含更多常用数组操作。
+```java
+private static <T> int binarySearch0(T[] a, int fromIndex, int toIndex,
+                                     T key, Comparator<? super T> c) {
+  int low = fromIndex;
+  int high = toIndex - 1;
+  while(low <= high) {
+    int mid = (low + high) >>> 1;
+    T midVal = a[mid];
+    int cmp = c.compare(midVal, key);
+    if(cmp < 0)
+      low = mid + 1;
+    else if(cmp > 0)
+      high = mid - 1;
+    else
+      return mid; //key found
+  }
+  return -(low + 1);   //key not found
+}
+```
+
+low和high，表示查找范围，在while循环中，与中间值进行对比，大于则在后半部分查找（提高low），否则在前半部分查找（降低high）。
+
+##### 2.排序
+
+一般而言，没有一个最好的算法，不同算法往往有不同的适用场合。
+
+对于基本类型的数组，Java采用的算法是==双枢轴快速排序==（Dual-Pivot Quicksort）。`java.util.DualPivotQuicksort`
+
+对于对象类型，Java采用的算法是==TimSort==，它对归并排序的一系列优化。`java.util.TimSort`
+
+> 排序算法的**==稳定性==**就是对值相同的元素，如果排序前和排序后，算法可以保证它们的相对顺序不变，那算法就是稳定的，否则就是不稳定的。
+
+为什么基本类型和对象类型的算法不一样呢？
+
+快速排序更快，但不稳定，而归并排序是稳定的。对于基本类型，值相同就是完全相同，所以稳定不稳定没有关系。但对于对象类型，相同只是比较结果一样，它们还是不同的对象，其他实例变量也不见得一样，稳定不稳定可能就很有关系了，所以采用归并排序。
+
+
+
+🔖[Apache Commons](https://commons.apache.org/)是java工具包集合，其中[commons-lang](https://github.com/apache/commons-lang)的类ArrayUtils包含更多常用数组操作。
 
 ### 7.5 剖析日期和时间
 
@@ -2700,7 +3250,7 @@ System.out.println(rnd.nextInt(100));
 
 nextInt()产生一个随机的int，可能为正数，也可能为负数，nextInt(100)产生一个随机int，范围是0～100，包括0不包括100。
 
-其它基本类型，也有类似的方法。
+<u>其它基本类型，也有类似的方法。</u>
 
 Random类还有一个构造方法，可以接受一个long类型的种子参数：
 
@@ -2727,11 +3277,37 @@ for (int i = 0; i < 5; i++) {
 
 #### 随机的基本原理
 
-Random产生的随机数不是真正的随机数，相反，它产生的随机数一般称为**伪随机数**。
+Random产生的随机数不是真正的随机数，相反，它产生的随机数一般称为**==伪随机数==**。
 
-🔖
+数学运算是固定的，所以种子确定后，产生的随机数序列就是确定的，确定的数字序列当然不是真正的随机数，但种子不同，序列就不同，每个序列中数字的分布也都是比较随机和均匀的，所以称之为伪随机数。
 
 基本原理是：**随机数基于一个种子，种子固定，随机数序列就固定，默认构造方法中，种子是一个真正的随机数。**
+
+
+
+
+
+```java
+    public Random() {
+        this(seedUniquifier() ^ System.nanoTime());
+    }
+
+    private static long seedUniquifier() {
+        // L'Ecuyer, "Tables of Linear Congruential Generators of
+        // Different Sizes and Good Lattice Structure", 1999
+        for (;;) {
+            long current = seedUniquifier.get();
+            long next = current * 181783497276652981L;
+            if (seedUniquifier.compareAndSet(current, next))
+                return next;
+        }
+    }
+
+    private static final AtomicLong seedUniquifier
+        = new AtomicLong(8682522807148012L);
+```
+
+🔖
 
 #### 随机密码
 
@@ -2739,21 +3315,23 @@ Random产生的随机数不是真正的随机数，相反，它产生的随机�
 
 #### 洗牌
 
-🔖
-
-#### 带权重的随机选择
 
 
+#### 带权重的随机选择🔖
+
+> 从多个选项中随机选择一个，不过，不同选项经常有不同的权重。比如，给用户随机奖励，三种面额：1元、5元和10元，权重分别为70、20和10。
+>
+> 实现的基本思路是，使用概率中的==累计概率分布==。
 
 #### 抢红包算法
 
 
 
-#### 北京购车摇号算法
+#### 北京购车摇号算法🔖
 
 
 
-Random类是线程安全的，也就是说，多个线程可以同时使用一个Random实例对象；
+Random类是线程安全的，也就是说，==多个线程可以同时使用一个Random实例对象==；
 
 不过，如果并发性很高，会产生竞争，这时，可以考虑使用多线程库中的**ThreadLocalRandom**类。
 
@@ -6162,7 +6740,7 @@ Class是一个泛型类，有一个类型参数，getClass()并不知道具体�
 
 - 获取Class对象不一定需要实例对象，如果在写程序时就知道类名，可以使用`<类名>.class`获取Class对象。
 
-- Class有一个静态方法`forName`（可能抛出ClassNotFoundException），可以根据类名直接加载Class，获取Class对象。
+- Class有一个静态方法`forName`（可能抛出`ClassNotFoundException`），可以根据类名直接加载Class，获取Class对象。
 
 ```java
 Class<Date> cls = Date.class;

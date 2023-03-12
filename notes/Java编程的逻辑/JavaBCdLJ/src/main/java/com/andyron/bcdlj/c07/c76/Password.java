@@ -3,6 +3,15 @@ package com.andyron.bcdlj.c07.c76;
 import java.util.Random;
 
 public class Password {
+    public static void main(String[] args) {
+        for (int i = 0; i < 3; i++) {
+            System.out.println(randomPassword());
+            System.out.println(randomPassword2());
+            System.out.println(randomPassword3());
+            System.out.println("--------");
+        }
+    }
+
     /**
      * 生成随机密码：6位数字
      * @return
