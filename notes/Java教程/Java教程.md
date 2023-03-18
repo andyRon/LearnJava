@@ -1335,7 +1335,7 @@ java -cp app.jar:a.jar:b.jar:c.jar com.liaoxuefeng.sample.Main
 
 如果漏写了某个运行时需要用到的jar，那么在运行期极有可能抛出`ClassNotFoundException`。
 
-所以，**jar只是用于存放class的容器，它并不关心class之间的依赖。**
+所以，**==jar只是用于存放class的容器，它并不关心class之间的依赖。==**
 
 模块就是用来解决<font color=#FF8C00>依赖</font>问题的。Java9后原本`rt.jar`被分拆层十几个模块，以`.jmod`文件存储在`$JAVA_HOME/jmods`目录里。
 
