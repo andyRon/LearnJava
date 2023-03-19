@@ -27,6 +27,7 @@ public class FIleTest {
         for (String s : dir.list()) {
             System.out.println(s);
         }
+        System.out.println("--------");
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -40,7 +41,6 @@ public class FIleTest {
         for (File f : files) {
             System.out.println(f.getName());
         }
-
 
     }
 }

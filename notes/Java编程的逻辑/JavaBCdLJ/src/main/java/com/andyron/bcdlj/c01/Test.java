@@ -1,9 +1,6 @@
 package com.andyron.bcdlj.c01;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class Test {
     public static void main(String[] args) {
@@ -19,8 +16,10 @@ public class Test {
 //
 //        System.out.println(Float.valueOf(1.1f).compareTo(new Float(1f)));
 
-        System.out.println(Long.parseLong("123", 2));
+//        System.out.println(Long.parseLong("123", 2));
+
 
     }
+
 
 }
