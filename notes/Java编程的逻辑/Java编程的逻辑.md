@@ -6012,7 +6012,7 @@ Collections有三组装饰器方法，它们的返回对象都没有新的方法
 
 ##### 2 文件类型
 
-每种文件类型都有一定的格式，代表着**文件含义和二进制之间的映射关系**。
+每种文件类型都有一定的格式，代表着**==文件含义和二进制之间的映射关系==**。
 
 文件类型粗略分为两类：**文本文件和二进制文件**。前者如文本文件（.txt）、程序源代码文件（.java等）、HTML文件（.html）等，后者如压缩文件（.zip）、PDF文件、MP3文件、Excel文件等。
 
@@ -6020,7 +6020,13 @@ Collections有三组装饰器方法，它们的返回对象都没有新的方法
 
 ##### 3 文本文件的编码
 
-三个特殊字节（0xEF 0xBB 0xBF）
+**==编码==**：字符到二进制的映射。
+
+一个文本文件有自己的编码方式。应用程序用什么编码方式进行解读？一般使用某种默认的编码方式，<u>可能是应用程序默认的，也可能是操作系统默认的，当然也可能采用一些比较智能的算法自动推断编码方式。</u>
+
+
+
+🔖三个特殊字节（0xEF 0xBB 0xBF）
 
 BOM头，Byte Order Mark（即字节序标记）
 
@@ -6050,9 +6056,9 @@ Java封装了操作系统的功能，提供了统一的API。
 
 操作系统和硬盘一般是**按==块==批量传输**，而不是按字节，以摊销延时开销，块大小一般至少为**512字节**，即使应用程序只需要文件的一个字节，操作系统也会至少将一个块读进来。一般而言，应<u>尽量减少接触硬盘</u>，接触一次，就一次多做一些事情。对于网络请求和其他输入输出设备，原则都是类似的。
 
-基本常识：一般读写文件需要**两次数据复制**，比如读文件，需要先从硬盘复制到操作系统内核，再从内核复制到应用程序分配的内存中。
+基本常识：一般读写文件需要**两==次数据复制==**，比如读文件，<u>需要先从硬盘复制到操作系统内核，再从内核复制到应用程序分配的内存中。</u>
 
-操作系统所在的环境是**内核态**，应用程序是**用户态**，应用程序调用操作系统的功能，需要两次环境的切换，<u>先从用户态切到内核态，再从内核态切到用户态</u>。**这种用户态/内核态的切换是有开销的，应尽量减少这种切换。**
+操作系统所在的环境是**==内核态==**，应用程序是**==用户态==**，应用程序调用操作系统的功能，需要两次环境的切换，<u>先从用户态切到内核态，再从内核态切到用户态</u>。**这种用户态/内核态的切换是有开销的，应尽量减少这种切换。**
 
 **缓冲区**
 
@@ -6060,47 +6066,45 @@ Java封装了操作系统的功能，提供了统一的API。
 
 **内存映射文件**，高效的随机读写大文件的方法，将文件直接映射到内存，操作内存就是操作文件。
 
-
-
 #### Java文件概述
 
 ##### 1 流 
 
-在Java中（很多其他语言也类似），文件一般不是单独处理的，而是视为输入输出（Input/Output, IO）设备的一种。Java使用基本统一的概念（**流**）处理所有的IO，包括<u>文件、键盘、显示终端、网络</u>等。
+在Java中（很多其他语言也类似），文件一般不是单独处理的，而是视为==输入输出（Input/Output, IO）设备==的一种。Java使用基本统一的概念（**==流==**）处理所有的IO，包括<u>文件、键盘、显示终端、网络</u>等。
 
 > 输入流就是可以从中获取数据到内存，输出流就是内存可以向其中写入数据。
 
-Java IO的基本类大多位于java.io。类InputStream表示**输入流**，OutputStream表示**输出流**，而FileInputStream表示**文件输入流**，FileOutputStream表示**文件输出流**。
+Java IO的基本类大多位于java.io。类`InputStream`表示**输入流**，`OutputStream`表示**输出流**，而`FileInputStream`表示**文件输入流**，`FileOutputStream`表示**文件输出流**。
 
-有了流的概念，就有了很多**面向流的代码**，比如对流做<u>加密、压缩、计算信息摘要、计算检验和</u>等，这些代码接受的参数和返回结果都是**抽象的流**，它们构成了一个**协作体系**，**这类似于之前介绍的接口概念、面向接口的编程，以及容器类协作体系**。一些实际上不是IO的数据源和目的地也转换为了流，以方便参与这种协作，比如字节数组，也包装为了流ByteArrayInputStream和ByteArrayOutputStream。
+有了流的概念，就有了很多**面向流的代码**，比如对流做<u>加密、压缩、计算信息摘要、计算检验和</u>等，这些代码接受的参数和返回结果都是**==抽象的流==**，它们构成了一个**协作体系**，**这类似于之前介绍的接口概念、面向接口的编程，以及容器类协作体系**。一些实际上不是IO的数据源和目的地也转换为了流，以方便参与这种协作，比如字节数组，也包装为了流`ByteArrayInputStream`和`ByteArrayOutputStream`。
 
 ##### 2 装饰器设计模式
 
 基本的流按字节读写，<u>没有缓冲区</u>，这不方便使用。Java解决这个问题的方法是使用装饰器设计模式。
 
-很多装饰类，其中两个基类：过滤器输入流**FilterInputStream**和过滤器输出流**FilterOutputStream**。
+很多装饰类，其中两个基类：过滤器输入流`FilterInputStream`和过滤器输出流`FilterOutputStream`。
 
 过滤类似于自来水管道，流入的是水，流出的也是水，功能不变，或者只是增加功能。子类如：
 
-- 对流起缓冲装饰的子类是BufferedInputStream和BufferedOutputStream。
-- 可以按8种基本类型和字符串对流进行读写的子类是DataInputStream和DataOutputStream。
-- 可以对流进行压缩和解压缩的子类有GZIPInputStream、ZipInputStream、GZIPOutput-Stream和ZipOutputStream。
-- 可以将基本类型、对象输出为其字符串表示的子类有PrintStream。
+- 对流起缓冲装饰的子类是`BufferedInputStream`和`BufferedOutputStream`。
+- 可以按8种基本类型和字符串对流进行读写的子类是`DataInputStream`和`DataOutputStream`。
+- 可以对流进行压缩和解压缩的子类有`GZIPInputStream`、`ZipInputStream`、`GZIPOutputStream`和`ZipOutputStream`。
+- 可以将基本类型、对象输出为其字符串表示的子类有`PrintStream`。
 
 ##### 3 Reader/Writer
 
-以InputStream/OutputStream为基类的流基本都是<u>以二进制形式处理数据的</u>，不能够方便地处理文本文件，没有**编码**的概念，能够方便地<u>按字符处理文本数据</u>的基类是Reader和Writer。子类：
+以InputStream/OutputStream为基类的流基本都是<u>以二进制形式处理数据的</u>，不能够方便地处理文本文件，没有**编码**的概念，能够方便地==按字符处理文本数据==的基类是`Reader`和`Writer`。子类：
 
-- 读写文件的子类是FileReader和FileWriter。
-- 起缓冲装饰的子类是BufferedReader和BufferedWriter。
-- 将字符数组包装为Reader/Writer的子类是CharArrayReader和CharArrayWriter。
-- 将字符串包装为Reader/Writer的子类是StringReader和StringWriter。
-- 将InputStream/OutputStream转换为Reader/Writer的子类是InputStreamReader和OutputStreamWriter。
-- 将基本类型、对象输出为其字符串表示的子类是PrintWriter。
+- 读写文件的子类是`FileReader`和`FileWriter`。
+- 起缓冲装饰的子类是`BufferedReader`和`BufferedWriter`。
+- 将字符数组包装为Reader/Writer的子类是`CharArrayReader`和`CharArrayWriter`。
+- 将字符串包装为Reader/Writer的子类是`StringReader`和`StringWriter`。
+- 将InputStream/OutputStream转换为Reader/Writer的子类是`InputStreamReader`和`OutputStreamWriter`。
+- 将基本类型、对象输出为其字符串表示的子类是`PrintWriter`。
 
 ##### 4 随机读写文件
 
-RandomAccessFile
+`RandomAccessFile`
 
 ##### 5 File
 
@@ -6108,11 +6112,13 @@ RandomAccessFile
 
 ##### 6 NIO
 
-java.nio，表示New IO。
+以上介绍的类基本都位于包java.io下。
 
-NIO代表一种不同的看待IO的方式，它有**缓冲区**和**通道**的概念。更接近操作系统的概念，某些操作的性能也更高，比如，复制文件到网络。
+java.nio，表示**New IO**。
 
-通道可以利用操作系统和硬件提供的**DMA机制**（Direct Memory Access，直接内存存取），不用CPU和应用程序参与，直接将数据从硬盘复制到网卡。
+NIO代表一种不同的看待IO的方式，它有**==缓冲区==**和**==通道==**的概念。更接近操作系统的概念，某些操作的性能也更高，比如，复制文件到网络。
+
+通道可以利用操作系统和硬件提供的**==DMA机制==**（Direct Memory Access，直接内存存取），不用CPU和应用程序参与，直接将数据从硬盘复制到网卡。
 
 NIO还支持一些比较底层的功能，如**内存映射文件、文件加锁、自定义文件系统、非阻塞式IO、异步IO**等。
 
@@ -6120,13 +6126,13 @@ NIO还支持一些比较底层的功能，如**内存映射文件、文件加锁
 
 **序列化就是将内存中的Java对象持久保存到一个流中，反序列化就是从流中恢复Java对象到内存。**
 
-它们的作用：一是对象状态持久化；二是网络远程调用，用于传递和返回对象。
+它们的作用：一是==对象状态持久化==；二是==网络远程调用==，用于传递和返回对象。
 
 Java主要通过接口`Serializable`和类`ObjectInputStream`/`ObjectOutputStream`提供对序列化的支持。
 
-Java的默认序列化的缺点：序列化后的形式比较大、浪费空间，序列化/反序列化的性能也比较低；Java特有技术，不能与其他语言交互。
+Java的默认序列化的缺点：**序列化后的形式比较大、浪费空间，序列化/反序列化的性能也比较低；Java特有技术，不能与其他语言交互。**
 
-Java对象也可以序列化为ⅩML和JSON，它们都是文本格式，人容易阅读，但占用的空间相对大一些。
+Java对象也可以序列化为ⅩML和JSON，它们都是文本格式，人容易阅读，但**占用的空间相对大**一些。
 
 在只用于网络远程调用的情况下，有很多流行的、跨语言的、精简且高效的对象序列化机制，如ProtoBuf、Thrift、MessagePack等。其中，<u>MessagePack是二进制形式的JSON，更小更快</u>。
 
@@ -6142,7 +6148,7 @@ Java对象也可以序列化为ⅩML和JSON，它们都是文本格式，人容�
 public abstract int read() throws IOException;
 ```
 
-read方法从流中读取下一个字节，返回类型为int，但取值为0～255，当读到流结尾的时候，返回值为-1，如果流中没有数据，read方法会阻塞直到数据到来、流关闭或异常出现。异常出现时，read方法抛出异常，类型为IOException，这是一个受检异常，调用者必须进行处理。
+read方法从流中读取下一个字节，返回类型为int，但取值为0～255，当读到流结尾的时候，返回值为-1，如果流中没有数据，read方法会==阻塞==直到数据到来、流关闭或异常出现。异常出现时，read方法抛出异常，类型为`IOException`，这是一个受检异常，调用者必须进行处理。
 
 read方法是个抽象方法，子类FileInputStream中实现会调用本地方法。
 
@@ -6156,6 +6162,8 @@ public int read(byte b[]) throws IOException {
 public int read(byte b[], int off, int len) throws IOException
 public void close() throws IOException
 ```
+
+close方法通常应该放在finally语句内
 
 ##### InputStream的高级方法
 
@@ -6171,7 +6179,7 @@ skip跳过输入流中n个字节。
 
 available返回下一次不需要阻塞就能读取到的大概字节个数。
 
-mark、reset、markSupported，用于支持从读过的流中重复读取。
+mark、reset、markSupported，用于支持从读过的流中**重复读取**。
 
 不是所有流都支持mark、reset方法，是否支持可以通过markSupported的返回值进行判断。InpuStream的默认实现是不支持，FileInputStream也不直接支持，但BufferedInputStream和ByteArrayInputStream可以支持。
 
@@ -6181,17 +6189,25 @@ mark、reset、markSupported，用于支持从读过的流中重复读取。
 public abstract void write(int b) throws IOException;
 ```
 
+需要子类实现，，FileOutputStream的实现会调用本地方法。
+
 ```java
+// 批量写入
 public void write(byte b[]) throws IOException
 public void write(byte b[], int off, int len) throws IOException
 ```
 
 ```java
+// 
 public void flush() throws IOException
 public void close() throws IOException
 ```
 
+flush将缓冲而未实际写的数据进行实际写入，如在BufferedOutputStream中，调用flush方法会将其缓冲区的内容写到其装饰的流中，并调用该流的flush方法。基类OutputStream没有缓冲，flush方法代码为空。
 
+
+
+close方法一般会**首先调用flush方法，然后再释放流占用的系统资源**。同InputStream一样，close方法一般应该放在finally语句内。
 
 #### FileInputStream/FileOutputStream
 
@@ -6207,17 +6223,15 @@ public FileOutputStream(String name) throws FileNotFoundException
 ```
 
 ```java
-@Test
-public void test13_2() throws IOException {
-  FileOutputStream output = new FileOutputStream("hello.txt");
-  try {
-    String data = "hello, world! I'm coming.";
-    byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
-    output.write(bytes);
-  } finally {
-    output.close();
-  }
+FileOutputStream output = new FileOutputStream("hello.txt");
+try {
+  String data = "hello, world! I'm coming.";
+  byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
+  output.write(bytes);
+} finally {
+  output.close();
 }
+
 ```
 
 OutputStream只能以byte或byte数组写文件。
@@ -6229,6 +6243,16 @@ public FileChannel getChannel()
 public final FileDescriptor getFD()
 ```
 
+`FileChannel`定义在java.nio中，表示文件通道概念;
+
+`FileDescriptor`表示文件描述符，它与操作系统的一些文件内存结构相连，它有一个本地方法==sync==，它会确保将操作系统缓冲的数据写到硬盘上。
+
+```java
+public native void sync() throws SyncFailedException;
+```
+
+sync与OutputStream的flush方法相区别，**flush方法只能将应用程序缓冲的数据写到操作系统，sync方法则确保数据写到硬盘**。（一般不需要手动调用它）
+
 ##### 2 FileInputStream
 
 FileInputStream的主要构造方法:
@@ -6238,20 +6262,17 @@ public FileInputStream(String name) throws FileNotFoundException
 public FileInputStream(File file) throws FileNotFoundException
 ```
 
-参数是文件路径或File对象，必须是一个已经存在的文件，不能是目录。如果不存在，抛出FileNotFoundException，如果用户没有读的权限，抛出`SecurityException`。
+参数是文件路径或File对象，必须是一个已经存在的文件，不能是目录。如果不存在，抛出`FileNotFoundException`，如果用户没有读的权限，抛出`SecurityException`。
 
 ```java
-@Test
-public void test13_2_() throws IOException {
-    FileInputStream input = new FileInputStream("hello.txt");
-    try {
-        byte[] buf = new byte[1024];
-        int bytesRead = input.read(buf);
-        String data = new String(buf, 0, bytesRead, StandardCharsets.UTF_8);
-        System.out.println(data);
-    } finally {
-        input.close();
-    }
+FileInputStream input = new FileInputStream("hello.txt");
+try {
+  byte[] buf = new byte[1024];
+  int bytesRead = input.read(buf);
+  String data = new String(buf, 0, bytesRead, StandardCharsets.UTF_8);
+  System.out.println(data);
+} finally {
+  input.close();
 }
 ```
 
