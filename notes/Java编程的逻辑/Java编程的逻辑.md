@@ -6282,23 +6282,124 @@ try {
 
 输入源和输出目标是**字节数组**。
 
+```java
+        public ByteArrayOutputStream()
+        public ByteArrayOutputStream(int size)
+```
+
+```java
+public synchronized byte[] toByteArray()
+public synchronized String toString()
+public synchronized String toString(String charsetName)
+
+// 把ByteArrayOutputStream中的数据写到另一个OutputStream
+public synchronized void writeTo(OutputStream out) throws IOException
+  
+public synchronized int size()
+public synchronized void reset()
+```
 
 
-#### DataInputStream/DataOutputStream
+
+
+
+```java
+public ByteArrayInputStream(byte buf[])
+public ByteArrayInputStream(byte buf[], int offset, int length)
+```
+
+
+
+#### DataInputStream/DataOutputStream🔖
 
 装饰类，按基本类型和字符串而非只是字节读写流。
 
-DataInputStream -> FilterInputStream -> InputStream
-
 DataOutputStream -> FilterOutputStream  -> OutputStream
 
+DataInputStream -> FilterInputStream -> InputStream
 
 
-#### BufferedInputStream/BufferedOutputStream
+
+
+
+#### BufferedInputStream/BufferedOutputStream🔖
 
 装饰类，对输入输出流提供缓冲功能。
 
+**将文件流包装到缓冲流中**。BufferedInputStream内部有个字节数组作为缓冲区，读取时，先从这个缓冲区读，缓冲区读完了再调用包装的流，它的构造方法有两个：
+
+```java
+public BufferedInputStream(InputStream in)
+public BufferedInputStream(InputStream in, int size)
+```
+
+
+
 #### 实用方法
+
+实际开发中需要将一些常用功能进行封装。
+
+复制输入流的内容到输出流：
+
+```java
+public static void copy(InputStream input,
+                        OutputStream output) throws IOException{
+  byte[] buf = new byte[4096];
+  int bytesRead = 0;
+  while((bytesRead = input.read(buf)) != -1){
+    output.write(buf, 0, bytesRead);
+  }
+}
+```
+
+Java9中，InputStream类增加了一个方法transferTo，可以实现相同功能：
+
+```java
+public long transferTo(OutputStream out) throws IOException {
+  Objects.requireNonNull(out, "out");
+  long transferred = 0;
+  byte[] buffer = new byte[DEFAULT_BUFFER_SIZE]; //buf大小是8192
+  int read;
+  while((read = this.read(buffer, 0, DEFAULT_BUFFER_SIZE)) >= 0) {
+    out.write(buffer, 0, read);
+    transferred += read;
+  }
+  return transferred;
+}
+```
+
+将文件读入字节数组，调用了上面的复制方法：
+
+```java
+public static byte[] readFileToByteArray(String fileName) throws IOException{
+  InputStream input = new FileInputStream(fileName);
+  ByteArrayOutputStream output = new ByteArrayOutputStream();
+  try{
+    copy(input, output);
+    return output.toByteArray();
+  }finally{
+    input.close();
+  }
+}
+```
+
+将字节数组写到文件：
+
+```java
+public static void writeByteArrayToFile(String fileName,
+                                        byte[] data) throws IOException{
+  OutputStream output = new FileOutputStream(fileName);
+  try{
+    output.write(data);
+  }finally{
+    output.close();
+  }
+}
+```
+
+
+
+
 
 [Apache Commons IO](http://commons.apache.org/proper/commons-io/) 提供了很多简单易用的方法。
 
@@ -6312,7 +6413,32 @@ DataOutputStream -> FilterOutputStream  -> OutputStream
 
 ##### 1.文本文件
 
+```java
+DataOutputStream output = new DataOutputStream(new FileOutputStream("test.data"));
+try {
+  output.writeInt(123);
+} finally {
+  output.close();
+}
+```
 
+![](images/image-20230320172729616.png)
+
+在文件中存储的实际有4个字节，最低位字节7B对应的十进制数是123，也就是说，对int类型，二进制文件保存的直接就是int的二进制形式。这个二进制形式，如果当成字符来解释，显示成什么字符则与编码有关，如果当成UTF-32BE编码，解释成的就是一个字符，即{。
+
+如果要使用文本文件保存整数123，需将整数123转换为字符串，然后将它的UTF-8编码输出到了文件中：
+
+```java
+OutputStream output = new FileOutputStream("test.txt");
+try {
+  String data = Integer.toString(123);
+  output.write(data.getBytes("UTF-8"));
+} finally {
+  output.close();
+}
+```
+
+![](images/image-20230320173315242.png)
 
 ##### 2.编码
 
@@ -6320,13 +6446,15 @@ DataOutputStream -> FilterOutputStream  -> OutputStream
 
 ##### 3.字符流
 
-字节流是按字节读取的，而**字符流则是按char读取的**，一个char在文件中保存的是几个字节与编码有关。
+字节流是按字节读取的，而**字符流则是按char读取的**，一个char在文件中保存的是几个字节与编码有关。但字符流封装了这种细节，我们操作的对象就是char。
 
-注意：**一个char不完全等同于一个字符**，对于绝大部分字符，一个字符就是一个char，但我们之前介绍过，对于增补字符集中的字符，需要两个char表示，对于这种字符，Java中的字符流是按char而不是一个完整字符处理的。
+注意：**一个char不完全等同于一个字符**，对于绝大部分字符，一个字符就是一个char，但之前介绍过，对于增补字符集中的字符，需要两个char表示，对于这种字符，Java中的字符流是按char而不是一个完整字符处理的。
 
 #### Reader/Writer
 
 Reader/Writer类似字节流的InputStream/OutputStream，都是抽象类。
+
+Reader与字节流的InputStream类似，主要方法：
 
 ```java
 public int read() throws IOException
@@ -6335,6 +6463,10 @@ abstract public void close() throws IOException
 public long skip(long n) throws IOException
 public boolean ready() throws IOException 
 ```
+
+方法的名称和含义与InputStream中的对应方法基本类似，但Reader中处理的单位是char，比如read读取的是一个char，取值范围为0～65 535。Reader没有available方法，对应的方法是ready()。
+
+Writer与字节流的OutputStream类似，主要方法：
 
 ```java
 public void write(int c)
@@ -6348,7 +6480,21 @@ abstract public void flush() throws IOException;
 
 #### InputStreamReader/OutputStreamWriter
 
-适配器类，将字节流转换为字符流（将InputStream/OutputStream转换为Reader/Writer）；
+==适配器类==，**将字节流转换为字符流**（将InputStream/OutputStream转换为Reader/Writer）；
+
+```java
+public OutputStreamWriter(OutputStream out)
+public OutputStreamWriter(OutputStream out, String charsetName)
+```
+
+
+
+```java
+public InputStreamReader(InputStream in)
+public InputStreamReader(InputStream in, String charsetName)
+```
+
+
 
 #### FileReader/FileWriter
 
@@ -6358,35 +6504,113 @@ FileReader/FileWriter不能指定编码类型，只能使用默认编码，如�
 
 #### CharArrayReader/CharArrayWriter
 
-输入源和输出目标是char数组的字符流；
+输入源和输出目标是char数组的字符流，这个数组的长度可以根据数据内容动态扩展。
+
+CharArrayWriter与ByteArrayOutputStream类似。
+
+CharArrayWriter可以方便地将数据转换为char数组或字符串：
+
+```java
+public char[] toCharArray()
+public String toString()
+```
+
+
+
+CharArrayReader与ByteArrayInputStream类似，它将char数组包装为一个Reader，是一种适配器模式。
+
+```java
+public CharArrayReader(char buf[])
+public CharArrayReader(char buf[], int offset, int length)
+```
+
+
 
 #### StringReader/StringWriter
 
-输入源和输出目标是String的字符流；
+StringReader/StringWriter与CharArrayReader/CharArrayWriter类似，只是输入源为`String`，输出目标为`StringBuffer`，而且，String/StringBuffer内部是由char数组组成的，所以它们本质上是一样的。
 
 #### BufferedReader/BufferedWriter
 
-装饰类，对输入/输出流提供缓冲，以及按行读写功能；
+装饰类，对输入/输出流提供缓冲，以及==按行读写==功能；
+
+```java
+public BufferedWriter(Writer out)
+public BufferedWriter(Writer out, int sz)
+
+public void newLine() throws IOException
+```
+
+```java
+public BufferedReader(Reader in)
+public BufferedReader(Reader in, int sz)
+
+// 字符'\r'或'\n'或'\r\n'被视为换行符，readLine返回一行内容，但不会包含换行符，当读到流结尾时，返回null
+public String readLine() throws IOException
+```
+
+
+
+
 
 #### PrintWriter
 
 装饰类，可将基本类型和对象转换为其字符串形式输出的类。
 
+有很多print方法，这些方法都是先调用String.valueOf()，把参数转为字符串，然后再调用write：
+
+```java
+public void print(int i)
+public void print(Object obj)
+...
+  
+public void print(int i) {
+  write(String.valueOf(i));
+}
+```
+
+println多添加一个换行符。
+
+printf是格式化输出：
+
+```java
+public PrintWriter printf(String format, Object ... args)
+```
+
+
+
 PrintWriter的方便之处在于，它有很多构造方法，可以接受文件路径名、文件对象、OutputStream、Writer等，对于文件路径名和File对象，还可以接受编码类型作为参数。
+
+```java
+	public PrintWriter(File file) throws FileNotFoundException
+  public PrintWriter(String fileName, String csn)
+  public PrintWriter(OutputStream out, boolean autoFlush)
+  public PrintWriter(Writer out)
+```
+
+🔖
 
 #### Scanner
 
 类似于一个Reader，但不是Reader的子类，可以读取基本类型的字符串形式，类似于PrintWriter的逆操作。
 
+🔖
+
 #### 标准流
 
-之前一直在使用System.out向屏幕上输出，它是一个PrintStream对象，输出目标就是所谓的“标准”输出，经常是屏幕。除了System.out, Java中还有两个标准流：System. in和System.err。
+之前一直在使用System.out向屏幕上输出，它是一个PrintStream对象，输出目标就是所谓的“标准”输出，经常是屏幕。除了System.out, Java中还有两个标准流：System.in和System.err。
+
+System.in表示标准输入，它是一个InputStream对象，输入源经常是键盘。
+
+
+
+System.err表示标准错误流，一般异常和错误信息输出到这个流。
 
 🔖
 
 #### 实用方法
 
-
+🔖
 
 > 小结：
 >
@@ -6480,6 +6704,8 @@ public boolean setExecutable(boolean executable)
 public boolean createNewFile() throws IOException
 ```
 
+创建临时文件：
+
 ```java
 public static File createTempFile(String prefix, String suffix) throws IOException
 public static File createTempFile(String prefix, String suffix, File directory) throws IOException
@@ -6519,7 +6745,23 @@ public File[] listFiles(FilenameFilter filter)
 
 FilenameFilter和FileFilter都是接口，用于过滤。
 
-🔖
+```java
+public interface FileFilter {
+  boolean accept(File pathname);
+}
+
+public interface FilenameFilter {
+  boolean accept(File dir, String name);
+}
+```
+
+在遍历子目录和文件时，针对每个文件，会调用FilenameFilter或FileFilter的accept方法，只有accept方法返回true时，才将该子目录或文件包含到返回结果中。
+
+FilenameFilter和FileFilter的区别在于：<u>FileFilter的accept方法参数只有一个File对象，而File-nameFilter的accept方法参数有两个，dir表示父目录，name表示子目录或文件名。</u>
+
+
+
+File类封装了操作系统和文件系统的差异，提供了统一的文件和目录API。
 
 
 
@@ -6534,7 +6776,7 @@ FilenameFilter和FileFilter都是接口，用于过滤。
 
 #### 属性文件
 
-属性文件是常见的配置文件，用于在不改变代码的情况下改变程序的行为。
+属性文件是常见的配置文件，用于<u>在不改变代码的情况下改变程序的行为</u>。
 
 `java.util.Properties`
 
@@ -6562,17 +6804,27 @@ System.out.println(host);
 
 使用Properties也有限制：**不能直接处理中文，在配置文件中，所有非ASCII字符需要使用Unicode编码**。
 
-> jdk命令`native2ascii`可用来转换为Unicode编码。
+> 在Java IDE（如Eclipse）中使用属性文件编辑器，会地总替换中文为Unicode编码；
+>
+> 也可以用jdk命令`native2ascii`可用来转换为Unicode编码。
+>
+> ```java
+> native2ascii -encoding UTF-8 native.properties ascii.properties
+> ```
+
+
 
 #### CSV文件
 
 CSV是Comma-Separated Values的缩写，表示逗号分隔值。
 
-一般，一行表示一条记录，一条记录包含多个字段，字段之间用逗号（也可以是tab符'\t'、冒号':'、分号'; '等）分隔。
+一般，一行表示一条**记录**，一条记录包含多个**字段**，字段之间用逗号（也可以是tab符`\t`、冒号`:`、分号`; `等）分隔。
 
 各种日志文件通常是CSV文件。
 
-[**Apache Commons CSV**](http://commons.apache.org/proper/commons-csv/index.html)，CSVFormat表示CSV的格式：
+
+
+[**Apache Commons CSV**](http://commons.apache.org/proper/commons-csv/index.html)，`CSVFormat`表示CSV的格式，它有很多方法以定义具体的CSV格式：
 
 ```java
 //定义分隔符
@@ -6590,14 +6842,45 @@ public CSVFormat withIgnoreSurroundingSpaces(
     final boolean ignoreSurroundingSpaces)
 ```
 
+分析字符流：
+
+```java
+public CSVParser parse(final Reader in) throws IOException
+```
+
+`CSVParser`的方法获取记录信息：
+
+```java
+	public Iterator<CSVRecord> iterator()
+  public List<CSVRecord> getRecords() throws IOException
+  public long getRecordNumber()
+```
+
+`CSVRecord`表示一条记录，它有获取每个字段的信息方法：
+
+```java
+	//根据字段列索引获取值，索引从0开始
+	public String get(final int i)
+  //根据列名获取值
+  public String get(final String name)
+  //字段个数
+  public int size()
+  //字段的迭代器
+  public Iterator<String> iterator()
+```
+
+`CSVPrinter`用来写CSV文件。
+
 #### Excel
 
 [POI类库](http://poi.apache.org/)，主要类：
 
-- Workbook：表示一个Excel文件对象，它是一个接口，有两个主要类HSSFWorkbook和ⅩSSFWorkbook，前者对应.xls格式，后者对应.xlsx格式。
-- Sheet：表示一个工作表。
-- Row：表示一行。
-- Cell：表示一个单元格。
+- `Workbook`：表示一个Excel文件对象，它是一个接口，有两个主要类`HSSFWorkbook`和`ⅩSSFWorkbook`，前者对应.xls格式，后者对应.xlsx格式。
+- `Sheet`：表示一个工作表。
+- `Row`：表示一行。
+- `Cell`：表示一个单元格。
+
+更加复杂的使用，如配置单元格的格式、颜色、字体： http://poi.apache.org/spreadsheet/quick-guide.html
 
 #### HTML
 
@@ -6605,9 +6888,33 @@ HTML分析器:[jsoup](https://jsoup.org/)
 
 #### 压缩文件
 
-java SDK支持两种压缩文件格式：gzip和zip，如果需要更多格式，可以使用[Apache Commons Compress](http://commons.apache.org/proper/commons-compress/)
+java SDK支持两种压缩文件格式：gzip（一个文件）和zip（多个文件）。
+
+gzip两个主要类：
+
+```java
+java.util.zip.GZIPOutputStream
+java.util.zip.GZIPInputStream
+```
+
+zip的主要类：
+
+```java
+java.util.zip.ZipOutputStream
+java.util.zip.ZipInputStream
+```
+
+ZipOutputStream可以写入多个文件，它有一个重要方法：
+
+```java
+public void putNextEntry(ZipEntry e) throws IOException
+```
+
+压缩条目`ZipEntry`
 
 🔖
+
+如果需要更多格式，可以使用[Apache Commons Compress](http://commons.apache.org/proper/commons-compress/)。
 
 ### 14.2 随机读写文件
 
@@ -6633,7 +6940,7 @@ mode的四个值：
 3. "rws"：和"rw"一样，另外，它要求文件**内容和元数据**的任何更新都同步到设备上。
 4. "rwd"：和"rw"一样，另外，它要求文件内容的任何更新都同步到设备上，和"rws"的区别是，元数据的更新不要求同步。
 
-RandomAccessFile有类似InputStream/OutputStream的读写字节流的方法。
+RandomAccessFile有类似InputStream/OutputStream的读写字节流的方法。还实现了DataInput/DataOutput接口。
 
 ```java
 	//读一个字节，取最低8位，0～255
@@ -6662,32 +6969,63 @@ RandomAccessFile内部有一个**文件指针**，指向当前读写的位置，
   public native void seek(long pos) throws IOException
 ```
 
+RandomAccessFile是通过本地方法，最终调用操作系统的API来实现文件指针调整的。
+
 
 
 ```java
-// 类似InputStream的skip方法，但通过更改文件指针实现
+// 跳过输入流中n个字节。类似InputStream的skip方法（通过实际读取n个字节实现的），但skipBytes通过更改文件指针实现
 public int skipBytes(int n) throws IOException
-// 返回文件字节数
+// 直接获取文件长度，返回文件字节数
 public native long length() throws IOException
 // 修改文件长度（当前文件会根据情况扩展或截取）
 public native void setLength(long newLength) throws IOException
 ```
 
+避免使用下面两个方法，它们没有编码概念，都假定一个字节代表一个字符，对中文显然不成立：
+
+```java
+public final void writeBytes(String s) throws IOException
+public final String readLine() throws IOException
+```
+
+
+
 #### 设计一个键值数据库BasicDB
 
-🔖
+在日常的一般文件读写中，使用流就可以了，但在一些系统程序中，流是不适合的， RandomAccessFile因为更接近操作系统，更为方便和高效。
+
+🔖🔖
 
 
-
-> 总结：RandomAccessFile可以随机读写，更为接近操作系统的API，在实现一些系统程序时，它比流要更为方便高效。
 
 ### 14.3 内存映射文件🔖
 
 > 内存映射文件不是Java引入的概念，而是操作系统提供的一种功能，大部分操作系统都支持。
 
-
-
 #### 基本概念
+
+==内存映射文件==，就是**将文件映射到内存，文件对应于内存中的一个字节数组，对文件的操作变为对这个字节数组的操作，而字节数组的操作直接映射到文件上**。这种映射可以是映射文件全部区域，也可以是只映射一部分区域。
+
+不过，这种映射是操作系统提供的一种==假象==，文件一般不会马上加载到内存，操作系统只是记录下了这回事，当实际发生读写时，才会按需加载。操作系统一般是按页加载的，页可以理解为就是一块，页的大小与操作系统和硬件相关，典型的配置可能是4K、8K等，当操作系统发现读写区域不在内存时，就会加载该区域对应的一个页到内存。
+
+这种按需加载的方式，使得内存映射文件可以==方便高效地处理非常大的文件==，内存放不下整个文件也不要紧，操作系统会自动进行处理，将需要的内容读到内存，将修改的内容保存到硬盘，将不再使用的内存释放。
+
+在应用程序写的时候，它写的是内存中的字节数组，这个内容什么时候同步到文件上呢？这个时机是不确定的，由操作系统决定，不过，<u>只要操作系统不崩溃，操作系统会保证同步到文件上，即使映射这个文件的应用程序已经退出了。</u>
+
+在一般的文件读写中，会有两次数据复制，一次是从硬盘复制到操作系统内核，另一次是从操作系统内核复制到用户态的应用程序。而在内存映射文件中，一般情况下，==只有一次复制==，且内存分配在操作系统内核，应用程序访问的就是操作系统的内核内存空间，这显然要**比普通的读写效率更高**。
+
+内存映射文件的另一个重要特点是：它可以被多个不同的应用程序==共享==，多个程序可以映射同一个文件，映射到同一块内存区域，一个程序对内存的修改，可以让其他程序也看到，这使得它特别适合用于==不同应用程序之间的通信==。
+
+操作系统自身在加载可执行文件的时候，一般都利用了内存映射文件，比如：
+
+- 按需加载代码，只有当前运行的代码在内存，其他暂时用不到的代码还在硬盘。
+- 同时启动多次同一个可执行文件，文件代码在内存也只有一份。
+- 不同应用程序共享的动态链接库代码在内存也只有一份。
+
+内存映射文件也有==局限性==。比如，<u>它不太适合处理小文件，它是按页分配内存的，对于小文件，会浪费空间；另外，映射文件要消耗一定的操作系统资源，初始化比较慢</u>。
+
+> 总结，对于一般的文件读写不需要使用内存映射文件，但如果处理的是大文件，要求极高的读写效率，比如数据库系统，或者需要在不同程序间进行共享和通信，那就可以考虑内存映射文件。
 
 #### 用法
 
@@ -6699,21 +7037,44 @@ public native void setLength(long newLength) throws IOException
 
 内存映射文件在日常普通的文件读写中，用到得比较少，但在**一些系统程序中，它却是经常被用到的一把利器**，可以高效地读写大文件，且能实现不同程序间的共享和通信。
 
-### 14.4 标准序列化机制🔖
+### 14.4 标准序列化机制
 
-简单来说，序列化就是将对象转化为字节流，反序列化就是将字节流转化为对象。
+之前在将对象保存到文件时，使用的是DataOutputStream，从文件读入对象时，使用的是DataInputStream，使用它们，需要逐个处理对象中的每个字段，这种方式比较啰嗦，Java中有一种更为简单的机制，那就是序列化。
+
+简单来说，==序列化就是将对象转化为字节流，反序列化就是将字节流转化为对象==。
 
 #### 基本用法
+
+`java.io.Serializable`
+
+声明实现了Serializable接口后，保存/读取Student对象就可以使用`ObjectOutputStream`/`ObjectInputStream`流了。
+
+将对象obj转化为字节，写到流中：
+
+```java
+public void writeObject(Object obj) throws IOException
+```
+
+从流中读取字节，转化为一个对象：
+
+```java
+public Object readObject() throws ClassNotFoundException, IOException
+```
 
 
 
 #### 复杂对象
 
-
+Java序列化机制能自动处理引用同一个对象的情况，也能自动处理循环引用的情况。
 
 #### 定制序列化
 
+Java提供了多种定制序列化的机制，主要的有两种：
 
+1. transient关键字，
+2. 实现writeObject和readObject方法。
+
+🔖
 
 #### 序列化的基本原理
 
@@ -6731,9 +7092,60 @@ public native void setLength(long newLength) throws IOException
 
 
 
-### 14.5 使用Jackson序列化为JSON/XML/MessagePack🔖🔖
+### 14.5 使用Jackson序列化为JSON/XML/MessagePack
+
+Java的标准序列化机制有一些重要的限制，而且不能跨语言，实践中经常使用一些替代方案，比如ⅩML/JSON/MessagePack。Java SDK中对这些格式的支持有限，有很多第三方的类库提供了更为方便的支持，Jackson是其中一种，它支持多种格式。
+
+#### 基本用法
+
+##### 1.Json
+
+`ObjectMapper`
+
+```java
+Student student = new Student("张三", 21, 80.9d);
+ObjectMapper mapper = new ObjectMapper();
+mapper.enable(SerializationFeature.INDENT_OUTPUT);
+String str = mapper.writeValueAsString(student);
+System.out.println(str);
+```
+
+```jav
+ObjectMapper mapper = new ObjectMapper();
+Student s = mapper.readValue(new File("student.json"), Student.class);
+System.out.println(s.toString());
+```
+
+##### 2.xml
+
+只需要替换ObjectMapper为`ⅩmlMapper`🔖。`ⅩmlMapper`是ObjectMapepr的子类。
 
 
+
+##### 3.MessagePack🔖
+
+
+
+#### 容器对象
+
+##### 1.List
+
+
+
+##### 2.Map
+
+#### 复杂对象
+
+
+
+#### 定制序列化
+
+Jackson两种配置方法：
+
+1. 注解
+2. 配置ObjectMapper对象，ObjectMapper支持对序列化和反序列化过程做一些配置
+
+🔖
 
 #### Jackson对XML支持的局限性
 

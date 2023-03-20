@@ -9,13 +9,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class POITest {
+public class ExcelTest {
     public static void main(String[] args) throws Exception {
 //        List<Student> students = new ArrayList<>();
 //        students.add(new Student("andy", 11, "68"));
