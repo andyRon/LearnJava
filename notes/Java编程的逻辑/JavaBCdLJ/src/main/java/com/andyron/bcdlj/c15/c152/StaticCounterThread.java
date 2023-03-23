@@ -1,23 +1,26 @@
-package com.andyron.bcdlj.c15;
+package com.andyron.bcdlj.c15.c152;
 
-public class CounterThread extends Thread {
-    private static int counter = 0;
+/**
+ * @author andyron
+ **/
+public class StaticCounterThread extends Thread {
     @Override
     public void run() {
         for (int i = 0; i < 1000; i++) {
-            counter++;
+            StaticCounter.incr();
         }
     }
+
     public static void main(String[] args) throws InterruptedException {
         int num = 1000;
-        Thread[] threads = new Thread[num];
+        Thread[] threads = new Thread[1000];
         for (int i = 0; i < num; i++) {
-            threads[i] = new CounterThread();
+            threads[i] = new StaticCounterThread();
             threads[i].start();
         }
         for (int i = 0; i < num; i++) {
             threads[i].join();
         }
-        System.out.println(counter);
+        System.out.println(StaticCounter.getCount());
     }
 }

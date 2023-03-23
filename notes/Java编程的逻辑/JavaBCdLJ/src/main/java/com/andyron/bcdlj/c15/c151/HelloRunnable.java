@@ -1,4 +1,4 @@
-package com.andyron.bcdlj.c15;
+package com.andyron.bcdlj.c15.c151;
 
 public class HelloRunnable implements Runnable {
     @Override
@@ -8,8 +8,6 @@ public class HelloRunnable implements Runnable {
 
     public static void main(String[] args) throws InterruptedException {
         Thread helloThread = new Thread(new HelloRunnable());
-//        System.out.println(helloThread.getId());
-//        System.out.println(helloThread.getState());
         helloThread.start();
         helloThread.join();
         System.out.println("world");
