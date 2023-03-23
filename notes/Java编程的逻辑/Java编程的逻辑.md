@@ -7161,15 +7161,43 @@ Jackson还支持很多其他格式，如YAML、AVRO、Protobuf、Smile等。
 
 #### 创建线程
 
-线程表示一条单独的执行流，它有自己的程序执行计数器，有自己的栈。
+线程表示一条单独的**执行流**，它有自己的程序**执行计数器**，有自己的**栈**。
+
+Java中创建线程有两种方式：
 
 ##### 1.继承Thread
 
 继承Thread并重写其run方法来实现一个线程。
 
+```java
+public class HelloThread extends Thread {
+    @Override
+    public void run() {
+        System.out.println("hello");
+    }
+
+    public static void main(String[] args) {
+        HelloThread thread = new HelloThread();
+        thread.start();
+    }
+}
+```
+
 run方法的方法**签名是固定的**， public，没有参数，没有返回值，不能抛出受检异常。
 
-start方法表示启动该线程，使其成为一条单独的执行流，操作系统会分配线程相关的资源，每个线程会有单独的程序执行计数器和栈，操作系统会把这个线程作为一个独立的个体进行调度，分配时间片让它执行，执行的起点就是run方法。
+run方法类似于单线程程序中的main方法，线程<u>从run方法的第一条语句开始执行</u>直到结束。
+
+start方法表示**启动**该线程，使其成为一条**单独的执行流**，操作系统会分配线程相关的资源，每个线程会有单独的程序执行计数器和栈，操作系统会把这个线程作为一个独立的个体进行调度，分配时间片让它执行，执行的起点就是run方法。
+
+> 如果不调用start，而直接调用run方法呢？
+>
+> 屏幕的输出并不会发生变化，但并不会启动一条单独的执行流，run方法的代码依然是在main线程中执行的，run方法只是main方法调用的一个普通方法。
+
+```java
+public static native Thread currentThread();
+public long getId()
+public final String getName()
+```
 
 操作系统负责调度，<u>在单CPU的机器上，同一时刻只能有一个线程在执行，在多CPU的机器上，同一时刻可以有多个线程同时执行</u>，但操作系统给我们屏蔽了这种差异，给程序员的感觉就是多个线程并发执行
 
@@ -7199,24 +7227,31 @@ public class HelloRunnable implements Runnable {
 
 ##### 2.优先级
 
+在Java中，优先级从1到10，默认为5。
 
+优先级对操作系统而言主要是一种**建议和提示，而非强制**。
 
 ##### 3.状态
 
 `Thread.State`
 
-1. NEW：没有调用start的线程状态为NEW。
-2. TERMINATED：线程运行结束后状态为TERMINATED。
-3. RUNNABLE：调用start后线程在执行run方法且没有阻塞时状态为RUNNABLE，不过，RUNNABLE不代表CPU一定在执行该线程的代码，可能正在执行也可能在等待操作系统分配时间片，只是它没有在等待其他条件。
-4. BLOCKED、WAITING、TIMED_WAITING：都表示线程被阻塞了，在等待一些条件。
+1. `NEW`：没有调用start的线程状态为NEW。
+2. `TERMINATED`：线程运行结束后状态为TERMINATED。
+3. `RUNNABLE`：调用start后线程在执行run方法且没有阻塞时状态为RUNNABLE，不过，RUNNABLE不代表CPU一定在执行该线程的代码，可能正在执行也可能在等待操作系统分配时间片，只是它没有在等待其他条件。
+4. `BLOCKED`、`WAITING`、`TIMED_WAITING`：都表示线程被阻塞了，在等待一些条件。
 
 另外isAlive方法，线程被启动后，run方法运行结束前，返回值都是true。
 
 ##### 4.是否daemon线程
 
-启动线程会启动一条单独的执行流，整个程序只有在所有线程都结束的时候才退出，但daemon线程是例外，当整个程序中剩下的都是daemon线程的时候，程序就会退出。
+```java
+public final void setDaemon(boolean on)
+public final boolean isDaemon()
+```
 
-daemon线程一般是其他线程的辅助线程（如垃圾回收），在它辅助的主线程退出的时候，它就没有存在的意义了。
+启动线程会启动一条单独的执行流，整个程序只有在所有线程都结束的时候才退出，但daemon线程是例外，当**整个程序中剩下的都是daemon线程的时候，程序就会退出**。
+
+daemon线程一般是其他线程的**辅助线程**（如垃圾回收），在它辅助的主线程退出的时候，它就没有存在的意义了。
 
 ##### 5.sleep方法
 
@@ -7224,7 +7259,9 @@ daemon线程一般是其他线程的辅助线程（如垃圾回收），在它�
 public static native void sleep(long millis) throws InterruptedException;
 ```
 
-睡眠期间，线程可以被中断，如果被中断，sleep会抛出InterruptedException。
+睡眠期间，该线程会**让出CPU**，但睡眠的时间不一定是确切的给定毫秒数，可能有一定的偏差，**偏差与系统定时器和操作系统调度器的准确度和精度有关**。
+
+睡眠期间，线程可以被中断，如果被中断，sleep会抛出`InterruptedException`。
 
 ##### 6.yield方法
 
@@ -7240,7 +7277,7 @@ public static native void yield();
 public final void join() throws InterruptedException
 ```
 
-join方法，可以让调用join的线程等待该线程结束，再执行其它线程。在等待线程结束的过程中，这个等待可能被中断，如果被中断，会抛出InterruptedException。
+join方法，可以**让调用join的线程等待该线程结束，再执行其它线程**。在等待线程结束的过程中，这个等待可能被中断，如果被中断，会抛出`InterruptedException`。
 
 ```java
 public class HelloRunnable implements Runnable {
@@ -7334,7 +7371,7 @@ public class ShareMemoryDemo {
 }
 ```
 
-ChildThread的run方法访问了共享的变量shared和list,main方法最后输出了共享的shared和list的值，大部分情况会输出：
+定义了一个静态变量shared和静态内部类ChildThread，在main方法中，创建并启动了两个ChildThread对象，传递了相同的list对象，ChildThread的run方法访问了共享的变量shared和list,main方法最后输出了共享的shared和list的值，大部分情况会输出：
 
 ```
 2
@@ -7345,14 +7382,14 @@ ChildThread的run方法访问了共享的变量shared和list,main方法最后输
 
 - 该例中有三条执行流，一条执行main方法，另外两条执行ChildThread的run方法。
 - 不同执行流可以访问和操作相同的变量。
-- 不同执行流可以执行相同的程序代码，如本例中incrShared方法，ChildThread的run方法，被两条ChildThread执行流执行，incrShared方法是在外部定义的，但被ChildThread的执行流执行。**在分析代码执行过程时，理解代码在被哪个线程执行是很重要的**。
+- 不同执行流可以执行相同的程序代码，如本例中incrShared方法，ChildThread的run方法，被两条ChildThread执行流执行，incrShared方法是在外部定义的，但被ChildThread的执行流执行。**==在分析代码执行过程时，理解代码在被哪个线程执行是很重要的==**。
 - 当多条执行流执行相同的程序代码时，**每条执行流都有单独的栈**，方法中的参数和局部变量都有自己的一份。
 
 当多条执行流可以操作相同的变量时，可能会出现一些意料之外的结果：
 
-##### 1.竟态条件（race condition）
+##### 1.竟态条件
 
-竞态条件（race condition）是指，当多个线程访问和操作同一个对象时，最终执行结果与执行时序有关，可能正确也可能不正确。
+==竞态条件（race condition）==是指，当多个线程访问和操作同一个对象时，最终执行结果与==执行时序==有关，可能正确也可能不正确。
 
 ```java
 public class CounterThread extends Thread {
@@ -7378,7 +7415,7 @@ public class CounterThread extends Thread {
 }
 ```
 
-期望结果值为1000000，但一般都是不是。因为counter++这个操作不是原子操作，它分为三个步骤：
+期望结果值为1000000，但一般都是不是。因为counter++这个操作不是==原子操作==，它分为三个步骤：
 
 1. 取counter的当前值；
 2. 在当前值基础上加1；
@@ -7393,6 +7430,8 @@ public class CounterThread extends Thread {
 - 使用原子变量。
 
 ##### 2.内存可见性
+
+多个线程可以共享访问和操作相同的变量，但<u>一个线程对一个共享变量的修改，另一个线程不一定马上就能看到，甚至永远也看不到</u>。
 
 ```java
 public class VisibilityDemo {
@@ -7418,7 +7457,7 @@ public class VisibilityDemo {
 
 期望的结果是两个线程都退出，但实际执行时，很可能会发现HelloThread永远都不会退出。也就是说，在HelloThread执行流看来，shutdown永远为false，即使main线程已经更改为了true。
 
-**内存可见性问题**。在计算机系统中，除了内存，数据还会被缓存在CPU的寄存器以及各级缓存中，当访问一个变量时，可能直接从寄存器或CPU缓存中获取，而不一定到内存中去取，当修改一个变量时，也可能是先写到缓存中，稍后才会同步更新到内存中。
+**内存可见性问题**。在计算机系统中，==除了内存，数据还会被缓存在CPU的寄存器以及各级缓存中，当访问一个变量时，可能直接从寄存器或CPU缓存中获取，而不一定到内存中去取，当修改一个变量时，也可能是先写到缓存中，稍后才会同步更新到内存中。==
 
 在单线程的程序中，这一般不是问题，但在多线程的程序中，尤其是在有多CPU的情况下，这就是严重的问题。**一个线程对内存的修改，另一个线程看不到，一是修改没有及时同步到内存，二是另一个线程根本就没从内存读。**
 
@@ -7431,15 +7470,15 @@ public class VisibilityDemo {
 
 优点：
 
-1. 充分利用多CPU的计算能力，单线程只能利用一个CPU，使用多线程可以利用多CPU的计算能力。
-2. 充分利用硬件资源，CPU和硬盘、网络是可以同时工作的，一个线程在等待网络IO的同时，另一个线程完全可以利用CPU，对于多个独立的网络请求，完全可以使用多个线程同时请求。
+1. 充分利用**多CPU的计算能力**，单线程只能利用一个CPU，使用多线程可以利用多CPU的计算能力。
+2. 充分利用**硬件资源**，CPU和硬盘、网络是可以同时工作的，一个线程在等待网络IO的同时，另一个线程完全可以利用CPU，对于多个独立的网络请求，完全可以使用多个线程同时请求。
 3. 在用户界面（GUI）应用程序中，<u>保持程序的响应性，界面和后台任务通常是不同的线程</u>，否则，如果所有事情都是一个线程来执行，当执行一个很慢的任务时，整个界面将停止响应，也无法取消该任务。
 4. 简化建模及IO处理，比如，在服务器应用程序中，对每个用户请求使用一个单独的线程进行处理，相比使用一个线程，处理来自各种用户的各种请求，以及各种网络和文件IO事件，建模和编写程序要容易得多。
 
 成本：
 
 1. 操作系统会为每个线程创建必要的数据结构、栈、程序计数器等，创建也需要一定的时间。
-2. 线程调度和切换也是有成本的。**上下文切换**
+2. 线程调度和切换也是有成本的。**==上下文切换==**
 
 如果执行的任务都是CPU密集型的，即主要消耗的都是CPU，那创建超过CPU数量的线程就是没有必要的，并不会加快程序的执行。
 
@@ -7447,9 +7486,11 @@ public class VisibilityDemo {
 
 ### 15.2 理解synchronized
 
+共享内存的两种问题都可以通过synchronized解决。
+
 #### 用法和基本原理
 
-synchronized可以用于修饰类的实例方法、静态方法和代码块。
+`synchronized`可以用于修饰类的<u>实例方法、静态方法和代码块</u>。
 
 ##### 1.实例方法
 
@@ -7496,15 +7537,26 @@ public class CounterThread extends Thread {
 
 创建了1000个线程，传递了相同的counter对象，每个线程主要就是调用Counter的incr方法1000次，main线程等待子线程结束后输出counter的值，不论运行多少次结果都是100万。
 
+```java
+Counter counter1 = new Counter();
+Counter counter2 = new Counter();
+Thread t1 = new CounterThread(counter1);
+Thread t2 = new CounterThread(counter2);
+t1.start();
+t2.start();
+```
+
+t1和t2两个线程是可以同时执行Counter的incr方法的，因为它们访问的是不同的Counter对象，一个是counter1，另一个是counter2。
+
 **synchronized实例方法实际保护的是同一个==对象==的方法调用**（同时只能有一个线程执行同一对象的实例方法）。
 
 synchronized实例方法保护的是当前实例对象，即this, this对象有**一个锁和一个等待队列**，锁只能被一个线程持有，其他试图获得同样锁的线程需要等待。执行synchronized实例方法的过程大致如下：
 
 1. 尝试获得锁，如果能够获得锁，继续下一步，否则加入等待队列，阻塞并等待唤醒。
 2. 执行实例方法体代码。
-3. 释放锁，如果等待队列上有等待的线程，从中取一个并唤醒，如果有多个等待的线程，唤醒哪一个是不一定的，不保证公平性。
+3. 释放锁，如果等待队列上有等待的线程，从中取一个并唤醒，如果有多个等待的线程，唤醒哪一个是不一定的，**不保证公平性**。
 
-当前线程不能获得锁的时候，它会加入等待队列等待，线程的状态会变为**BLOCKED**。
+当前线程不能获得锁的时候，它会加入等待队列等待，线程的状态会变为**==BLOCKED==**。
 
 **==synchronized保护的是对象而非代码，只要访问的是同一个对象的synchronized方法，即使是不同的代码，也会被同步顺序访问。==**比如，对于Counter中的两个实例方法getCount和incr，对同一个Counter对象，一个线程执行getCount，另一个执行incr，它们是不能同时执行的，会被synchronized同步顺序执行。
 
@@ -7532,7 +7584,7 @@ public class StaticCounter {
 }
 ```
 
-对于静态方法，synchronized保护的是类对象，也就是StaticCounter.class。实际上，每个对象都有一个锁和一个等待队列，类对象也不例外。
+对于静态方法，synchronized保护的是==类对象==，也就是`StaticCounter.class`。实际上，每个对象都有一个锁和一个等待队列，类对象也不例外。
 
 ##### 3.代码块
 
@@ -7568,6 +7620,8 @@ public class StaticCounter {
 }
 ```
 
+synchronized括号里面的就是保护的对象，对于实例方法，就是`this`，对于静态方法，就是类对象， `{}`里面是同步执行的代码。
+
 synchronized同步的对象可以是任意对象，**==任意对象都有一个锁和等待队列==**，或者说，任何对象都可以作为锁对象。比如，Counter类的等价代码还可以是：
 
 ```java
@@ -7589,21 +7643,76 @@ public class Counter {
 
 
 
-#### 进一步了解synchronized🔖
+#### 进一步了解synchronized
 
 ##### 1.可重入性
 
+对同一个执行线程，它在获得了锁之后，在调用其他需要同样锁的代码时，可以直接调用。比如，在一个synchronized实例方法内，可以直接调用其他synchronized实例方法。
 
+**可重入是通过记录锁的==持有线程和持有数量==来实现的**，当调用被synchronized保护的代码时，检查对象是否已被锁，如果是，再检查是否被当前线程锁定，如果是，增加持有数量，如果不是被当前线程锁定，才加入等待队列，当释放锁时，减少持有数量，当数量变为0时才释放整个锁。
 
 ##### 2.内存可见性
 
+🔖
+
+synchronized除了==保证原子操作==外，它还有一个重要的作用，就是==保证内存可见性==，在释放锁时，所有写入都会写回内存，而获得锁后，都会从内存中读最新数据。
+
+不过，如果只是为了保证内存可见性，使用synchronized的成本有点高，有一个更轻量级的方式，那就是给变量加修饰符`volatile`。
+
+加了volatile之后，Java会在操作对应变量时插入特殊的指令，保证读写到内存最新值，而非缓存的值。
+
+##### 3.死锁🔖
+
+> 有a、b两个线程，a持有锁A，在等待锁B，而b持有锁B，在等待锁A, a和b陷入了互相等待，最后谁都执行不下去
 
 
-##### 3.死锁
 
 
 
-#### 同步容器及其注意事项🔖
+**应该尽量避免在持有一个锁的同时去申请另一个锁，如果确实需要多个锁，所有代码都应该按照相同的顺序去申请锁。**
+
+显式锁接口`Lock`，它支持<u>尝试获取锁（tryLock）和带时间限制的获取锁方法</u>。
+
+`jstack`会报告发现的死锁。
+
+#### 同步容器及其注意事项
+
+类Collections中有一些方法，可以返回**线程安全的同步容器**，比如：
+
+```java
+public static <T> Collection<T> synchronizedCollection(Collection<T> c)
+  public static <T> List<T> synchronizedList(List<T> list)
+  public static <K, V> Map<K, V> synchronizedMap(Map<K, V> m)
+```
+
+它们是给所有容器方法都加上synchronized来实现安全的，比如`SynchronizedCollection`：
+
+```java
+static class SynchronizedCollection<E> implements Collection<E> {
+  final Collection<E> c;   //Backing Collection
+  final Object mutex;      //Object on which to synchronize
+  SynchronizedCollection(Collection<E> c) {
+    if(c==null)
+      throw new NullPointerException();
+    this.c = c;
+    mutex = this;
+  }
+  public int size() {
+    synchronized (mutex) {return c.size(); }
+  }
+  public boolean add(E e) {
+    synchronized (mutex) {return c.add(e); }
+  }
+  public boolean remove(Object o) {
+    synchronized (mutex) {return c.remove(o); }
+  }
+  //…
+}
+```
+
+这里线程安全针对的是**容器对象**，指的是当多个线程并发访问同一个容器对象时，不需要额外的同步操作，也不会出现错误的结果。
+
+🔖
 
 ##### 1.复合操作
 
@@ -7618,13 +7727,11 @@ public class Counter {
 - ConcurrentLinkedQueue。
 - ConcurrentSkipListSet。
 
+这些容器类都是线程安全的，但都没有使用synchronized，没有迭代问题，直接支持一些复合操作，性能也高得多。
 
+### 15.3 线程的基本协作机制
 
-### 15.3 线程的基本协作机制🔖🔖
-
-多线程之间除了竞争访问同一个资源外，也经常需要相互协作。协作的基本机制是wait/notify。
-
-
+多线程之间除了竞==争访问同一个资源==外，也经常需要==相互协作==。协作的基本机制是==wait/notify==。
 
 #### 协作场景
 
@@ -7646,7 +7753,7 @@ public class Counter {
 
 5. 集合点
 
-
+   类似于学校或公司组团旅游，在旅游过程中有若干集合点，比如出发集合点，每个人从不同地方来到集合点，所有人到齐后进行下一项活动，在一些程序，比如<u>并行迭代计算</u>中，每个线程负责一部分计算，然后在集合点等待其他线程完成，所有线程到齐后，<u>交换数据和计算结果</u>，再进行下一次迭代。
 
 #### wait/notify
 
@@ -7731,6 +7838,8 @@ public class WaitThread extends Thread {
 
 在生产者/消费者模式中，协作的共享变量是**队列**，生产者往队列上放数据，如果满了就wait，而消费者从队列上取数据，如果队列为空也wait。
 
+🔖
+
 
 
 Java提供了专门的阻塞队列实现：
@@ -7748,13 +7857,13 @@ Java提供了专门的阻塞队列实现：
 
 
 
-#### 异步结果
+#### 异步结果🔖
 
 Callable
 
 
 
-#### 集合点
+#### 集合点🔖
 
 
 
@@ -7791,7 +7900,9 @@ public static boolean interrupted()
 
 
 
-#### 线程对中断的反应
+#### 线程对中断的反应🔖
+
+interrupt()对线程的影响与线程的状态和在进行的IO操作有关。
 
 ##### 1.RUNNABLE
 
@@ -7817,7 +7928,7 @@ public static boolean interrupted()
 
 ## 16 并发包的基石
 
-java.util.concurrent
+`java.util.concurrent`，包括很多易用且高性能的并发开发工具。
 
 ### 16.1 原子变量和CAS
 
@@ -7825,10 +7936,10 @@ java.util.concurrent
 
 可使用原子变量替代，Java并发包中的基本**==原子变量==**类型有很多种。
 
-- AtomicBoolean：原子Boolean类型，常用来在程序中表示一个标志位。
-- AtomicInteger：原子Integer类型。
-- AtomicLong：原子Long类型，常用来在程序中生成唯一序列号。
-- AtomicReference：原子引用类型，用来以原子方式更新复杂类型。
+- `AtomicBoolean`：原子Boolean类型，常用来在程序中表示一个标志位。
+- `AtomicInteger`：原子Integer类型。
+- `AtomicLong`：原子Long类型，常用来在程序中生成唯一序列号。
+- `AtomicReference`：原子引用类型，用来以原子方式更新复杂类型。
 
 另外还又针对数组的类：AtomicLongArray、AtomicReferenceArray，以及用于以原子方式更新对象中的字段的类，如AtomicIntegerFieldUpdater、AtomicReferenceFieldUpdater等。
 
@@ -8005,7 +8116,9 @@ park的两个变体：
 
 synchronized代表一种**声明式编程思维**，程序员更多的是表达一种同步声明，由Java系统负责具体实现，程序员不知道其实现细节；显式锁代表一种**命令式编程思维**，程序员实现所有细节。
 
+声明式编程的好处除了简单，还在于性能，在较新版本的JVM上，ReentrantLock和synchronized的性能是接近的，但Java编译器和虚拟机可以不断优化synchronized的实现，比如自动分析synchronized的使用，对于没有锁竞争的场景，自动省略对锁获取/释放的调用。
 
+> 总结：**能用synchronized就用synchronized**，不满足要求时再考虑ReentrantLock。
 
 ### 16.3 显式条件🔖
 
@@ -8049,7 +8162,7 @@ await在进入等待队列后，会释放锁，释放CPU，当其他线程将它
 
 
 
-
+显式条件与显式锁配合使用，与wait/notify相比，可以支持多个条件队列，代码更为易读，效率更高，使用时注意不要将signal/signalAll误写为notify/notifyAll。
 
 ## 17 并发容器
 
@@ -8117,11 +8230,13 @@ HashMap的并发版本，与HashMap相比，它有如下特点：
 
 ### 17.3 基于跳表的Map和Set
 
-Java并发包中与TreeMap/TreeSet对应的并发版本是ConcurrentSkipListMap和ConcurrentSkipListSet。
+Java并发包中与TreeMap/TreeSet对应的并发版本是`ConcurrentSkipListMap`和`ConcurrentSkipListSet`。
 
 #### 基本概念
 
 ConcurrentSkipListSet也是基于ConcurrentSkipListMap实现的。
+
+ConcurrentSkipListMap是基于SkipList实现的，`SkipList`称为跳跃表或==跳表==。
 
 > 并发版本为什么采用跳表而不是树呢？
 >
@@ -8189,7 +8304,7 @@ SynchronousQueue和LinkedTransferQueue。
 
 ### 18.2 线程池
 
-线程池，就是一个线程的池子，里面有若干线程，它们的目的就是执行提交给线程池的任务，执行完一个任务后不会退出，而是继续等待或执行新任务。
+线程池，就是一个线程的池子，里面有若干线程，它们的目的就是执行提交给线程池的任务，**执行完一个任务后不会退出，而是继续等待或执行新任务**。
 
 线程池两个概念：**任务队列**，**工作者线程**。
 
@@ -8202,11 +8317,36 @@ ThreadPoolExecutor
 
 #### 理解线程池
 
+```java
+public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue)
+
+public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory, RejectedExecutionHandler handler)
+```
+
+
+
 ##### 1.线程池大小
+
+主要与4个参数有关：
 
 - corePoolSize：核心线程个数。
 - maximumPoolSize：最大线程个数。
 - keepAliveTime和unit：空闲线程存活时间。
+
+
+
+```java
+	//返回当前线程个数
+	public int getPoolSize()
+  //返回线程池曾经达到过的最大线程个数
+  public int getLargestPoolSize()
+  //返回线程池自创建以来所有已完成的任务数
+  public long getCompletedTaskCount()
+  //返回所有任务数，包括所有已完成的加上所有排队待执行的
+  public long getTaskCount()
+```
+
+
 
 ##### 2.队列
 
@@ -8226,6 +8366,12 @@ ThreadPoolExecutor
 
 #### 工厂类Executors
 
+```java
+	public static ExecutorService newSingleThreadExecutor()
+  public static ExecutorService newFixedThreadPool(int nThreads)
+  public static ExecutorService newCachedThreadPool()
+```
+
 
 
 #### 线程池的死锁
@@ -8242,7 +8388,32 @@ ThreadPoolExecutor
 
 #### Timer和TimerTask
 
+##### 基本用法
 
+TimerTask表示一个定时任务，它是一个抽象类，实现了Runnable，具体的定时任务需要继承该类，实现run方法。
+
+Timer是一个具体类，它负责定时任务的调度和执行，主要方法有：
+
+```java
+	//在指定绝对时间time运行任务task
+	public void schedule(TimerTask task, Date time)
+  //在当前时间延时delay毫秒后运行任务task
+  public void schedule(TimerTask task, long delay)
+  //固定延时重复执行，第一次计划执行时间为firstTime，
+  //后一次的计划执行时间为前一次"实际"执行时间加上period
+  public void schedule(TimerTask task, Date firstTime, long period)
+  //同样是固定延时重复执行，第一次执行时间为当前时间加上delay
+  public void schedule(TimerTask task, long delay, long period)
+  //固定频率重复执行，第一次计划执行时间为firstTime，
+  //后一次的计划执行时间为前一次"计划"执行时间加上period
+  public void scheduleAtFixedRate(TimerTask task, Date firstTime, long period)
+  //同样是固定频率重复执行，第一次计划执行时间为当前时间加上delay
+  public void scheduleAtFixedRate(TimerTask task, long delay, long period)
+```
+
+
+
+##### 小节
 
 注意：
 
@@ -8254,6 +8425,23 @@ ThreadPoolExecutor
 
 #### ScheduledExecutorService
 
+```java
+public interface ScheduledExecutorService extends ExecutorService {
+  //单次执行，在指定延时delay后运行command
+  public ScheduledFuture<? > schedule(Runnable command, long delay,
+                                      TimeUnit unit);
+  //单次执行，在指定延时delay后运行callable
+  public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay,
+                                         TimeUnit unit);
+  //固定频率重复执行
+  public ScheduledFuture<? > scheduleAtFixedRate(Runnable command,
+                                                 long initialDelay, long period, TimeUnit unit);
+  //固定延时重复执行
+  public ScheduledFuture<? > scheduleWithFixedDelay(Runnable command,
+                                                    long initialDelay, long delay, TimeUnit unit);
+}
+```
+
 
 
 ScheduledThreadPoolExecutor与Timer主要不同：
@@ -8261,6 +8449,14 @@ ScheduledThreadPoolExecutor与Timer主要不同：
 - 它的背后是线程池，可以有多个线程执行任务。
 - 它在任务执行后再设置下次执行的时间，对于固定延时的任务更为合理。
 - 任务执行线程会捕获任务执行过程中的所有异常，一个定时任务的异常不会影响其他定时任务，不过，发生异常的任务（即使是一个重复任务）不会再被调度。
+
+#### 小节
+
+Timer和ScheduledExecutorService，实践中建议使用ScheduledExecutorService。
+
+它们的共同局限是**不太胜任复杂的定时任务调度**。此时可使用[日期和时间处理方法](#7.5 剖析日期和时间)，后者第三方类库如[Quartz](http://www.quartz-scheduler.org/)。
+
+在并发应用程序中，一般我们应该尽量利用高层次的服务，比如各种并发容器、任务执行服务和线程池等，避免自己管理线程和它们之间的同步。
 
 ## 19 同步和协作工具类
 
@@ -8323,13 +8519,19 @@ CyclicBarrier相当于是一个栅栏，所有线程在到达该栅栏后都需�
 
 
 
+CyclicBarrier与CountDownLatch的区别。
+
+1. CountDownLatch的参与线程是有不同角色的，有的负责倒计时，有的在等待倒计时变为0，负责倒计时和等待倒计时的线程都可以有多个，用于不同角色线程间的同步。
+2. CyclicBarrier的参与线程角色是一样的，用于同一角色线程间的协调一致。
+3. CountDownLatch是一次性的，而CyclicBarrier是可以重复利用的。
+
 ### 19.5 理解ThreadLocal
 
 实现线程安全的特殊概念：线程本地变量
 
 #### 基本概念和用法
 
-线程本地变量是说，**每个线程都有同一个变量的独有拷贝**。
+线程本地变量是说，**==每个线程都有同一个变量的独有拷贝==**。
 
 
 
@@ -8349,7 +8551,7 @@ CyclicBarrier相当于是一个栅栏，所有线程在到达该栅栏后都需�
 
 ## 20 并发总结
 
-多线程开发有两个核心问题：一个是**竞争**，另一个是**协作**。
+多线程开发有两个核心问题：一个是**==竞争==**，另一个是**==协作==**。
 
 ### 20.1 线程安全的机制
 
@@ -8399,17 +8601,17 @@ Java的动态特性：反射、注解、动态代理、类加载器等。
 
 利用这些特性，可以优雅地实现一些灵活通用的功能，它们经常用于各种框架、库和系统程序中，比如：
 
-1. Jackson利用反射和注解实现了通用的序列化机制。
-2. 有多种库（如Spring MVC、Jersey）用于处理Web请求，利用反射和注解，能方便地将用户的请求参数和内容转换为Java对象，将Java对象转变为响应内容。
-3. 有多种库（如Spring、Guice）利用这些特性实现了对象管理容器，方便程序员管理对象的生命周期以及其中复杂的依赖关系。
+1. Jackson利用反射和注解实现了**通用的序列化机制**。
+2. 有多种库（如Spring MVC、Jersey）用于处理Web请求，利用反射和注解，能方便地==将用户的请求参数和内容转换为Java对象，将Java对象转变为响应内容==。
+3. 有多种库（如Spring、Guice）利用这些特性实现了==对象管理容器==，方便程序员管理对象的生命周期以及其中复杂的依赖关系。
 4. 应用服务器（如Tomcat）利用类加载器实现不同应用之间的隔离，JSP技术利用类加载器实现修改代码不用重启就能生效的特性。
-5. 面向方面的编程AOP（Aspect Oriented Programming）将编程中通用的关注点（如日志记录、安全检查等）与业务的主体逻辑相分离，减少冗余代码，提高程序的可维护性， AOP需要依赖上面的这些特性来实现。
+5. 面向方面的编程==AOP==（Aspect Oriented Programming）将编程中通用的关注点（如日志记录、安全检查等）与业务的主体逻辑相==分离==，减少冗余代码，提高程序的可维护性， AOP需要依赖上面的这些特性来实现。
 
 
 
 ### 21.1 Class类
 
-每个已加载的类在内存都有一份类信息，每个对象都有指向它所属类信息的引用。
+每个已加载的类在内存都有一份**类信息**，每个对象都有指向它所属类信息的引用。
 
 - 所有类的根父类Object有一个方法`getClass`，用于获取对象的Class对象：
 

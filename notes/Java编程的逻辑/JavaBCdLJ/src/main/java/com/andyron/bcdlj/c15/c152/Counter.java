@@ -8,4 +8,8 @@ public class Counter {
     public synchronized int getCount() {
         return count;
     }
+
+    public void decr() {
+        count--;
+    }
 }
