@@ -8,6 +8,11 @@ import java.util.TimeZone;
 
 public class SimpleFormatter {
 
+    /**
+     * 按照对应注解信息序列化对象
+     * @param obj
+     * @return
+     */
     public static String format(Object obj) {
         try {
             Class<? > cls = obj.getClass();
@@ -42,7 +47,7 @@ public class SimpleFormatter {
 
     public static void main(String[] args) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Student zs = new Student("张三", sdf.parse("2002-5-31"), 89.2d);
-        System.out.println(SimpleFormatter.format(zs));
+        Student student = new Student("张三", sdf.parse("2002-5-31"), 89.2d);
+        System.out.println(SimpleFormatter.format(student));
     }
 }

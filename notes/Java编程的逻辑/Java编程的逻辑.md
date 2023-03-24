@@ -1515,7 +1515,7 @@ public class Base extends AbstractAdder {
 
 内部类与包含它的外部类有比较密切的关系，而与其他类关系不大，定义在类内部，可以实现对外部完全隐藏，可以有更好的封装性，代码实现上也往往更为简洁。
 
-内部类只是Java编译器的概念，对于Java虚拟机而言，它是不知道内部类这回事的，**每个内部类最后都会被编译为一个独立的类**，生成一个独立的字节码文件。
+内部类只是Java编译器的概念，对于Java虚拟机而言，它是不知道内部类这回事的，**==每个内部类最后都会被编译为一个独立的类==**，生成一个独立的字节码文件。
 
 内部类可以方便地访问外部类的私有变量，可以声明为private从而实现对外完全隐藏，相关代码写在一起，写法也更为简洁，这些都是内部类的好处。
 
@@ -1539,7 +1539,7 @@ public class Outer {
 }
 ```
 
-静态内部类可以访问外部类的静态变量和方法，但不可以访问实例变量和方法。
+<u>静态内部类可以访问外部类的静态变量和方法，但不可以访问实例变量和方法。</u>
 
 public静态内部类可以被外部使用，只是需要通过“外部类.静态内部类”的方式使用。
 
@@ -1571,7 +1571,7 @@ public class Outer {
 
 Java API中使用静态内部类的例子：
 
-- Integer类内部有一个私有静态内部类IntegerCache，用于支持整数的自动装箱。
+- Integer类内部有一个私有静态内部类`IntegerCache`，用于支持整数的自动装箱。
 - 表示链表的LinkedList类内部有一个私有静态内部类Node，表示链表中的每个节点。
 - Character类内部有一个public静态内部类UnicodeBlock，用于表示一个Unicode block。
 
@@ -1580,14 +1580,16 @@ Java API中使用静态内部类的例子：
 ```java
 public class Outer {
   private int shared = 100;
-  public  class Inner {
+  public class Inner {
     public void innerMethod() {
       System.out.println("outer a " + a);
       Outer.this.action();
     }
-    private void action() {
-      System.out.println("action");
-    }
+
+  }
+  
+  private void action() {
+    System.out.println("action");
   }
   
   public void test() {
@@ -1599,7 +1601,7 @@ public class Outer {
 
 除了静态变量和方法，成员内部类还可以直接访问外部类的实例变量和方法(`Outer.this.action()`，如果没有重名，可以直接省略`Outer.this`)。
 
-与静态内部类不同，**成员内部类对象总是与一个外部类对象相连**的，在外部使用时，它不能直接通过new Outer.Inner()的方式创建对象，而是要先将创建一个Outer类对象（`外部类对象.new 内部类()`）：
+与静态内部类不同，**==成员内部类对象总是与一个外部类对象相连==**的，在外部使用时，它不能直接通过new Outer.Inner()的方式创建对象，而是要先将创建一个Outer类对象（`外部类对象.new 内部类()`）：
 
 ```java
 Outer outer = new Outer();
@@ -8683,7 +8685,7 @@ getPackage返回的是包信息。
 
 > 数组类型的getName，`[`表示数组，几个就表示几维数组；比如上面的二位数组就是`[[I`
 >
-> 数组的类型用一个大写字符表示，`L`表示类或接口，`I`表示int，其它基本类型：boolean(Z)、byte(B)、char(C)、double(D)、float(F)、long(J)、short(S)；
+> 数组的类型用一个大写字符表示，`L`表示类或接口，`I`表示int，其它基本类型：boolean(`Z`)、byte(`B`)、char(`C`)、double(`D`)、float(`F`)、long(`J`)、short(`S`)；
 >
 > 对于**引用类型的数组**，注意最后有一个分号`;`。
 
@@ -8702,7 +8704,7 @@ public Field getField(String name)
 public Field getDeclaredField(String name)
 ```
 
-Field也有很多方法，可以获取字段的信息，也可以通过Field访问和操作指定对象中该字段的值：
+Field也有很多方法，可以获取字段的信息，也可以通过Field访问和操作<u>指定对象中该字段的值</u>：
 
 ```java
 //获取字段的名称
@@ -8717,7 +8719,7 @@ public Object get(Object obj)
 public void set(Object obj, Object value)
 ```
 
-在get/set方法中，对于静态变量，obj被忽略，可以为null，如果字段值为基本类型， get/set会自动在基本类型与对应的包装类型间进行转换；对于private字段，直接调用get/set会抛出非法访问异常IllegalAccessException，应该先调用setAccessible(true)以关闭Java的检查机制：
+在get/set方法中，对于静态变量，obj被忽略，可以为null，如果字段值为基本类型， <u>get/set会自动在基本类型与对应的包装类型间进行转换</u>；对于private字段，直接调用get/set会抛出非法访问异常IllegalAccessException，应该先调用`setAccessible(true)`以关闭Java的检查机制：
 
 ```java
 List<String> obj = Arrays.asList(new String[]{"Andy", "编程"});
@@ -8774,7 +8776,7 @@ public Method getMethod(String name, Class<? >... parameterTypes)
 public Method getDeclaredMethod(String name, Class<? >... parameterTypes)
 ```
 
-> 注：`Class<? >... parameterTypes`表示Class的数组。
+> 注：`Class<? >... parameterTypes`表示方法参数的Class的数组。
 
 Method的基本方法：
 
@@ -8788,7 +8790,7 @@ public Object invoke(Object obj, Object... args) throws
     IllegalAccessException, IllegalArgumentException, InvocationTargetException
 ```
 
- 对invoke方法，如果Method为静态方法，obj被忽略，可以为null, args可以为null，也可以为一个空的数组，方法调用的返回值被包装为Object返回，如果实际方法调用抛出异常，异常被包装为`InvocationTargetException`重新抛出，可以通过getCause方法得到原异常。
+对`invoke`方法，如果Method为静态方法，obj被忽略，可以为null, args可以为null，也可以为一个空的数组，方法调用的返回值被包装为Object返回，如果实际方法调用抛出异常，异常被包装为`InvocationTargetException`重新抛出，可以通过getCause方法得到原异常。
 
 ```java
 Class<Integer> icls = Integer.class;
@@ -8812,7 +8814,7 @@ Class有一个用来创建对象的方法：
 public T newInstance() throws InstantiationException, IllegalAccessException
 ```
 
-它会调用类的默认构造方法（即无参public构造方法），如果类没有该构造方法，会抛出异常InstantiationException。
+它会调用类的默认构造方法（即无参public构造方法），如果类没有该构造方法，会抛出异常`InstantiationException`。
 
 Class中获取所有构造方法的方法：
 
@@ -8827,7 +8829,7 @@ public Constructor<T> getConstructor(Class<? >... parameterTypes)
 public Constructor<T> getDeclaredConstructor(Class<? >... parameterTypes)
 ```
 
-Constructor表示构造方法，它也有newInstance方法来创建对象：
+`Constructor`表示构造方法，它也有newInstance方法来创建对象：
 
 ```java
 public T newInstance(Object ... initargs) throws InstantiationException,
@@ -8838,8 +8840,8 @@ public T newInstance(Object ... initargs) throws InstantiationException,
 
 ```java
 // 通过指定参数类型，获取到特定构造方法
-        Constructor<StringBuilder> constructor = StringBuilder.class.getConstructor(new Class[]{int.class});
-        StringBuilder sb = constructor.newInstance(100);
+Constructor<StringBuilder> constructor = StringBuilder.class.getConstructor(new Class[]{int.class});
+StringBuilder sb = constructor.newInstance(100);
 ```
 
 Constructor还有很多获取关于构造方法信息（参数、修饰符、注解等）的方法。
@@ -8847,6 +8849,14 @@ Constructor还有很多获取关于构造方法信息（参数、修饰符、注
 
 
 #### 5.类型检查和转换
+
+`instanceof`关键字可以用来判断**变量指向的实际对象类型**。
+
+instanceof后面的类型是在代码中确定的，如果要检查的类型是动态的，可以使用Class类的方法：
+
+```java
+public native boolean isInstance(Object obj)
+```
 
 ```java
 if (list instanceof ArrayList) {
@@ -8863,11 +8873,35 @@ if (cls.isIntance(list)) {
 }
 ```
 
-动态的强制转换类型：
+
+
+Class中强制转换类型的方法：
 
 ```java
-cls.cast(obj);
+public T cast(Object obj)
 ```
+
+正常转换：
+
+```java
+	List list = ..
+  if(list instanceof ArrayList){
+    ArrayList arrList = (ArrayList)list;
+  }
+```
+
+强制转换到的类型ArrayList，在写代码时就知道了。
+
+使用cast方法：
+
+```java
+// 把对象obj强制转换成T
+public static <T> T toType(Object obj, Class<T> cls){
+  return cls.cast(obj);
+}
+```
+
+
 
 判断Class之间的关系：
 
@@ -8947,7 +8981,7 @@ System.out.println(cls == String[].class);
 
 #### 9.反射与数组
 
-对于数组类型，有一个专门的方法，可以获取它的元素类型：
+对于数组类型，有一个专门的方法，可以获取它的**元素类型**：
 
 ```java
 public native Class<? > getComponentType()
@@ -8975,7 +9009,7 @@ public static native void set(Object array, int index, Object value)
 public static native int getLength(Object array)
 ```
 
-🔖
+在Array类中，数组是用Object而非Object[]表示的。
 
 #### 10.反射与枚举
 
@@ -9077,7 +9111,7 @@ public class SimpleMapper {
 
 ### 21.3 反射与泛型
 
-泛型参数在运行时会被擦除，在类信息Class中依然有关于泛型的一些信息，可以通过反射得到。
+泛型参数在运行时会被==擦除==，在类信息Class中依然有关于泛型的一些信息，可以通过反射得到。
 
 Class有如下方法，可以获取类的泛型参数信息：
 
@@ -9107,11 +9141,9 @@ public Type[] getGenericParameterTypes()
 
 Type是一个接口，Class实现了Type, Type的其他子接口还有：
 
-- TypeVariable：类型参数，可以有上界，比如T extends Number；
-- ParameterizedType：参数化的类型，有原始类型和具体的类型参数，比如`List<String>`；
-- WildcardType：通配符类型，比如？、? extends Number、? superInteger。
-
-🔖
+- `TypeVariable`：类型参数，可以有上界，比如`T extends Number`；
+- `ParameterizedType`：参数化的类型，有原始类型和具体的类型参数，比如`List<String>`；
+- `WildcardType`：通配符类型，比如`?`、`? extends Number`、`? super Integer`。
 
 
 
@@ -9120,17 +9152,15 @@ Type是一个接口，Class实现了Type, Type的其他子接口还有：
 1. 反射更容易出现运行时错误，使用显式的类和接口，编译器能帮我们做类型检查，减少错误，但使用反射，类型是运行时才知道的，编译器无能为力。
 2. 反射的性能要低一些，在访问字段、调用方法前，反射先要查找对应的Field/Method，要慢一些。
 
-
-
 ## 22 注解
 
-在Java中，注解就是给程序添加一些信息，用字符@开头，这些信息用于修饰它后面紧挨着的其他代码元素，比如<u>类、接口、字段、方法、方法中的参数、构造方法</u>等。注解可以被编译器、程序运行时和其他工具使用，用于增强或修改程序行为等。
+在Java中，注解就是给程序添加一些信息，用字符@开头，这些信息用于修饰它后面紧挨着的其他代码元素，比如<u>类、接口、字段、方法、方法中的参数、构造方法</u>等。注解可以被编译器、程序运行时和其他工具使用，用于**增强或修改**程序行为等。
 
 ### 22.1 内置注解
 
 #### @Override
 
-修饰方法，表示该方法不是当前类首先声明的。不写，也改变不了”重写“的本质，但还是加上，减少编程的错误。
+修饰方法，表示该方法不是当前类首先声明的（而是在父类或接口中）。不写，也改变不了”重写“的本质，但还是加上，让编译器帮助减少编程的错误。
 
 #### @Deprecated
 
@@ -9143,6 +9173,16 @@ Type是一个接口，Class实现了Type, Type的其他子接口还有：
 #### @SuppressWarnings
 
 表示压制Java的编译警告，它有一个**必填参数**，表示压制哪种类型的警告，它也可以修饰大部分代码元素，在更大范围的修饰也会对内部元素起效，比如，在类上的注解会影响到方法，在方法上的注解会影响到代码行。
+
+```java
+@SuppressWarnings({"deprecation", "unused"})
+public static void main(String[] args) {
+  Date date = new Date(2017, 4, 12);
+  int year = date.getYear();
+}
+```
+
+
 
 ### 22.2 框架和库的注解
 
@@ -9185,7 +9225,13 @@ public class AsyncDemoServlet extends HttpServlet {
 
 #### 5.神奇的注解
 
-在**==声明式编程风格==**中，程序都由三个组件组成：
+注解通过简单的声明，就可以达到某种效果；
+
+序列化机制中通过简单的Serializable接口，Java就能自动处理很多复杂的事情；
+
+synchronized关键字，通过它可以自动实现同步访问；
+
+在这些**==声明式编程风格==**中，程序都由三个组件组成：
 
 - 声明的关键字和语法本身
 - 系统/框架/库，它们负责解释、执行声明式的语句
@@ -9206,9 +9252,9 @@ public @interface Override {
 }
 ```
 
-<u>@Target和@Retention</u>是**元注解**，专门用于定义注解本身。
+<u>@Target和@Retention</u>是**==元注解==**，专门用于定义注解本身。
 
-@Target表示注解的目标。ElementType是一个枚举，主要可选值有：
+@Target表示注解的目标。`ElementType`是一个枚举，主要可选值有：
 
 - TYPE：表示类、接口（包括注解），或者枚举声明；
 - FIELD：字段，包括枚举常量；
@@ -9220,7 +9266,7 @@ public @interface Override {
 
 如果没有声明@Target，默认为适用于所有类型。
 
-@Retention表示注解信息保留到什么时候，取值只能有一个，类型为RetentionPolicy，它是一个枚举，有三个取值。
+@Retention表示注解信息保留到什么时候，取值只能有一个，类型为`RetentionPolicy`，它是一个枚举，有三个取值。
 
 - SOURCE：只在源代码中保留，编译器将代码编译为字节码文件后就会丢掉。
 - CLASS：保留到字节码文件中，但Java虚拟机将class文件加载到内存时不一定会在内存中保留。
@@ -9252,6 +9298,9 @@ public @interface SuppressWarings {
 参数定义时可以使用default指定一个默认值，比如：
 
 ```java
+@Target({ METHOD, CONSTRUCTOR, FIELD })
+@Retention(RUNTIME)
+@Documented
 public @interface Inject {
   boolean optional() default false;
 }
@@ -9261,7 +9310,7 @@ public @interface Inject {
 
 元注解<u>@Documented</u>，表示**注解信息包含到生成的文档中**。
 
-注解不能继承。不过注解有一个与继承有关的元注解<u>@Inherited</u>：
+注解不能继承。不过注解有一个与继承有关的元注解`@Inherited`：
 
 ```java
 public class InheritDemo {
@@ -9286,6 +9335,10 @@ public class InheritDemo {
 注解@Inherited会让Child继承了Base的注解。
 
 ### 22.4 查看注解信息
+
+注解要影响程序，先要能查看这些信息。
+
+主要考虑`@Retention`为`RetentionPolicy.RUNTIME`的注解，利用反射机制在运行时进行查看和利用这些信息。
 
 反射相关类中与注解相关的方法，Class、Field、Method、Constructor中都有：
 
@@ -9336,27 +9389,23 @@ public class MethodAnnotations {
     static @interface DefaultValue {
         String value() default "";
     }
-    public void hello(@QueryParam("action") String action,
-                      @QueryParam("sort") @DefaultValue("asc") String sort){
+    public void hello(@QueryParam("action") String action, @QueryParam("sort") @DefaultValue("asc") String sort){
         //…
     }
     public static void main(String[] args) throws Exception {
         Class<? > cls = MethodAnnotations.class;
-        Method method = cls.getMethod("hello",
-                new Class[]{String.class, String.class});
+        Method method = cls.getMethod("hello", new Class[]{String.class, String.class});
         Annotation[][] annts = method.getParameterAnnotations();
-        for(int i=0; i<annts.length; i++){
-            System.out.println("annotations for paramter " + (i+1));
+        for (int i = 0; i < annts.length; i++) {
+            System.out.println("annotations for paramter " + (i + 1));
             Annotation[] anntArr = annts[i];
-            for(Annotation annt : anntArr){
-                if(annt instanceof QueryParam){
-                    QueryParam qp = (QueryParam)annt;
-                    System.out.println(qp.annotationType()
-                            .getSimpleName()+":"+ qp.value());
-                }else if(annt instanceof DefaultValue){
-                    DefaultValue dv = (DefaultValue)annt;
-                    System.out.println(dv.annotationType()
-                            .getSimpleName()+":"+ dv.value());
+            for(Annotation annt : anntArr) {
+                if(annt instanceof QueryParam) {
+                    QueryParam qp = (QueryParam) annt;
+                    System.out.println(qp.annotationType().getSimpleName() + ":" + qp.value());
+                } else if(annt instanceof DefaultValue) {
+                    DefaultValue dv = (DefaultValue) annt;
+                    System.out.println(dv.annotationType().getSimpleName() + ":" + dv.value());
                 }
             }
         }
@@ -9467,7 +9516,7 @@ public class SimpleFormatter {
 
 
 
-**注解提升了Java语言的表达能力，有效地实现了应用功能和底层功能的分离，框架/库的程序员可以专注于底层实现，借助反射实现通用功能，提供注解给应用程序员使用，应用程序员可以专注于应用功能，通过简单的声明式注解与框架/库进行协作。**
+**注解提升了Java语言的==表达能力==，有效地实现了==应用功能和底层功能的分离==，框架/库的程序员可以专注于底层实现，借助反射实现通用功能，提供注解给应用程序员使用，应用程序员可以专注于应用功能，通过简单的声明式注解与框架/库进行协作。**
 
 
 
@@ -9475,17 +9524,19 @@ public class SimpleFormatter {
 
 在运行时动态创建一个类，实现一个或多个接口，可以在不修改原有类的基础上动态为通过该类获取的对象添加方法、修改行为。
 
-动态代理是实现面向切面的编程**AOP**（Aspect OrientedProgramming）的基础。切面的例子有日志、性能监控、权限检查、数据库事务等。
+动态代理是实现面向切面的编程**AOP**（Aspect OrientedProgramming）的基础。切面的例子有**日志、性能监控、权限检查、数据库事务**等。与具体业务逻辑分离
 
 动态代理有两种实现方式：一种是Java SDK提供的；另外一种是第三方库（如cglib）提供的。
+
+🔖
 
 ### 23.1 静态代理
 
 代理存在的价值：
 
-1. 节省成本比较高的实际对象的创建开销，按需延迟加载，创建代理时并不真正创建实际对象，而只是保存实际对象的地址，在需要时再加载或创建。
-2. 执行**权限检查**，代理检查权限后，再调用实际对象。
-3. **屏蔽网络差异和复杂性**，代理在本地，而实际对象在其他服务器上，调用本地代理时，本地代理请求其他服务器。
+1. 节省成本比较高的实际对象的创建开销，**==按需延迟加载==**，创建代理时并不真正创建实际对象，而只是保存实际对象的地址，在需要时再加载或创建。
+2. 执行**==权限检查==**，代理检查权限后，再调用实际对象。
+3. **==屏蔽网络差异和复杂性==**，代理在本地，而实际对象在其他服务器上，调用本地代理时，本地代理请求其他服务器。
 
 ```java
 /**
@@ -9529,9 +9580,9 @@ public class SimpleStaticProxyDemo {
 
 **代理和实际对象一般有相同的接口**，共同的接口是IService，实际对象是RealService，代理是TraceProxy。
 
-TraceProxy内部有一个IService的成员变量，指向实际对象，在构造方法中被初始化，对于方法sayHello的调用，它转发给了实际对象，在调用前后输出了一些跟踪调试信息。
+TraceProxy内部有一个IService的**成员变量，指向实际对象，在构造方法中被初始化**，对于方法sayHello的调用，它转发给了实际对象，在调用前后输出了一些跟踪调试信息。
 
-代理模式与适配器和装饰器有点类似，它们的背后都有一个别的实际对象，都是通过==组合==的方式指向该对象，不同之处在于，适配器是提供了一个不一样的新接口，装饰器是对原接口起到了“装饰”作用，可能是增加了新接口、修改了原有的行为等，代理一般不改变接口。🔖
+<u>代理模式与适配器和装饰器有点类似</u>，它们的背后都有一个别的实际对象，都是通过==组合==的方式指向该对象，不同之处在于，<u>适配器是提供了一个不一样的新接口，装饰器是对原接口起到了“装饰”作用，可能是增加了新接口、修改了原有的行为等，代理一般不改变接口。</u>
 
 代理类TraceProxy的代码是在写程序时固定的，所以称为**==静态代理==**。
 
@@ -9539,9 +9590,65 @@ TraceProxy内部有一个IService的成员变量，指向实际对象，在构�
 
 ### 23.2 Java SDK动态代理
 
+在动态代理中，代理类是动态生成的。
+
 #### 用法
 
+```java
+public class SimpleJDKDynamicProxyDemo {
+    static interface IService {
+        public void sayHello();
+    }
+    static class RealService implements IService {
+        @Override
+        public void sayHello() {
+            System.out.println("hello");
+        }
+    }
+    static class SimpleInvocationHandler implements InvocationHandler {
+        private Object realObj;
 
+        public SimpleInvocationHandler(Object realObj) {
+            this.realObj = realObj;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            System.out.println("entering " + method.getName());
+            Object result = method.invoke(realObj, args);
+            System.out.println("leaving " + method.getName());
+            return result;
+        }
+    }
+    public static void main(String[] args) {
+        IService realService = new RealService();
+        IService proxyService = (IService) Proxy.newProxyInstance(IService.class.getClassLoader(),
+                new Class<? >[]{ IService.class },
+                new SimpleInvocationHandler(realService));
+        proxyService.sayHello();
+    }
+}
+```
+
+IService和RealService的定义不变，程序的输出也没变，但<u>代理对象proxyService的创建方式变了</u>，它使用java.lang.reflect包中的`Proxy`类的静态方法`newProxyInstance`来创建代理对象，这个方法的声明：
+
+```java
+public static Object newProxyInstance(ClassLoader loader, Class<? >[] interfaces, InvocationHandler h)
+```
+
+- 第一个参数loader表示类加载器。例子是使用与IService一样的类加载器；
+- interfaces表示**代理类要实现的接口列表**，是一个Class数组，元素的类型只能是接口，不能是普通的类；
+- `InvocationHandler`是一个接口，也定义在java.lang.reflect包中，它只定义了一个方法invoke，**对代理接口所有方法的调用都会转给该方法**。
+
+newProxyInstance的返回值类型为Object，可以强制转换为<u>interfaces数组中的某个接口类型</u>。这里我们强制转换为了IService类型，需要注意的是，==它不能强制转换为某个类类型==，比如RealService，即使它实际代理的对象类型为RealService。
+
+SimpleInvocationHandler实现了`InvocationHandler`，它的构造方法接受一个参数realObj表示被代理的对象，`invoke`方法处理所有的接口调用，它有三个参数：
+
+- proxy表示代理对象本身，需要注意，它不是被代理的对象；
+- method表示正在被调用的方法；
+- args表示方法的参数。
+
+在SimpleInvocationHandler的invoke实现中，我们调用了method的invoke方法，传递了实际对象realObj作为参数，达到了调用实际对象对应方法的目的。注意，不能将proxy作为参数传递给method. invoke。
 
 #### 基本原理
 
@@ -9552,25 +9659,37 @@ InvocationHandler handler = new SimpleInvocationHandler(realService);
 IService proxyService = (IService) ctor.newInstance(handler);
 ```
 
+🔖🔖
+
 #### 动态代理的优点
 
-使用动态代理，可以编写通用的代理逻辑，用于各种类型的被代理对象，而不需要为每个被代理的类型都创建一个静态代理类。
+使用动态代理，可以编写==通用的代理逻辑==，用于各种类型的被代理对象，而不需要为每个被代理的类型都创建一个静态代理类。
 
 ### 23.3 cglib动态代理
 
-Java SDK动态代理的局限在于，它**只能为接口创建代理，返回的代理对象也只能转换到某个接口类型**。
+Java SDK动态代理的局限在于，它**==只能为接口创建代理==，返回的代理对象也只能转换到某个接口类型**，如果一个类没有接口，或者希望代理非接口中定义的方法，那就没有办法了。
 
-第三方的类库[cglib](https://github.com/cglib/cglib)
+第三方的类库[cglib](https://github.com/cglib/cglib)，可以做到，Spring、Hibernate等都使用该类库。
 
-🔖
+🔖🔖
+
+==cglib的实现机制与Java SDK不同，它是通过继承实现的==，它也是动态创建了一个类，但这个类的父类是被代理的类，代理类重写了父类的所有public非final方法，改为调用Callback中的相关方法，在上例中，调用SimpleInterceptor的intercept方法。
 
 ### 23.4 Java SDK代理与cglib代理比较
 
+Java SDK代理**面向的是一组接口**，它为这些接口动态创建了一个实现类。接口的具体实现逻辑是通过自定义的InvocationHandler实现的，这个实现是自定义的，也就是说，**其背后都不一定有真正被代理的对象，也可能有多个实际对象，根据情况动态选择。cglib代理面向的是一个具体的类**，它动态创建了一个新类，继承了该类，重写了其方法。
 
+从代理的角度看，Java SDK**==代理的是对象==**，需要先有一个实际对象，自定义的InvocationHandler引用该对象，然后创建一个代理类和代理对象，客户端访问的是代理对象，代理对象最后再调用实际对象的方法；cglib==代理的是类==，创建的对象只有一个。
+
+如果目的都是为一个类的方法增强功能，Java SDK要求该类必须有接口，且只能处理接口中的方法，cglib没有这个限制。
 
 ### 23.5 动态代理的应用：AOP
 
 🔖
+
+#### 实现原理
+
+🔖🔖
 
 ## 24 类加载机制
 
@@ -9578,9 +9697,9 @@ Java SDK动态代理的局限在于，它**只能为接口创建代理，返回�
 
 ClassLoader一般是系统提供的，不需要自己实现，不过，通过创建自定义的ClassLoader，可以实现一些强大灵活的功能，比如：
 
-1. 热部署。在不重启Java程序的情况下，动态**替换类的实现**。
+1. ==热部署==。在不重启Java程序的情况下，动态**替换类的实现**。
 
-2. 应用的模块化和相互隔离。不同的ClassLoader可以加载相同的类但互相隔离、互不影响。
+2. ==应用的模块化和相互隔离==。不同的ClassLoader可以加载相同的类但互相隔离、互不影响。
 
    Web应用服务器如Tomcat利用这一点在一个程序中管理多个Web应用程序，每个Web应用使用自己的ClassLoader，这些Web应用互不干扰。
 
@@ -9594,17 +9713,17 @@ ClassLoader一般是系统提供的，不需要自己实现，不过，通过创
 
 ### 24.1 类加载的基本机制和过程
 
-运行Java程序，就是执行`java`命令，指定包含main方法的完整类名以及一个classpath（**类路径**）。
+运行Java程序，就是执行`java`命令，指定包含main方法的完整类名以及一个classpath（**==类路径==**）。
 
-类路径可以有多个。对于直接class文件，类路径就是class文件的根目录；对于jar包，类路径是jar包的完整路径（路径+jar包名）。
+类路径可以有多个。对于直接的class文件，类路径就是class文件的根目录；对于jar包，类路径是jar包的完整路径（**路径+jar包名**）。
 
-负责加载类的类就是类加载器，它的输入是**完全限定的类名**，输出是**Class对象**。类加载器不是只有一个，一般程序运行时，都会有三个（java9引入模块化，有些变化）：
+负责加载类的类就是类加载器，它的输入是**==完全限定的类名==**，输出是**==Class对象==**。类加载器不是只有一个，一般程序运行时，都会有三个（java9引入模块化，有些变化）：
 
 1. **启动类加载器**（Bootstrap ClassLoader）：Java虚拟机实现的一部分，不是Java语言实现的，一般是C++实现的，它负责加载Java的基础类，主要是`<JAVA_HOME>/lib/rt.jar`，日常用的Java类库比如String、ArrayList等都位于该包内。
 2. **扩展类加载器**（Extension ClassLoader）：这个加载器的实现类是`sun.misc.Launcher$ExtClassLoader`，它负责加载Java的一些扩展类，一般是`<JAVA_HOME>/lib/ext`目录中的jar包。
 3. **应用程序类加载器**（Application ClassLoader）/**系统类加载器**（System ClassLoader）：这个加载器的实现类是`sun.misc.Launcher$AppClassLoader`，它负责加载应用程序的类，包括自己写的和引入的第三方法类库，即所有在类路径中指定的类。
 
-三个类加载器<u>不是父子继承关系，而是父子委派关系</u>（**双亲委派**）。子ClassLoader有一个变量parent指向父ClassLoader，在子ClassLoader加载类时，一般会首先通过父ClassLoader加载，过程：
+三个类加载器<u>不是父子继承关系，而是父子委派关系</u>（**==双亲委派==**）。子ClassLoader有一个变量parent指向父ClassLoader，在子ClassLoader加载类时，一般会首先通过父ClassLoader加载，过程：
 
 1. 判断是否已经加载过了，加载过了，直接返回Class对象，一个类只会被一个ClassLoader加载一次。
 2. 如果没有被加载，先让父ClassLoader去加载，如果加载成功，返回得到的Class对象。
@@ -9612,11 +9731,19 @@ ClassLoader一般是系统提供的，不需要自己实现，不过，通过创
 
 优先让父ClassLoader去加载，可以避免**Java类库被覆盖**的问题。
 
-🔖双亲委派的例外
+双亲委派的例外，如：
+
+1. **自定义的加载顺序**：尽管不被建议，自定义的ClassLoader可以不遵从“双亲委派”这个约定，不过，即使不遵从，<u>以java开头的类也不能被自定义类加载器加载，这是由Java的安全机制保证的，以避免混乱</u>。
+2. **网状加载顺序**：在OSGI框架和Java 9模块化系统中，类加载器之间的关系是一个网，每个模块有一个类加载器，不同模块之间可能有依赖关系，在一个模块加载一个类时，可能是从自己模块加载，也可能是委派给其他模块的类加载器加载。
+3. **父加载器委派给子加载器加载**：典型的例子有JNDI服务（Java Naming and DirectoryInterface），它是Java企业级应用中的一项服务。
+
+
 
 ### 24.2 理解ClassLoader
 
 类`ClassLoader`是一个抽象类，扩展类加载器和应用程序类加载器都继承至它。
+
+Application ClassLoader和Extension ClassLoader的具体实现类分别是`sun.misc.Launcher$AppClassLoader`和`sun.misc.Launcher$ExtClassLoader`, Bootstrap ClassLoader不是由Java实现的，没有对应的类。
 
 每个`Class`对象都有一个`getClassLoader()`方法，可以获取实际加载它的`ClassLoader`。
 
@@ -9638,6 +9765,23 @@ ClassLoader中加载类方法：
 public Class<? > loadClass(String name) throws ClassNotFoundException
 ```
 
+```java
+ClassLoader cl = ClassLoader.getSystemClassLoader();
+System.out.println(cl);
+try {
+  // java.util.ArrayList实际由BootStrap ClassLoader加载，所以返回值就是null。
+  Class<?> cls = cl.loadClass("java.util.ArrayList");
+  ClassLoader actualLoader = cls.getClassLoader();
+  System.out.println(actualLoader);
+} catch (ClassNotFoundException e) {
+  e.printStackTrace();
+}
+```
+
+由于委派机制，Class的getClassLoader方法返回的不一定是调用loadClass的ClassLoader，比如，上面代码中，java.util.ArrayList实际由BootStrap ClassLoader加载而不是默认的系统类加载器，所以返回值就是null。
+
+
+
 `Class`有两个静态方法forName：
 
 ```java
@@ -9645,7 +9789,7 @@ public static Class<?> forName(String className)
 public static Class<?> forName(String name, boolean initialize, ClassLoader loader)
 ```
 
-第一个方法使用系统类加载器加载，第二个方法指定ClassLoader，参数initialize表示加载后<u>是否执行类的初始化代码（如static语句块）</u>，没有指定默认为true。
+第一个方法使用系统类加载器加载，第二个方法指定ClassLoader，参数initialize表示==加载后是否执行类的初始化代码（如static语句块）==，没有指定默认为true。
 
 > ClassLoader的loadClass方法与Class的forName方法都可以加载类，它们有什么不同呢？
 >
@@ -9709,28 +9853,19 @@ protected Class<? > loadClass(String name, boolean resolve) throws ClassNotFound
 
 
 
-
-
 ### 24.3 类加载的应用：可配置的策略
 
 > 什么情况需要自己加载类呢？
 
-很多应用使用面向接口的编程，接口具体的实现类可能有很多，适用于不同的场合，具体使用哪个实现类在配置文件中配置，通过更改配置，不用改变代码，就可以改变程序的行为，在设计模式中，这是一种**策略模式**。
+很多应用使用面向接口的编程，接口具体的实现类可能有很多，适用于不同的场合，具体使用哪个实现类在配置文件中配置，**通过更改配置，不用改变代码，就可以改变程序的行为**，在设计模式中，这是一种**==策略模式==**。
 
 ```java
-package com.andyron.bcdlj.c24.c243;
-
 public interface IService {
     public void action();
 }
 ```
 
 ```java
-package com.andyron.bcdlj.c24.c243;
-
-import java.io.FileInputStream;
-import java.util.Properties;
-
 public class ConfigurableStrategyDemo {
 
     public static IService createService() {
@@ -9754,8 +9889,6 @@ public class ConfigurableStrategyDemo {
 ```
 
 ```java
-package com.andyron.bcdlj.c24.c243;
-
 public class ServiceB implements IService {
     @Override
     public void action() {
@@ -9828,7 +9961,7 @@ protected ClassLoader(ClassLoader parent)
 
 ### 25.1 语法
 
-正则表达式中的字符分两类：普通字符，元字符。
+正则表达式中的字符分两类：==普通字符==，==元字符==。
 
 #### 1.单个字符
 

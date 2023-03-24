@@ -1,7 +1,12 @@
 package com.andyron.bcdlj.c24.c244;
 
+
+import com.andyron.bcdlj.c24.CLInitDemo;
+
 public class MyClassLoaderDemo {
     public static void main(String[] args) throws ClassNotFoundException {
+
+
         MyClassLoader cl1 = new MyClassLoader();
         String className = "com.andyron.bcdlj.c24.CLInitDemo";
         Class<?> class1 = cl1.loadClass(className);

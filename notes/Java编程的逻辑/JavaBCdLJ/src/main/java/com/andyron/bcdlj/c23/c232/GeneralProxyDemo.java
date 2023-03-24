@@ -6,8 +6,19 @@ import java.lang.reflect.Proxy;
 
 /**
  * 通用的动态代理类示例
+ * 两个接口IServiceA和IServiceB，它们对应的实现类是Service-AImpl和ServiceBImpl，
+ * 虽然它们的接口和实现不同，但利用动态代理，它们可以调用同样的方法getProxy获取代理对象，共享同样的代理逻辑SimpleInvocationHandler
  */
 public class GeneralProxyDemo {
+    public static void main(String[] args) {
+        IServiceA a = new ServiceAImpl();
+        IServiceA aProxy = getProxy(IServiceA.class, a);
+        aProxy.sayHello();
+
+        IServiceB b = new ServiceBImpl();
+        IServiceB bProxy = getProxy(IServiceB.class, b);
+        bProxy.fly();
+    }
     static interface IServiceA {
         public void sayHello();
     }
@@ -52,13 +63,4 @@ public class GeneralProxyDemo {
                 new SimpleInvocationHandler(realObj));
     }
 
-    public static void main(String[] args) {
-        IServiceA a = new ServiceAImpl();
-        IServiceA aProxy = getProxy(IServiceA.class, a);
-        aProxy.sayHello();
-
-        IServiceB b = new ServiceBImpl();
-        IServiceB bProxy = getProxy(IServiceB.class, b);
-        bProxy.fly();
-    }
 }

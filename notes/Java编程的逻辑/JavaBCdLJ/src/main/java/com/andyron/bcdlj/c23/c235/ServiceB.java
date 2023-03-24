@@ -1,8 +1,12 @@
-package com.andyron.bcdlj.c22.c226;
+package com.andyron.bcdlj.c23.c235;
 
-@SimpleSingleton
+/**
+ * @author andyron
+ **/
 public class ServiceB {
+
     public void action() {
         System.out.println("I'm B");
     }
+
 }
