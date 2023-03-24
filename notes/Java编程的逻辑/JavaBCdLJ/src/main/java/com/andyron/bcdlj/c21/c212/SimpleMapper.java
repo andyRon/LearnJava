@@ -14,7 +14,7 @@ public class SimpleMapper {
             StringBuilder sb = new StringBuilder();
             sb.append(cls.getName() + "\n");
             for (Field f : cls.getDeclaredFields()) {
-                if (! f.isAccessible()) {
+                if (!f.isAccessible()) {
                     f.setAccessible(true);
                 }
                 sb.append(f.getName() + "=" + f.get(obj).toString() + "\n");

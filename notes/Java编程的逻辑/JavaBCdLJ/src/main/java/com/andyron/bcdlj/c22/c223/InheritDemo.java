@@ -1,4 +1,4 @@
-package com.andyron.bcdlj.c22;
+package com.andyron.bcdlj.c22.c223;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;

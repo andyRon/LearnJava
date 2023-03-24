@@ -24,14 +24,12 @@ public class SimpleCGLibDemo {
             return result;
         }
     }
-
     private static <T> T getProxy(Class<T> cls) {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(cls);
         enhancer.setCallback(new SimpleInterceptor());
         return (T) enhancer.create();
     }
-
     public static void main(String[] args) {
         RealService proxyService = getProxy(RealService.class);
         proxyService.sayHello();

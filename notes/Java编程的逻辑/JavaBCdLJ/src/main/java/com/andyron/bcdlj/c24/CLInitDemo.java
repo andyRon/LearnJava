@@ -13,6 +13,7 @@ public class CLInitDemo {
     public static void main(String[] args) {
         ClassLoader cl = ClassLoader.getSystemClassLoader();
         String className = CLInitDemo.class.getName()+ "$Hello";
+        System.out.println(className);
         try {
 //            Class<?> cls = cl.loadClass(className);   // 没有输出
             Class<?> cls = Class.forName(className);    // 输出 hello
