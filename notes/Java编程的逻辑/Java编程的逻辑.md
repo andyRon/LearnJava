@@ -1854,13 +1854,13 @@ for (Size s : Size.values()) {
 
 Java的默认异常处理机制是退出程序，异常发生点后的代码都不会执行。
 
-return代表正常退出，throw代表异常退出；return的返回位置是确定的，就是上一级调用者，而throw后执行哪行代码则经常是不确定的，由异常处理机制动态确定。
+`return`代表正常退出，`throw`代表异常退出；return的返回位置是确定的，就是上一级调用者，而`throw`后执行哪行代码则经常是不确定的，由异常处理机制动态确定。
 
 异常处理机制会从当前函数开始查找看谁“捕获”了这个异常，当前函数没有就查看上一层，直到主函数，如果主函数也没有，就使用默认机制，即输出异常栈信息并退出，这正是我们在屏幕输出中看到的。
 
 捕获异常后，程序就不会异常退出了，但try语句内异常点之后的其他代码就不会执行了，执行完catch内的语句后，程序会继续执行catch花括号外的代码。
 
-异常是相对于return的一种退出机制，可以由系统触发，也可以由程序通过throw语句触发，异常可以通过try/catch语句进行捕获并处理，如果没有捕获，则会导致程序退出并输出异常栈信息。
+异常是相对于return的一种==退出机制==，可以由系统触发，也可以由程序通过throw语句触发，异常可以通过try/catch语句进行捕获并处理，如果没有捕获，则会导致程序退出并输出异常栈信息。
 
 ### 6.2 异常类
 
@@ -1874,9 +1874,9 @@ Throwable initCause(Throwable cause)
 
 ![](images/image-20220313115559942.png)
 
-Error表示系统错误或资源耗尽，由Java系统自己使用，应用程序不应抛出和处理，比如虚拟机错误（VirtualMacheError）及其子类内存溢出错误（OutOfMemory-Error）和栈溢出错误（StackOverflowError）。
+`Error`表示系统错误或资源耗尽，由Java系统自己使用，应用程序不应抛出和处理，比如虚拟机错误（`VirtualMacheError`）及其子类内存溢出错误（`OutOfMemoryError`）和栈溢出错误（`StackOverflowError`）。
 
-Exception表示应用程序错误，它有很多子类，应用程序也可以通过继承Exception或其子类创建自定义异常，比如IOException（输入输出I/O异常）、RuntimeException（运行时异常）、SQLException（数据库SQL异常）。
+`Exception`表示应用程序错误，它有很多子类，应用程序也可以通过继承Exception或其子类创建自定义异常，比如`IOException`（输入输出I/O异常）、`RuntimeException`（运行时异常）、`SQLException`（数据库SQL异常）。
 
 RuntimeException比较特殊，它的名字有点误导，因为其他异常也是运行时产生的，它表示的实际含义是**未受检异常**（unchecked exception），相对而言，Exception的其他子类和Exception自身则是**受检异常**（checked exception）,Error及其子类也是未受检异常。
 
