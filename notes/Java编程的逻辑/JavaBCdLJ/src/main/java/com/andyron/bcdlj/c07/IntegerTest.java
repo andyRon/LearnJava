@@ -18,5 +18,8 @@ public class IntegerTest {
         System.out.println(Integer.toHexString(b));
         int c = Integer.rotateRight(a1, 8);
         System.out.println(Integer.toHexString(c));
+
+        System.out.println("---");
+        System.out.println(Integer.bitCount(7));
     }
 }

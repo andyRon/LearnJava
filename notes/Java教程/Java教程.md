@@ -1,4 +1,4 @@
-[《Java教程》](https://www.liaoxuefeng.com/wiki/1252599548343744) 笔记
+《Java教程》 笔记
 ----------
 
 [《Java教程》](https://www.liaoxuefeng.com/wiki/1252599548343744)   廖雪峰
@@ -2867,6 +2867,12 @@ ava线程的状态有以下几种：
 
 Maven是一个Java**项目管理和构建工具**，它可以定义项目结构、项目依赖，并使用统一的方式进行自动化构建，是Java项目不可缺少的工具。
 
+主要功能有：
+
+- 提供了一套标准化的项目结构；
+- 提供了一套标准化的构建流程（编译，测试，打包，发布……）；
+- 提供了一套依赖管理机制。
+
 #### Maven项目结构
 
 一个使用Maven管理的普通的Java项目的目录结构默认如下：
@@ -2911,7 +2917,7 @@ Maven是一个Java**项目管理和构建工具**，它可以定义项目结构�
 
 一个Maven工程就是由`groupId`，`artifactId`和`version`作为唯一标识。
 
-使用`dependencies`声明一个依赖后，Maven就会自动下载这个依赖包并把它放到classpath中。
+使用`<dependency>`声明一个依赖后，Maven就会自动下载这个依赖包并把它放到classpath中。
 
 #### 安装Maven
 
@@ -2950,11 +2956,53 @@ export PATH=$PATH:$MAVEN_HOME/bin
 
 其中，默认的`compile`是最常用的，Maven会把这种类型的依赖直接放入classpath。
 
+`test`依赖表示仅在测试时使用，正常运行时并不需要。最常用的`test`依赖就是JUnit：
+
+```xml
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-api</artifactId>
+    <version>5.3.2</version>
+    <scope>test</scope>
+</dependency>
+```
+
+`runtime`依赖表示编译时不需要，但运行时需要。最典型的`runtime`依赖是JDBC驱动，例如MySQL驱动：
+
+```xml
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>5.1.48</version>
+    <scope>runtime</scope>
+</dependency>
+```
+
+`provided`依赖表示编译时需要，但运行时不需要。最典型的`provided`依赖是Servlet API，编译的时候需要，但是运行时，Servlet服务器内置了相关的jar，所以运行期不需要：
+
+```xml
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>javax.servlet-api</artifactId>
+    <version>4.0.0</version>
+    <scope>prov
+```
+
+
+
 Maven如何知道从何处下载所需的依赖？答案是Maven维护了一个中央仓库（[repo1.maven.org](https://repo1.maven.org/)），所有第三方库将自身的jar以及相关信息上传至中央仓库。
 
 一个jar包一旦被下载过，就会被Maven自动缓存在本地目录（`~/.m2`）。
 
 #### 唯一ID
+
+3个变量即可唯一确定某个jar包：
+
+- groupId：属于组织的名称，类似Java的包名；
+- artifactId：该jar包自身的名称，类似Java的类名；
+- version：该jar包的版本。
+
+
 
 #### Maven镜像
 
@@ -2978,13 +3026,17 @@ Maven如何知道从何处下载所需的依赖？答案是Maven维护了一个�
 
 通过[search.maven.org](https://search.maven.org/)搜索关键字，
 
+#### 命令行编译
 
+```shell
+$ mvn clean package
+```
 
 ### 14.3 构建流程
 
 Maven不但有标准化的项目结构，而且还有一套标准化的构建流程，可以自动化实现编译，打包，发布，等等。
 
-
+🔖
 
 ### 14.4 使用插件
 
@@ -2992,9 +3044,13 @@ Maven不但有标准化的项目结构，而且还有一套标准化的构建流
 
 ### 14.6 使用mvnw
 
+`mvnw`是Maven Wrapper的缩写。因为我们安装Maven时，默认情况下，系统所有项目都会使用全局安装的这个Maven版本。但是，对于某些项目来说，它可能必须使用某个特定的Maven版本，这个时候，就可以使用Maven Wrapper，它可以负责给这个特定的项目安装指定版本的Maven，而其他项目不受影响。
 
+简单地说，Maven Wrapper就是给一个项目提供一个独立的，指定版本的Maven给它使用。
 
+#### 14.7 发布Artifact
 
+🔖
 
 ## 15.网络编程
 
@@ -3297,7 +3353,11 @@ Java为关系数据库定义了一套标准的访问接口：JDBC（Java Databas
 
 
 
+## 19.设计模式
 
+
+
+## 20.Web开发
 
 
 
