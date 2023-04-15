@@ -2021,7 +2021,518 @@ public class GCTest {
 
 P87
 
+### 9.1 栈、堆、方法区的交互关系
 
+#### 运行时数据区结构图
+
+从线程共享与否的角度来看：
+
+![](images/image-20230414195754534.png)
+
+
+
+![](images/image-20230414200534403.png)
+
+
+
+### 9.2 方法区的理解 
+
+https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.5.4
+
+> The Java Virtual Machine has a *method area* that is shared among all Java Virtual Machine threads. The method area is analogous to the storage area for compiled code of a conventional language or analogous to the "text" segment in an operating system process. It stores per-class structures such as the run-time constant pool, field and method data, and the code for methods and constructors, including the special methods ([§2.9](https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.9)) used in class and instance initialization and interface initialization.
+>
+> The method area is created on virtual machine start-up. Although the method area is logically part of the heap, simple implementations may choose not to either garbage collect or compact it. This specification does not mandate the location of the method area or the policies used to manage compiled code. The method area may be of a fixed size or may be expanded as required by the computation and may be contracted if a larger method area becomes unnecessary. The memory for the method area does not need to be contiguous.
+>
+> A Java Virtual Machine implementation may provide the programmer or the user control over the initial size of the method area, as well as, in the case of a varying-size method area, control over the maximum and minimum method area size.
+>
+> The following exceptional condition is associated with the method area:
+>
+> - If memory in the method area cannot be made available to satisfy an allocation request, the Java Virtual Machine throws an `OutOfMemoryError`.
+
+《Java虚拟机规范》中明确说明：〝尽管所有的方法区在逻辑上是属于堆的一部分，但一些简单的实现可能不会选择去进行垃圾收集或者进行压缩。”但对于HotSpotJVM而言，方法区还有一个别名叫做Non-Heap（非堆），目的就是要和堆分开。
+
+所以，==方法区看作是一块独立于Java堆的内存空间==。
+
+![](images/image-20230414201238021.png)
+
+- ﻿方法区 （Method Area）与Java堆一样，是各个线程共享的内存区域。
+- ﻿方法区在JVM启动的时候被创建，并且它的实际的物理内存空间中和Java堆区一样都可以是不连续的。
+- ﻿方法区的大小，跟堆空间一样，可以选择固定大小或者可扩展。
+- ﻿方法区的大小决定了系统可以保存多少个类，如果系统定义了太多的类，导致方法区溢出，虚拟机同样会抛出内存溢出错误：`java.lang.OutOfMemoryError:PermGen space` 或者`java.lang.OutOfMemoryError:Metaspace`。
+  + 加载大量的第三方jar包；
+  + Tomcat部署的工程过多（30-50个）；
+  + 大量动态的生成反射类。
+- ﻿关闭JVM就会释放这个区域的内存。
+
+#### Hotspot方法区的演进
+
+- 在jdk7及以前，习惯上把方法区，称为永久代。jdk8开始，使用元空间取代了永久代。
+
+- ﻿本质上，方法区和永久代并不等价。仅是对hotspot而言的。《Java虚拟机规范》对如何实现方法区，不做统一要求。例如：BEA JRockit/ IBM J9中不存在永久代的概念。
+  + 现在来看，当年使用永久代，不是好的idea。导致Java程序更容易OOM（超过`-XX:MaxPermsize`上限）
+
+- 而到了JDK 8，终于完全废弃了水久代的概念，改用与JRockit、J9一样在本地内存中实现的元空间 (Metaspace）来代替.
+- ﻿元空间的本质和永久代类似，都是对JVM规范中方法区的实现。不过元空间与永久代最大的区别在于：==元空间不在虚拟机设置的内存中，而是使用本地物理内存。==
+- ﻿永久代、元空间二者并不只是名字变了，内部结构也调整了。
+- ﻿根据 《Java虚拟机规范》的规定，如果方法区无法满足新的内存分配需求时，将抛出OOM异常。
+
+
+
+### 9.3 设置方法区大小与OOM
+
+- 方法区的大小不必是固定的，jvm可以根据应用的需要动态调整。
+
+- jdk7及以前：
+  + 通过`-XX:Permsize`来设置永久代初始分配空间。默认值是20.75M
+  +  `-XX:MaxPermsize`来设定永久代最大可分配空间。32位机器默认是64M，64位机器模式是82M
+  + 当JVM加载的类信息容量超过了这个值，会报异常`OutOfMemoryError:PermGen space` 
+- jak8及以后：
+  + 元数据区大小可以使用参数`-XX:MetaspaceSize`和`-XX:MaxMetaspaceSize`指定，替代上述原有的两个参数。
+  + 默认值依赖于平台。windows下，`-XX:Metaspacesize`是21M，`-XX:MaxMetaspaceSize`的值是-1，即没有限制。
+  + 
+  + `-XX:Metaspacesize`设置初始的元空间大小。对于一个64位的服务器端JVM来说，其默认的`-XX:Metaspacesize`值为21MB。这就是初始的高水位线，一旦触及这个水位线，Full GC将会被触发并卸载没用的类(即这些类对应的类加载器不再存活），然后这个高水位线将会**重置**。新的高水位线的值取决于GC后释放了多少元空间。如果释放的空间不足，那么在不超过MaxMetaspacesize时，适当提高该值。如果释放空间过多，则适当降低该值。
+  + 如果初始化的高水位线设置过低，上述高水位线调整情况会发生很多次。通过垃圾回收器的日志可以观祭到Full GC多次调用。为了避免频緊地GC，建议将`-XX:MetaspaceSize`设置为一个相对较高的值。
+
+
+
+```shell
+~ jinfo -flag MetaspaceSize 45094
+-XX:MetaspaceSize=21807104
+```
+
+#### 如何解决这些OOM？
+
+1. ﻿﻿要解决OOM异常或heap space的异常，一般的手段是首先通过**内存映像分析工具**（如Eclipse Memory Analyzer）对dump出来的堆转储快照进行分析，重点是确认内存中的对象是否是必要的，也就是要先分清楚到底是出现了**内存泄漏** (Memory Leak🔖p91）还是内存溢出 (Memory Overflow)。
+2. ﻿﻿如果是内存泄漏，可进一步通过工具查看泄漏对象到GC Roots 的引用链。于是就能找到泄漏对象是通过怎样的路径与GC Roots 相关联并导致垃圾收集器无法自动回收它们的。掌握了泄漏对象的类型信息，以及GC Roots 引用链的信息，就可以比较准确地定位出泄漏代码的位置。
+3. ﻿﻿如果不存在内存泄漏，换句话说就是内存中的对象确实都还必须存活着，那就应当检查虚拟机的堆参数（-Xmx 与-Xms），与机器物理内存对比看是否还可以调大，从代码上检查是否存在某些对象生命周期过长、持有状态时间过长的情况，尝试减少程序运行期的内存消耗。
+
+
+
+### 9.4 方法区的内部结构
+
+![](images/image-20230415150032944.png)
+
+《深入理解Java 虛拟机》书中对方法区 （Method Area）存储内容描述如下：
+
+它用于存储己被虚拟机加载的==类型信息、常量、静态变量、即时编译器编详后的代码缓存==等。（经典版本是这样存储的，有时会有些变化）
+
+![](images/image-20230415175947903.png)
+
+> 方法区中记录了，class文件经过类加载器子系统后，被哪个ClassLoader加载。
+
+` javap -v -p MethodInnerStructTest.class `
+
+#### 类型信息
+
+对每个加载的类型（类class、接口interface、枚举enum、注解annotation），JVM必须在方法区中存储以下类型信息：
+
+1. ﻿﻿这个类型的完整有效名称（全名=包名.类名）
+2. ﻿﻿这个类型直接父类的完整有效名(对于interface或是java.lang.object，都没有父类）
+3. ﻿﻿这个类型的修饰符 (public，abstract，final的某个子集）
+
+4. 这个类型直接接口的一个有序列表
+
+#### 域(Field)信息
+
+- JVM必须在方法区中保存类型的所有域的相关信息以及域的声明顺序。
+
+- 域的相关信息包括：域名称、域类型、域修饰符 (public, private, protected, static, final, volatile, transient的某个子集）
+
+#### 方法(Method)信息
+
+JVM必须保存所有方法的以下信息，同域信息一样包括声明顺序：
+
+- ﻿方法名称
+
+- ﻿方法的返回类型（或 void)
+
+- ﻿方法参数的数量和类型（按顺序）
+
+- ﻿方法的修饰符 (public, private, protected, static, final,synchronized, native, abstract的一个子集）
+
+- ﻿方法的字节码(bytecodes)、操作数栈、局部变量表及大小 (abstract和native方法除外）
+
+- ﻿异常表（abstract和native方法除外）
+
+  每个异常处理的开始位置、结束位置、代码处理在程序计数器中的偏移地址、被捕获的异常类的常量池索引
+
+#### non-final的类常量
+
+- 静态变量和类关联在一起，随着类的加载而加载，它们成为类数据在逻辑上的一部分。
+
+- 类变量被类的所有实例共享，即使没有类实例时你也可以访问它。
+
+```java
+/**
+ * 静态变量被类的所有实例共享，即使没有类实例时你也可以访问它。
+ * @author andyron
+ **/
+public class MethodAreaTest {
+    public static void main(String[] args) {
+      Order order = null;
+      order.hello();
+        System.out.println(order.count);
+    }
+}
+class Order {
+    public static int count = 1;
+  	public static final int number = 2;
+		public static void hello() {
+        System.out.println("hello!");
+    }
+}
+```
+
+`javap -v -p Order.class`
+
+
+
+> 补充：全局常量：static final
+>
+> 被声明位final的类变量的处理方法则不痛，每个全局常量在编译的时候就被分配了。
+>
+> ![](images/image-20230415154241059.png)
+
+#### 运行时常量池 vs 常量池
+
+- 方法区，内部包含了运行时常量池。
+- ﻿字节码文件，内部包含了常量池。
+- ﻿要弄清楚方法区，需要理解清楚ClassFile，因为加载类的信息都在方法区。
+- ﻿要弄清楚方法区的运行时常量池，需要理解清楚CLassFile中的常量池。
+
+https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html
+
+![](images/image-20230415161608526.png)
+
+一个有效的字节码文件中除了包含类的版本信息、字段、方法以及接口等描述信息外，还包含一项信息那就是常量池表 (Constant Pool Table），包括各种==字面量==和对类型、域和方法的==符号引用==。
+
+##### 为什么需要常量池？
+
+一个java源文件中的类、接口，编译后产生一个字节码文件。而Java中的字节码需要数据支持，通常这种数据会很大以至于不能直接存到字节码里，换另一种方式，可以存到常量池，这个字节码包含了指向常量池的引用。在动态链接的时候会用到运行时常量池，之前有介绍。
+
+比如：如下的代码：
+
+```java
+public class Simpleclass {
+  public void sayHello() {
+  	System.out.println("hello");
+  }
+}
+```
+
+虽然只有194字节，但是里面却使用了String、System、 Printstream及Object等结构。这里代码量其实己经很小了。如果代码多，引用到的结构会更多！这里就需要常量池了！
+
+##### 常量池中有什么？
+
+几种在常量池内存储的数据类型包括：
+
+- ﻿数量值
+- ﻿字符串值
+- 类引用
+- ﻿﻿字段引用
+- 方法引用
+
+![image-20230415171111990](images/image-20230415171111990.png)
+
+> 小结：
+>
+> 常量池，可以看做是一张表，虚拟机指令根据这张常量表找到要执行的类名、方法名、参数类型、字面量等类型。
+
+#### 运行时常量池
+
+- 运行时常量池 (Runtime constant Pool）是方法区的一部分。
+
+- 常量池表(Constant Poo1 Table）是Class文件的一部分，用于存放编泽期生成的各种字面量与符号引用，这部分内容将在类加载后存放到方法区的运行时常量池中。
+
+- ﻿运行时常量池，在加载类和接口到虚拟机后，就会创建对应的运行时常量池。
+
+- ﻿﻿JVM为每个己加载的类型（类或接口）都维护一个常量池。池中的数据项像数组项一样，是通过==索引访问==的。
+
+- ﻿运行时常量池中包含名种不同的常量，包括编译期就己经明确的数值字面量，也包括到运行期解析后才能够获得的方法或者字段引用。此时不再是常量池中的符号地址了，这里换为==真实地址==。
+
+  运行时常量池，相对于Class文件常量池的另一重要特征是：具备**==动态性==**。
+
+- ﻿运行时常量池类似于传统编程语言中的**符号表**(synbol table），但是它所包含的数据却比符号表要更加丰富一些。
+
+- 当创建类或接口的运行时常量池时，如果构造运行时常量池所需的内存空间超过了方法区所能提供的最大值，则JVM会抛`OutOfMemoryError`异常。
+
+### 9.5 方法区使用举例
+
+```java
+package com.andyron.java1;
+
+/**
+ * @author andyron
+ **/
+public class MethodAreaDemo {
+    public static void main(String[] args) {
+        int x = 500;
+        int y = 100;
+        int a = x / y;
+        int b = 50;
+        System.out.println(a + b);
+    }
+}
+```
+
+![](images/image-20230415174758620.png)
+
+过程：
+
+![](images/image-20230415173841567.png)
+
+![](images/image-20230415173932903.png)
+
+![](images/image-20230415174041291.png)    
+
+![](images/image-20230415174113443.png)
+
+![](images/image-20230415174158570.png)
+
+![](images/image-20230415174220840.png)
+
+> 备注：
+>
+> 栈是**抽象数据类型**（**A**bstract **D**ata **T**ype，**ADT**）。
+
+  ![](images/image-20230415174450197.png)
+
+![](images/image-20230415174618787.png)
+
+![](images/image-20230415174652109.png)
+
+![](images/image-20230415175048692.png)
+
+![](images/image-20230415175135797.png)
+
+![](images/image-20230415175217946.png)
+
+![](images/image-20230415175238445.png)
+
+![](images/image-20230415175330159.png)
+
+![](images/image-20230415175518336.png) 
+
+### 9.6 方法区的演进细节
+
+1. 首先明确：只有Hotspot才有永久代。BEA JRockit、IBM J9等来说，是不存在永久代的概念的。原则上如何实现方法区属于虚拟机实现细节，不受《Java虛拟机规范》管束，并不要求统一。
+
+2. Hotspot中方法区的变化：
+
+![](images/image-20230415180146812.png)
+
+![](images/image-20230415180604031.png)
+
+![](images/image-20230415180624662.png)
+
+![](images/image-20230415180549149.png)
+
+jdk8后，方法区不再使用虚拟机内存，而是使用本地内存独立叫作元空间。
+
+#### 永久代为什么要被元空间替换？
+
+https://openjdk.org/jeps/122
+
+JEP 122: Remove the Permanent Generation
+
+> ## Motivation
+>
+> This is part of the JRockit and Hotspot convergence effort. JRockit customers do not need to configure the permanent generation (since JRockit does not have a permanent generation) and are accustomed to not configuring the permanent generation.
+>
+> ## Description
+>
+> Move part of the contents of the permanent generation in Hotspot to the Java heap and the remainder to native memory.
+>
+> Hotspot's representation of Java classes (referred to here as class meta-data) is currently stored in a portion of the Java heap referred to as the permanent generation. In addition, interned Strings and class static variables are stored in the permanent generation. The permanent generation is managed by Hotspot and must have enough room for all the class meta-data, interned Strings and class statics used by the Java application. Class metadata and statics are allocated in the permanent generation when a class is loaded and are garbage collected from the permanent generation when the class is unloaded. Interned Strings are also garbage collected when the permanent generation is GC'ed.
+>
+> <u>The proposed implementation will allocate class meta-data in native memory and move **interned Strings**（字符串字面量） and class statics to the Java heap.</u> Hotspot will explicitly allocate and free the native memory for the class meta-data. Allocation of new class meta-data would be limited by the amount of available native memory rather than fixed by the value of -XX:MaxPermSize, whether the default or specified on the command line.
+>
+> Allocation of native memory for class meta-data will be done in blocks of a size large enough to fit multiple pieces of class meta-data. Each block will be associated with a class loader and all class meta-data loaded by that class loader will be allocated by Hotspot from the block for that class loader. Additional blocks will be allocated for a class loader as needed. The block sizes will vary depending on the behavior of the application. The sizes will be chosen so as to limit internal and external fragmentation. Freeing the space for the class meta-data would be done when the class loader dies by freeing all the blocks associated with the class loader. Class meta-data will not be moved during the life of the class.
+
+- ﻿随着Java8 的到来，Hotspot VM中再也见不到永久代了。但是这并不意味着类的元数据信息也消失了。这些数据被移到了一个与堆不相连的本地内存区域，这个区域叫做元空间(Metaspace )。
+
+- ﻿由于类的元数据分配在本地内存中，元空间的最大可分配空间就是系统可用内存空间。
+
+- ﻿﻿这项改动是很有必要的，原因有：
+
+  1. <u>为永久代设置空间大小是很难确定的。</u>
+
+     在某些场景下，如果动态加载类过多，容易产生Perm 区的OOM。比如某个实际web工程中，因为功能点比较多，在运行过程中，要不断动态加载很多类，经常出现致命错误。
+
+     ![](images/image-20230415181821223.png)
+
+     而元空间和永久代之间最大的区别在于：元空间并不在虚拟机中，而是使用本地内存。因此，默认情况下，元空间的大小仅受本地内存限制。
+
+  2. 对永久代进行调优是很困难的。
+
+> 技术提升，不断问为什么！！
+>
+> 今日头条 python -> GO
+>
+> 技术深度体现了学习能力
+
+#### StringTable（字符串常量池）为什么要调整（永久代 -> 堆）？
+
+Jdk7中将stringrable放到了堆空间中。因为永久代的回收效率很低，在full gc的时候才会触发。而full gc是老年代的空间不足、永久代不足时才会触发。这就导致stringrable回收效率不高。而我们开发中会有大量的字符串被创建，回收效率低，导致永久代内存不足。放到堆里，能及时回收内存。
+
+#### 静态变量放在哪里
+
+```
+/**
+ * 结论：静态引用对应的对象实体始终都存在堆空间
+ *
+ * jdk 8:
+ * -Xms200m -Xmx200m -XX:MetaspaceSize=300m -XX:MaxMetaspaceSize=300m -XX:+PrintGCDetails
+ * @author andyron
+ **/
+public class StaticFieldTest {
+    private static byte[] arr = new byte[1024 * 1024 * 100]; // 100MB
+
+    public static void main(String[] args) {
+        System.out.println(StaticFieldTest.arr);
+    }
+}
+```
+
+jdk7
+
+![jdk7](images/image-20230415183528870.png)
+
+jdk8
+
+![](images/image-20230415184100749.png)
+
+
+
+```java
+/**
+ * 《深入理解Java虚拟机》中的案例：
+ * staticObj、instanceObj、localObj三个变量本身存放在哪里？它们的对象放在哪里？
+ * @author andyron
+ **/
+public class StaticObjTest {
+    static class Test {
+        static ObjectHolder staticObj = new ObjectHolder();
+        ObjectHolder instanceObj = new ObjectHolder();
+
+        void foo() {
+            ObjectHolder localObj = new ObjectHolder();
+            System.out.println("done");
+        }
+    }
+    private static class ObjectHolder {
+    }
+    public static void main(String[] args) {
+        Test test = new StaticObjTest.Test();
+        test.foo();
+    }
+}
+```
+
+staticObj随着Test的类型信息存放在方法区，instanceObj随着Test的对象实例存放在Java堆，localObj则是存放在foo()方法栈帧的局部变量表中。
+
+> jdk9引入的工具**jhsdb**。
+
+![](images/image-20230415185754231.png)
+
+测试发现：三个对象的数据在内存中的地址都落在Eden区范围内，所以结论：只要是对象实例必然会在Java堆中分配。
+
+🔖p99
+
+![](images/image-20230415190208815.png)
+
+### 9.7 方法区的垃圾回收
+
+有些人认为方法区（如Hotspot虚拟机中的元空间或者永久代）是没有垃圾收集行为的，其实不然。《Java虛拟机规范》对方法区的约束是非常宽松的，提到过可以不要求虚拟机在方法区中实现垃圾收集。事实上也确实有未实现或未能完整实现方法区类型卸载的收集器存在（如JDK 11时期的ZGC收集器就不支持类卸载）。
+
+一般来说<u>这个区域的回收效果比较难令人满意，尤其是类型的卸载，条件相当苛刻</u>。但是这部分区域的回收**有时又确实是必要的**。以前sun公司的Bug列表中，曾出现过的若干个严重的Bug就是由于低版本的Hotspot虚拟机对此区域未完全回收而导致内存泄漏。
+
+方法区的垃圾收集主要回收两部分内容：==常量池中废弃的常量和不再使用的类型==。
+
+- 先来说说方法区内常量池之中主要存放的两大类常量：字面量和符号引用。字面量比较接近Java语言层次的常量概念，如文本字符串、被声明为final的常量值等。而符号引用则属于编译原理方面的概念，包括下面三类常量：
+  1. 类和接口的全限定名
+  2. 字段的名称和描述符
+  3. 方法的名称和描述符
+
+- Hotspot虚拟机对常量池的回收策略是很明确的，只==要常量池中的常量没有被任何地方引用，就可以被回收。==
+
+- 回收废弃常量与回收Java堆中的对象非常类似。
+- 判定一个常量是否 “废弃” 还是相对简单，而要判定一个类型是否属于 “不再被使用的类”的条件就比较苛刻了。需要同时满足下面三个条件：
+  + 该类所有的实例都己经被回收，也就是Java堆中不存在该类及其任何派生子类的实例。
+  + 加载该类的类加载器己经被回收，这个条件除非是经过精心设计的可替换类加载器的场景，如OSGi、 JSP的重加载等，否则通常是很难达成的。
+  + 该类对应的java.lang.Class对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法。
+- Java虚拟机被允许对满足上述三个条件的无用类进行回收，这里说的仅仅是“被允许”，而并不是和对象一样，没有引用了就必然会回收。关于是否要对类型进行回收，Hotspot虚拟机提供了`-Xnoclassgc`参数进行控制，还可以使用`-verbose:class`以及`-XX:+TraceClassLoading`、`-XX:+TraceclassUnLoading`查看类加载和卸载信息。
+- 在大量使用反射、动态代理、CGLib等字节码框架，动态生成JSP以及OSGi这类频繁自定义类加载器的场景中，**通常都需要Java虚拟机具备类型卸载的能力，以保证不会对方法区造成过大的内在压力**。
+
+![](images/image-20230415200909646.png)
+
+> Major GC是针对老年代，Full GC是相对整个堆（有时也包括方法区），这个两个概念有时被通用。
+
+### 场景面试题
+
+百度
+
+三面：说一下JVM内存模型吧，有哪些区？分别干什么的？
+
+
+
+蚂蚁金服：
+
+Javag的内存分代改进
+
+JVM 内存分哪几个区，每个区的作用是什么？
+
+一面：JVM内存分布/内存结构？栈和堆的区别？堆的结构？为什么两个survivor区？
+
+二面：Eden和survior的比例分配
+
+
+
+小米：
+
+jvM内存分区，为什么要有新生代和老年代
+
+
+
+字节跳动：
+
+二面：Java的内存分区
+
+二面：讲讲jvm运行时数据库区
+
+什么时候对象会进入老年代？
+
+
+
+京东：
+
+JVM的内存结构，Eden和Survivor比例。
+
+JVM内存为什么要分成新生代，老年代，持久代。新生代中为什么要分为Eden和survivor。
+
+
+
+天猫：
+
+一面：Jvm内存模型以及分区，需要详细到每个区放什么。
+
+一面：JVM的内存模型，Java8做了什么修改
+
+
+
+拼多多：
+
+JvM 内存分哪几个区，每个区的作用是什么？
+
+
+
+美团：
+
+java内存分配
+
+jvm的永久代中会发生垃圾回收吗？
+
+一面：jvm内存分区，为什么要有新生代和老年代？
 
 ## 10 对象的实例化内存布局与访问定位
 
