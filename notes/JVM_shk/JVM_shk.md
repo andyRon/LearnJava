@@ -518,7 +518,7 @@ CA FE BA BE
 
 2. 准备（Prepare）：
 
-   为类变量分配内存并且设置该类==变量==的默认初始值，即零值。
+   为类变量分配内存并且设置该==类变量==的默认初始值，即零值。
 
    ```JAVA
    private static int a = 1;  // prepare: a = 0  --> initial: a = 1
@@ -1920,7 +1920,7 @@ public class GCTest {
 
 - ﻿空间分配担保
 
-  ﻿`-XX:HandlePromotionFailure`
+    ﻿`-XX:HandlePromotionFailure`
 
 ![](images/image-20230414165341842.png)
 
@@ -2536,11 +2536,242 @@ jvm的永久代中会发生垃圾回收吗？
 
 ## 10 对象的实例化内存布局与访问定位
 
-P102
+> 对象在JVM中是怎么存储的？
+>
+> 对象头信息里面有哪些东西？
+
+### 10.1 对象的实例化
+
+#### 创建对象的方式
+
+##### 1 new
+
+最常见的方式
+
+变形1：Xxx的静态方法
+
+变形2：XxxBuilder/XxxFactory的静态方法
+
+##### 2 Class的newInstance()
+
+反射，只能调用空参的构造器，权限必须是public。
+
+jdk9之后废弃，不建议使用。
+
+##### 3 Constructor的newInstance(Xxx)
+
+反射，可以调用空参、带参的构造器，权限没有要求。
+
+##### 4 使用clone()
+
+不用调用任何构造器，需要当前类实现Cloneable接口和clone()方法。
+
+##### 5 第三方库Objenesis
+
+https://github.com/easymock/objenesis
+
+
+
+#### 创建对象的步骤
+
+##### 1 判断对象对应的类是否加载、链接、初始化
+
+虚拟机遇到一条new指令，首先去检查这个指令的参数能否在Metaspace的常量池中定位到一个类的符参引引用，并且检查这个符号引用代表的类是否已经被加载、解析和初始化。（即判断类元信息是否存在）。如果没有，那么在双亲委派模式下，使用当前类加载器以ClassLoader+包名+类名为key进行查找对应的.class 文件。如果没有我到文件，则抛出`ClassNotFoundException` 异常，如果找到，则进行类加载，并生成对应的Class类对象。
+
+##### 2 为对象分配内存
+
+首先计算对象占用空间大小，接着在堆中划分一块内存给新对象。如果实例成员变量是引用变量，仅分配引用变量空间即可，即4个字节大小。
+
+- 如果内存是规整的，那么虛拟机将采用的是==指针碰撞法==(Bump The Pointer）来为对象分配内
+
+存。
+
+意思是所有用过的内存在一边，空闲的内存在另外一边，中间放着一个指针作为分界点的指示器，分配内存就仅仅是把指针向空闲那边挪动一段与对象大小相等的距离罢了。如果垃圾收集器选择的是Serial、ParNew这种基于压缩算法的，虛拟机采用这种分配方式。一股使用带有compact（整理）过程的收集器时，使用指针碰撞。
+
+**标记压缩算法**，Serial、ParNew
+
+- 如果内存不规整，虚拟机需要维护一个列表，==空闲列表分配==。
+
+如果内存不是规整的，已使用的内存和未使用的内存相互交错（也就是会有大量碎片化），那么虛拟机将采用的是空闲列表法来为对象分配内存。
+
+意思是应拟机维护了一个列表，记录上哪些内存块是可用的，再分配的时候从列表中找到一块足够大的空间划分给对象实例，并更新列表上的内容。这种分配方式成为“空闲列表 ( Free List )。
+
+**标记清除算法**，CMS
+
+> 选择哪种分配方式有Java堆是否规整决定，而java堆是否规整又由所采用的垃圾收集器是否带有压缩整理功能决定。
+
+##### 3 处理并发安全问题
+
+- 采用CAS失败重试、区域加锁保证更新的原子性
+- 每个线程预先分配一块TLAB（通过`-XX:+/-UseTLAB）参数来设定
+
+##### 4 初始化分配到的空间 1️⃣
+
+所有属性设置默认值，保证对象实例字段在不赋值时可以直接使用。
+
+> 给对象的属性赋值的操作：
+>
+> 1️⃣ 属性的默认初始化（零值初始阿虎）； 2️⃣显示初始化/3️⃣代码块中初始化； 4️⃣构造器中初始化
+
+##### 5 设置对象的对象头 
+
+将对象的所属类（即类的元数据信息）、对象的Hashcode和对象的GC信息、锁信息等数据存储
+
+在对象的对象头中。这个过程的具体设置方式取决于JVM实现。
+
+##### 6 执行init方法进行初始化 2️⃣ 3️⃣ 4️⃣
+
+在Java程序的视角看来，初始化才正就开始。初始化成员变量，执行实例化代码块，调用类的构造方法，并把堆内对象的首地址赋值给引用变量。
+
+因此一般来说（由字节码中是否跟随有`invokespecial`指令所决定），new指令之后会接着就是执行方法，把对象按照程序员的意愿进行初始化，这样一个真正可用的对象才算完全创建出来。
+
+![](images/image-20230417170143637.png)
+
+### 10.2 对象的内存布局
+
+#### 1 对象头（Header）
+
+##### 运行时元数据（Mark Word）
+
+- 哈希值（HashCode）
+- GC分代年龄
+- 锁状态标志
+- 线程持有的锁
+- 偏向线程ID
+- 偏向时间戳
+
+##### 类型指针
+
+指向类元数据InstanceKlass，确定该对象所属的类型。（元空间，obj.getClass）
+
+> 说明：如果是数组，还需要记录数组的长度
+
+#### 2 实例数据（Instance Data）
+
+说明：它是对象真正存储的有效信息，包括程序代码中定义的各种类型的字段（包括从父类继承下来和本身拥有的字段）。
+
+规则：
+
+- 相同宽度的字段总是被分配在一起
+- 父类中定义的变量会出现在子类之前
+- 如果CompactField是参数为true（默认为true）：子类的窄变量可能插入父类变量的空隙
+
+#### 3 对齐填充（Padding）
+
+不是必须的额，也没特别含义，仅仅启动占位符的作用。
+
+
+
+```java
+public class Customer {
+    int id = 1001;  //  2️⃣显示初始化
+    String name;
+    Account acct;
+
+    {
+        name = "匿名客户";  // 3️⃣代码块中初始化
+    }
+    public Customer() {
+        acct = new Account();  // 4️⃣构造器中初始化
+    }
+}
+class Account {
+}
+```
+
+```java
+public class CustomerTest {
+    public static void main(String[] args) {
+        Customer cust = new Customer();
+    }
+}
+```
+
+
+
+![](images/image-20230417172225718.png)
+
+
+
+### 10.3 对象的访问定位
+
+> JVM是如何通过栈帧中的对象引用访问到其内部的对象实例的呢？
+>
+> ![](images/image-20230417173354905.png)
+
+
+
+对象访问方式主要有两种：
+
+#### 句柄访问
+
+![](images/image-20230417173548607.png)
+
+缺点：浪费空间，效率低。
+
+好处：reference中存储稳定句柄地址，对象被移动（垃圾收集移动对象很普遍）时只会改变句柄中实例数据指针即可，reference本身不需要修改。
+
+#### 直接指针（HotSpot采用）
+
+![](images/image-20230417173725215.png)
 
 ## 11 直接内存
 
 P107
+
+> jdk8之后 元空间，而元空间就是使用的直接内存。
+
+### 概述
+
+- ﻿不是虚拟机运行时数据区的一部分，也不是《Java虚拟机规范》中定义的内存区域。
+- ﻿直接内存是在Java堆外的、直接向系统申请的内存区间。
+- ﻿来源于NIO，通过存在堆中的DirectByteBuffer操作Native内存
+- ﻿通常，访问直接内存的速度会优于Java堆。即读写性能高。
+  + 因此出于性能考虑，读写频繁的场合可能会考虑使用直接内存。
+  + Java的NIO库允许Java程序使用直接内存，用于数据缓冲区
+
+![](images/image-20230417181906693.png)
+
+![](images/image-20230417181938153.png)
+
+> IO  				NIO(New IO / Non-Blocking(非阻塞) IO)
+>
+> byte[]/ char[]  	Buffer
+>
+> Stream 			 Channel
+
+
+
+测试BufferTest1
+
+```
+ByteBuffer.allocateDirect()
+```
+
+
+
+- ﻿也可能导致OutofMemoryError异常
+- ﻿由于直接内存在Java堆外，因此它的大小不会直接受限于`-Xmx`指定的最大堆大小，但是系统内存是有限的，Java堆和直接内存的总和依然受限于操作系统能给出的最大内存。
+
+- ﻿缺点
+  + 分配回收成本较高
+  + 不受JVM内存回收管理
+- ﻿直接内存大小可以通过`MaxDirectMemorySize`设置
+- ﻿如果不指定，默认与堆的最大值`-Xmx`参数值一致
+
+ 
+
+
+
+> OOM的种类：
+>
+> java.lang.OutOfMemoryError：Java heap space
+> java.lang.OutOfMemoryError：GC overhead limit exceeded
+> java.lang.OutOfMemoryError：Direct buffer memory
+> java.lang.OutOfMemoryError：unable to create new native thread
+> java.lang.OutOfMemoryError：Metaspace
+
+
 
 ## 12 执行引擎
 
