@@ -3176,6 +3176,260 @@ public class IntCompTest {
 
 P118
 
+String table又称为String pool，字符串常量池。
+
+### 13.1 String的基本特性
+
+- ﻿String:字符串，使用一对""引起来表示。
+  - ﻿﻿`String s1 = "hello";	//字面量的定义方式`
+  - ﻿`String s2 = new String ("hello");`
+
+String声明为final的，不可被继承
+
+- ﻿﻿String实现了`Serializable`接口：表示字符串是支持序列化的。
+
+  实现了`Comparable`接口：表示String可以比较大小
+
+- ﻿String在jak8及以前内部定义了`final char[] value`用于存储字符串数据。jak9时改为`byte[]`
+
+> https://openjdk.org/jeps/254
+>
+> JEP 254: Compact Strings
+>
+> ### Motivation
+>
+> The current implementation of the String class stores characters in a char array, using two bytes (sixteen bits) for each character. Data gathered from many different applications indicates that strings are a major component of heap usage and, moreover, ==that most String objects contain only Latin-1 characters. Such characters require only one byte of storage, hence half of the space in the internal char arrays of such String objects is going unused.==
+>
+> 大部分Latin-1字符一个byte就能存储，使用char数组浪费空间。
+>
+> ### Description
+>
+> We propose to ==change the internal representation of the String class from a UTF-16 char array to a byte array plus **an encoding-flag field**==. The new String class will store characters encoded either as ISO-8859-1/Latin-1 (one byte per character), or as UTF-16 (two bytes per character), based upon the contents of the string. The encoding flag will indicate which encoding is used.
+>
+> 但有的字符（比如中文）一个byte是不够，那就添加一个编码标记，ISO-8859-1/Latin-1 就用一个byte，其它用两个。
+
+
+
+![](images/image-20230418185137766.png)
+
+ ![](images/image-20230418191705095.png)
+
+
+
+- ==字符串常量池中是不会存储相同内容的字符串的。==
+
+- String的String Pool是一个固定大小的`Hashtable`（底层是数组加链表的结构），默认值大小长度是1009。如果放进String Pool的string非常多，就会造成Hash冲突严重，从而导致链表会很长，而链表长了后直接会造成的影响就是当调用`String.intern`时性能会大幅下降。
+
+  > intern表示如果字符串常量中没有对应的data字符串的话，就在生成
+
+- 使用`-XX:StringTableSize`可设置StringTable的长度
+
+- 在jdk6中stringrable是固定的，就是1009的长度，所以如果常量池中的字符串过多就会导致效率下降很快。StringTableSize设置没有要求
+- 在jdk7中，stringrable的长度默认值是60013，
+- JDK8，1009是可设置的最小值。
+
+
+
+`jinfo -flag StringTableSize pid`
+
+### 13.2 String的内存分配
+
+- ﻿在Java语言中有8种基本数据类型和一种比较特殊的类型String。这些类型为了使它们在运行过程中速度更快、更节省内存，都提供了一种常量池的概念。
+
+- ﻿常量池就类似一个**Java系统级别提供的缓存**。8种基本数据类型的常量池都是系统协调的，String类型的常量池比较特殊。它的主要使用方法有两种。
+
+  + 直接使用双引号声明出来的String对象会直接存储在常量池中。
+
+    比如： string info = "atguigu .com";
+
+  + 如果不是用双引号声明的string对象，可以使用string提供的intern()方法。这个后面重点谈
+
+- ﻿Java 6及以前，字符串常量池存放在永久代。
+
+- ﻿Java 7 中oracle的工程师对字符串池的逻辑做了很大的改变，即==将字符串常量池的位置调整到Java堆内==。
+
+  + 所有的字符串都保存在堆（Heap）中，和其他普通对象一样，这样可以让你在进行调优应用时仅需要调整堆大小就可以了。
+  + 字符串常量池概念原本使用得比较多，但是这个改动使得我们有足够的理由让我们重新考虑在Java7中使用`String.intern()`。
+
+- Java8元空间，字符串常量在堆。
+
+![](images/image-20230415180604031.png)
+
+![](images/image-20230415180624662.png)
+
+![](images/image-20230415180549149.png)
+
+#### StringTable为什么要调整？
+
+1. permSize默认比较小
+
+2. 永久代垃圾回收频率低
+
+>https://www.oracle.com/java/technologies/javase/jdk7-relnotes.html
+>
+>**Area:** HotSpot
+>
+>**Synopsis:** In JDK 7, interned strings are no longer allocated in the permanent generation of the Java heap, but are instead allocated in the main part of the Java heap (known as the young and old generations), along with the other objects created by the application. This change will result in more data residing in the main Java heap, and less data in the permanent generation, and thus may require heap sizes to be adjusted. Most applications will see only relatively small differences in heap usage due to this change, but larger applications that load many classes or make heavy use of the `String.intern()` method will see more significant differences.
+>
+>**RFE:** [6962931](https://bugs.java.com/bugdatabase/view_bug.do?bug_id=6962931)
+
+
+
+### 13.3 String的基本操作
+
+例子1：
+
+![](images/image-20230419171434808.png)
+
+![](images/image-20230419172352096.png)
+
+Java语言规范里要求完全相同的字符串字面量，应该包含同样的Unicode字符序列(包含同一份码点序列的常量），并且必须是指向同一个string类实例。
+
+https://docs.oracle.com/javase/specs/jls/se8/html/jls-3.html#jls-3.10.5
+
+
+
+例子2
+
+```java
+public class Memory {
+    public static void main(String[] args) {
+        int i = 1;
+        Object obj = new Object();
+        Memory mem = new Memory();
+        mem.foo(obj);
+    }
+
+    private void foo(Object param) {
+        String str = param.toString();  // line 7
+        System.out.println(str);
+    }
+}
+```
+
+![](images/image-20230419173058689.png)
+
+toString方法返回的是字符串字面量，所以放到字符串常量池里。
+
+🔖?
+
+### 13.4 字符串拼接操作
+
+1. 常量与常量的拼接结果在常量池，原理是编译期优化
+2. ﻿﻿常量池中不会存在相同内容的常量。
+3. 只要其中有一个是变量，结果就在堆中(常量池之外的堆)。变量拼接的原理是`StringBuilder`。
+4. 如果拼接的结果调用intern()方法，则主动将常量池中还没有的字符串对象放入池中，并返回此对象地址。
+
+![](images/image-20230419180237542.png)
+
+```java
+    @Test
+    public void test2() {
+        String s1 = "javaEE";
+        String s2 = "hadoop";
+
+        String s3 = "javaEEhadoop";
+        String s4 = "javaEE" + "hadoop";  // 编译器优化
+        // 如果拼接符号的前后出现了变量，则相当月在堆空间中new String()
+        String s5 = s1 + "hadoop";
+        String s6 = "javaEE" + s2;
+        String s7 = s1 + s2;
+
+        System.out.println(s3 == s4);  // true
+        System.out.println(s3 == s5);  // false
+        System.out.println(s3 == s6);  // false
+        System.out.println(s3 == s7);  // false
+        System.out.println(s5 == s6);  // false
+        System.out.println(s5 == s7);  // false
+        System.out.println(s6 == s7);  // false
+
+        // intern()的作用，是判断字符串常量池中是否存在javaEEhadoop，不存在就建一个并返回地址，存在返回对应地址
+        String s8 = s6.intern();
+        System.out.println(s3 == s8);  // true
+    }
+```
+
+![](images/image-20230419182807668.png)
+
+
+
+### 13.5 intern()的使用
+
+如果不是用双引号声明的String对象，可以使用String提供的intern方法：intern。
+
+方法会从字符串常量池中查询当前字符串是否存在，若不存在就会将当前字符串放入常量池中。
+
+比如：`String myInfo = new String ("I love andy").intern();`
+
+也就是说，如果在任意字符串上调用String.intern方法，那么其返回结果所指向的那个类实例，必须和直接以常量形式出现的字符串实例完全相同。因此，下列表达式的值必定是true:
+
+`("a" + "b" + "c") .intern() == "abc"`
+
+通俗点讲，Interned String就是确保字符串在内存里只有一份拷贝，这样可以节约内存空间，加快字符串操作任务的执行速度。注意，这个值会被存放在字符串内部池(String Intern Pool)
+
+
+
+> 题目：new String("ab")会创建几个对象？
+>
+> 看字节码文件
+
+两个。
+
+- 一个对象是new关键字在堆空间创建的
+
+ *      另一个对象是：字符串常量池中的对象。字节码指令：`ldc`
+
+```java
+ 0 new #2 <java/lang/String>
+ 3 dup
+ 4 ldc #3 <ab>
+ 6 invokespecial #4 <java/lang/String.<init> : (Ljava/lang/String;)V>
+ 9 astore_1
+10 return
+```
+
+> 拓展：new String("a") + new String("b")呢？
+>
+> - 对象1：new StringBuilder()
+>
+>  * 对象2：new String("a")
+>
+>  * 对象3：常量池中的"a"
+>
+>  * 对象4：new String("b")
+>
+>  * 对象5：常量池中的"d"
+>
+>  * 深入剖析：StringBuilder的toString()：
+>
+>    对象6：new String("ab")
+>
+>    强调一下，toString()的调用，在字符串常量池中，没有生成"ab"
+
+![](images/image-20230419204838212.png)
+
+
+
+#### intern的使用：jdk6 vs jdk7/8
+
+
+
+![](images/image-20230419205807914.png)
+
+![](images/image-20230419205911769.png)
+
+// TODO 🔖 p127 不同jdk 结果不一样？
+
+
+
+### 13.6 StringTable的垃圾回收
+
+
+
+### 13.7 G1中的String去重操作
+
+https://openjdk.org/jeps/192
+
 
 
 ## 14 垃圾回收概述
