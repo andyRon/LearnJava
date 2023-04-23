@@ -1,0 +1,202 @@
+Classfile /Users/andyron/myfield/github/LearnJava/notes/JVM_shk/JVMDemo2/ch01/src/com/andyron/java2/JavapTest.class
+  Last modified 2023年4月22日; size 1606 bytes
+  SHA-256 checksum 5a196f11804dbf3d64a8eadf7c1b6cf57a28294383f25214832d0cc172e58fcf
+  Compiled from "JavapTest.java"
+public class com.andyron.java2.JavapTest
+  minor version: 0
+  major version: 61
+  flags: (0x0021) ACC_PUBLIC, ACC_SUPER
+  this_class: #10                         // com/andyron/java2/JavapTest
+  super_class: #2                         // java/lang/Object
+  interfaces: 0, fields: 5, methods: 7, attributes: 3
+Constant pool:
+   #1 = Methodref          #2.#3          // java/lang/Object."<init>":()V
+   #2 = Class              #4             // java/lang/Object
+   #3 = NameAndType        #5:#6          // "<init>":()V
+   #4 = Utf8               java/lang/Object
+   #5 = Utf8               <init>
+   #6 = Utf8               ()V
+   #7 = String             #8             // java
+   #8 = Utf8               java
+   #9 = Fieldref           #10.#11        // com/andyron/java2/JavapTest.info:Ljava/lang/String;
+  #10 = Class              #12            // com/andyron/java2/JavapTest
+  #11 = NameAndType        #13:#14        // info:Ljava/lang/String;
+  #12 = Utf8               com/andyron/java2/JavapTest
+  #13 = Utf8               info
+  #14 = Utf8               Ljava/lang/String;
+  #15 = Fieldref           #10.#16        // com/andyron/java2/JavapTest.flag:Z
+  #16 = NameAndType        #17:#18        // flag:Z
+  #17 = Utf8               flag
+  #18 = Utf8               Z
+  #19 = Fieldref           #10.#20        // com/andyron/java2/JavapTest.num:I
+  #20 = NameAndType        #21:#22        // num:I
+  #21 = Utf8               num
+  #22 = Utf8               I
+  #23 = Fieldref           #10.#24        // com/andyron/java2/JavapTest.gender:C
+  #24 = NameAndType        #25:#26        // gender:C
+  #25 = Utf8               gender
+  #26 = Utf8               C
+  #27 = Fieldref           #28.#29        // java/lang/System.out:Ljava/io/PrintStream;
+  #28 = Class              #30            // java/lang/System
+  #29 = NameAndType        #31:#32        // out:Ljava/io/PrintStream;
+  #30 = Utf8               java/lang/System
+  #31 = Utf8               out
+  #32 = Utf8               Ljava/io/PrintStream;
+  #33 = InvokeDynamic      #0:#34         // #0:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+  #34 = NameAndType        #35:#36        // makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+  #35 = Utf8               makeConcatWithConstants
+  #36 = Utf8               (Ljava/lang/String;I)Ljava/lang/String;
+  #37 = Methodref          #38.#39        // java/io/PrintStream.println:(Ljava/lang/String;)V
+  #38 = Class              #40            // java/io/PrintStream
+  #39 = NameAndType        #41:#42        // println:(Ljava/lang/String;)V
+  #40 = Utf8               java/io/PrintStream
+  #41 = Utf8               println
+  #42 = Utf8               (Ljava/lang/String;)V
+  #43 = String             #44            // andyron.com
+  #44 = Utf8               andyron.com
+  #45 = Utf8               COUNTS
+  #46 = Utf8               ConstantValue
+  #47 = Integer            1
+  #48 = Utf8               Code
+  #49 = Utf8               LineNumberTable
+  #50 = Utf8               LocalVariableTable
+  #51 = Utf8               this
+  #52 = Utf8               Lcom/andyron/java2/JavapTest;
+  #53 = Utf8               (Z)V
+  #54 = Utf8               methodPrivate
+  #55 = Utf8               getNum
+  #56 = Utf8               (I)I
+  #57 = Utf8               i
+  #58 = Utf8               showGender
+  #59 = Utf8               ()C
+  #60 = Utf8               showInfo
+  #61 = Utf8               <clinit>
+  #62 = Utf8               SourceFile
+  #63 = Utf8               JavapTest.java
+  #64 = Utf8               BootstrapMethods
+  #65 = MethodHandle       6:#66          // REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+  #66 = Methodref          #67.#68        // java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+  #67 = Class              #69            // java/lang/invoke/StringConcatFactory
+  #68 = NameAndType        #35:#70        // makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+  #69 = Utf8               java/lang/invoke/StringConcatFactory
+  #70 = Utf8               (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+  #71 = String             #72            // \u0001\u0001
+  #72 = Utf8               \u0001\u0001
+  #73 = Utf8               InnerClasses
+  #74 = Class              #75            // java/lang/invoke/MethodHandles$Lookup
+  #75 = Utf8               java/lang/invoke/MethodHandles$Lookup
+  #76 = Class              #77            // java/lang/invoke/MethodHandles
+  #77 = Utf8               java/lang/invoke/MethodHandles
+  #78 = Utf8               Lookup
+{
+  boolean flag;
+    descriptor: Z
+    flags: (0x0000)
+
+  protected char gender;
+    descriptor: C
+    flags: (0x0004) ACC_PROTECTED
+
+  public java.lang.String info;
+    descriptor: Ljava/lang/String;
+    flags: (0x0001) ACC_PUBLIC
+
+  public static final int COUNTS;
+    descriptor: I
+    flags: (0x0019) ACC_PUBLIC, ACC_STATIC, ACC_FINAL
+    ConstantValue: int 1
+
+  public com.andyron.java2.JavapTest();
+    descriptor: ()V
+    flags: (0x0001) ACC_PUBLIC
+    Code:
+      stack=2, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: ldc           #7                  // String java
+         7: putfield      #9                  // Field info:Ljava/lang/String;
+        10: return
+      LineNumberTable:
+        line 22: 0
+        line 19: 4
+        line 23: 10
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      11     0  this   Lcom/andyron/java2/JavapTest;
+
+  int getNum(int);
+    descriptor: (I)I
+    flags: (0x0000)
+    Code:
+      stack=2, locals=2, args_size=2
+         0: aload_0
+         1: getfield      #19                 // Field num:I
+         4: iload_1
+         5: iadd
+         6: ireturn
+      LineNumberTable:
+        line 32: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       7     0  this   Lcom/andyron/java2/JavapTest;
+            0       7     1     i   I
+
+  protected char showGender();
+    descriptor: ()C
+    flags: (0x0004) ACC_PROTECTED
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: getfield      #23                 // Field gender:C
+         4: ireturn
+      LineNumberTable:
+        line 35: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Lcom/andyron/java2/JavapTest;
+
+  public void showInfo();
+    descriptor: ()V
+    flags: (0x0001) ACC_PUBLIC
+    Code:
+      stack=3, locals=2, args_size=1
+         0: bipush        10
+         2: istore_1
+         3: getstatic     #27                 // Field java/lang/System.out:Ljava/io/PrintStream;
+         6: aload_0
+         7: getfield      #9                  // Field info:Ljava/lang/String;
+        10: iload_1
+        11: invokedynamic #33,  0             // InvokeDynamic #0:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+        16: invokevirtual #37                 // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        19: return
+      LineNumberTable:
+        line 38: 0
+        line 39: 3
+        line 40: 19
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      20     0  this   Lcom/andyron/java2/JavapTest;
+            3      17     1     i   I
+
+  static {};
+    descriptor: ()V
+    flags: (0x0008) ACC_STATIC
+    Code:
+      stack=1, locals=1, args_size=0
+         0: ldc           #43                 // String andyron.com
+         2: astore_0
+         3: return
+      LineNumberTable:
+        line 16: 0
+        line 17: 3
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+}
+SourceFile: "JavapTest.java"
+BootstrapMethods:
+  0: #65 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #71 \u0001\u0001
+InnerClasses:
+  public static final #78= #74 of #76;    // Lookup=class java/lang/invoke/MethodHandles$Lookup of class java/lang/invoke/MethodHandles

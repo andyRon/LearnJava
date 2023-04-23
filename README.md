@@ -10,7 +10,7 @@
 
 [《Java核心技术第10版卷二》](./notes/CoreJava/CoreJava2.md)
 
-[《Java编程的逻辑》笔记⏳](notes/Java编程的逻辑/Java编程的逻辑.md)
+[《Java编程的逻辑》笔记](notes/Java编程的逻辑/Java编程的逻辑.md)
 
 [Java注解和反射](./notes/注解和反射/Java注解和反射.md)
 
@@ -27,3 +27,8 @@
 [MyBatis Plus](./notes/MyBatisPlus/MyBatisPlus.md)
 
 [《深入剖析Tomcat》笔记⏳](notes/HowTomcatWorks/深入剖析Tomcat.md)
+
+
+
+❤️[尚硅谷宋红康JVM全套教程](notes/JVM_shk/JVM_shk.md)
+
