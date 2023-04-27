@@ -18,7 +18,7 @@
 
 [Java多线程](./notes/JavaMultithread/Java多线程.md)
 
-[JVM快速入门](./notes/JVM/JVM快速入门/JVM入门.md)
+[JVM入门](./notes/JVM入门/JVM入门.md)
 
 [《深入理解Java虚拟机》笔记⏳](notes/深入理解Java虚拟机/深入理解Java虚拟机.md)
 
