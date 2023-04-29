@@ -5,6 +5,13 @@ import java.util.Arrays;
 
 /**
  * -XX:+PrintCommandLineFlags
+ * -XX:+UseSerialGC 表明年轻代Serial GC，同时老年代Serial Old GC。
+ * -XX:+UseConcMarkSweepGC 使用CMSGC
+ * -XX:+UseParNewGC
+ *
+ * -XX:+UseParallelGC
+ *
+ * -XX:+UseConcMarkSweepGC
  * @author andyron
  **/
 public class GCUseTest {
