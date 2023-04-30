@@ -15,7 +15,9 @@ Java8 本课程基于
 
 Java11 LTS
 
-
+> JVMDemo  第一部分示列代码
+>
+> JVMDemo2 第二、三部分示列代码
 
 # 一、内存与垃圾回收篇
 
@@ -7985,49 +7987,754 @@ java堆区所占的内存大小
 
 ### 2.1 概述
 
-性能诊断是软件工程师在日常工作中需要经常面对和解决的问题，在用户体验至上的今天，解决好应用的性能问题能带来非常大的收益。
+性能诊断是软件工程师在日常工作中需要经常面对和解决的问题，在==用户体验至==上的今天，解决好应用的性能问题能带来非常大的收益。
 
 Java 作为最流行的编程语言之一，其应用性能诊断一直受到业界广泛关注。可能造成 Java应用出现性能问题的因素非常多，例如线程控制、磁盘读写、数据库访问、网络I/O、垃圾收集等。想要定位这些问题，一款优秀的性能诊断工具必不可少。
 
-体会1：使用数据说明问题，使用知识分析问题，使用工具处理问题。
+体会1：==使用数据说明问题，使用知识分析问题，使用工具处理问题==。
 
-体会2：无监控、不调优！
+体会2：==无监控、不调优==！
 
+命令行工具的都是java编写，源码在jdk根目录`lib/tool.jar`（jdk8）中。
 
+https://hg.openjdk.org/jdk/jdk11/file/1ddf9a99e4ad/src/jdk.jcmd/share/classes/sun/tools
 
 ### 2.2 jps：查看正在运行的Java进程
+
+jps (Java Process Status):
+
+显示指定系统内所有的Hotspot虚拟机进程(查看虚拟机进程信息），可用于查询正在运行的虚拟机进程。
+
+说明：对于本地虛拟机进程来说，**进程的本地虛拟机ID与操作系统的进程ID是一致的，是唯一的。**
+
+`jps [options] [hostid]`
+
+
+
+#### options参数
+
+- `-q`：仅仅显示LVMID (local virtual machine id)，即本地虛拟机唯一id。不显示主类的名称等
+
+- ﻿`-l`：输出应用程序主类的全类名 或 如果进程执行的是jar包，则输出jar完整路径
+
+- ﻿`-m`：输出虛拟机进程启动时传递给主类main()的参数
+
+  ```shell
+  $ jps -m
+  34514
+  34691 ScannerTest andyron
+  34552 RemoteMavenServer36
+  34715 Jps -m
+  ```
+
+  ![](images/image-20230429183146062.png)
+
+- ﻿`-v`：列出虚拟机进程启动时的JVM参数。比如：`-Xms20m -Xmx50m`是启动程序指定的jvm參数。
+
+说明：以上参数可以综合使用。
+
+补充：
+
+如果某 Java 进程关闭了默认开启的UsePerfData參数（即使用参数`-XX:-UsePerfData`），那么jps命令（以及下面介绍的jstat）将无法探知该Java 进程。
+
+
+
+#### hostid参教
+
+`<hostid>:      <hostname>[:<port>]`
+
+RMI注册表中注册的主机名。
+
+如果想要远程监控主机上的 java程序，需要安装 `jstatd`。
+
+对于具有更严格的安全实践的网络场所而言，可能使用一个自定义的策略文件来显示对特定的可信主机或网络的访问，尽管这种技术容易受到IP地址欺诈攻击。
+
+如果安全问题无法使用一个定制的策略文件来处理，那么最安全的操作是不运行jstatd服务器，而是在本地使用jstat和jps工具。
 
 
 
 ### 2.3 jstat：查看JVM统计信息
 
-​	基本情况
+jstat (JVM Statistics Monitoring Tool)：用于监视虛拟机各种运行状态信息的命令行工具。它可以显示本地或者远程虚拟机进程中的类装载、内存、垃圾收集、JIT编译等远行数据。
 
-​	基本语法
+**在没有GUI图形界面，只提供了纯文本控制台环境的服务器上，它将是运行期定位虛拟机性能问题的首选工具。**常用于检测垃圾回收问题以及内存泄漏问题。
 
-​	补充
+官方文档：https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jstat.html
 
-### 2.4 jinfo：实时查看和修改JVM配置参数
+#### 基本语法
+
+`jstat -<option> [-t] [-h<lines>] <vmid> [<interval> [<count>]]`
+
+##### option参数
+
+###### **类装载相关的：**
+
+- ﻿`-class`：最示ClassLoader的相关信息：类的装载、卸载数量、总空间、类装载所消耗的时间等
+
+```shell
+➜ jstat -class 34889
+Loaded  Bytes  Unloaded  Bytes     Time
+   676  1350.1        0     0.0       0.06
+```
 
 
 
-### 2.5 jmap：导出内存映像文件&内存使用情况
+###### **垃圾回收相关的**：
+
+- ﻿`-gc`：显示与GC相关的堆信息。包括Eden区、两个Survivor区、老年代、永久代等的容量、已用空间、GC时间合计等信息。
+- ﻿`-gccapacity`：显示内容与-gC基本相同，但输出主要关注Java堆各个区域
+- 使用到的最大、最小空间。
+- ﻿`-gcutil`：显示内容与-gC基本相同，但输出主要关注已使用空间占总空间的百分比。
+- ﻿`-gccause`：与-gcutil功能一样，但是会额外输出导致最后一次或当前正在发生的GC产生的原因。
+- ﻿`-gcnew`：显示新生代GC状况
+- ﻿`-gcnewcapacity`：显示内容与-gcnew基本相同，输出主要关注使用到的最大、最小空间
+- ﻿`-geold`：显示老年代GC状况
+
+```shell
+➜ jstat -gc 35025
+ S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT
+1024.0 1024.0  0.0    0.0    6144.0   2533.9   16384.0      0.0     4480.0 800.1  384.0   77.0       0    0.000   0      0.000    0.000
+```
+
+-gc显示说明：
+
+```
+新生代相关
+	S0C是第一个幸存者区的大小（字节）
+	S1C是第二个幸存者区的大小（字节）
+	S0U是第一个幸存者区已使用的大小（字节）
+	S1U是第二个幸存者区已使用的大小（字节）
+	EC是Eden空间的大小（字节）
+	EU是Eden空间已使用大小（字节）
+老年代相关
+	OC是老年代的大小（字节）
+	OU是老年代已使用的大小（字节）
+方法区（元空间）相关
+	MC是方法区的大小
+	MU是方法区已使用的大小
+	CCSC是压缩类空间的大小
+	CCSU是压缩类空间已使用的大小
+其他
+	YGC是从应用程序启动到采样时young gc的次数
+	YGCT是指从应用程序启动到采样时young gc消耗时间（秒）
+	FGC是从应用程序启动到采样时full gc的次数
+	FGCT是从应用程序启动到采样时的full gc的消耗时间（秒）
+	GCT是从应用程序启动到采样时gc的总时间
+```
+
+
+
+
+
+
+
+###### **JIT相关的：**
+
+- ﻿`-compiler`：显示JIT编译器编译过的方法、耗时等信息
+
+- ﻿`-printcompilation`：输出已经被JIT编译的方法
+
+```shell
+➜ jstat -compiler 34889
+Compiled Failed Invalid   Time   FailedType FailedMethod
+      58      0       0     0.01          0
+      
+➜ jstat -printcompilation 34889
+Compiled  Size  Type Method
+      58     70    1 java/lang/String indexOf
+```
+
+
+
+
+
+##### interval参数
+
+用于指定输出统计数据的周期，单位为毫秒。即：查询间隔。
+
+每隔疫苗打印一次
+
+```shell
+➜ jstat -class 34889 1000
+```
+
+
+
+##### count参数
+
+用于指定查询的总次数。
+
+```shell
+➜  Downloads jstat -class 34889 1000 10
+```
+
+##### -t参数
+
+可以在输出信息前加上一个Timestamp列，显示程序的运行时间。单位：秒。
+
+```shell
+➜ jstat -class -t 34889
+Timestamp       Loaded  Bytes  Unloaded  Bytes     Time
+          557.4    676  1350.1        0     0.0       0.06
+```
+
+**经验:**
+
+我们可以比较Java 进程的启动时间以及总 GC 时间（GCT 列），或者两次测量的间隔时间以及总GC时间的增量，来得出 GC 时间占运行时间的比例。
+
+如果该比例超过 20%，则说明目前堆的压力较大：如果该比例超过 90%，则说明堆里几乎没有可用空间，随时都可能抛出 OOM 异常。
+
+![](images/image-20230429193039198.png)
+
+##### -h参数
+
+可以在周期性数据输出时，输出多少行数据后输出一个**表头信息**。
+
+```shell
+➜ jstat -class -t -h3 34889 1000 10
+Timestamp       Loaded  Bytes  Unloaded  Bytes     Time
+          676.3    676  1350.1        0     0.0       0.06
+          677.4    676  1350.1        0     0.0       0.06
+          678.4    676  1350.1        0     0.0       0.06
+Timestamp       Loaded  Bytes  Unloaded  Bytes     Time
+          679.4    676  1350.1        0     0.0       0.06
+          680.4    676  1350.1        0     0.0       0.06
+          681.4    676  1350.1        0     0.0       0.06
+Timestamp       Loaded  Bytes  Unloaded  Bytes     Time
+          682.4    676  1350.1        0     0.0       0.06
+          683.4    676  1350.1        0     0.0       0.06
+          684.4    676  1350.1        0     0.0       0.06
+Timestamp       Loaded  Bytes  Unloaded  Bytes     Time
+          685.4    676  1350.1        0     0.0       0.06
+```
+
+
+
+#### 补充
+
+jstat还可以用来判断是否出现内存泄漏。
+
+- 第1步：
+
+在长时间运行的 Java 程序中，我们可以运行jstat命令连续获取多行性能数据，并取这几行数据中 OU列（即己占用的老年代内存）的最小值。
+
+- 第2步：
+
+然后，我们每隔一段较长的时间重复一次上述操作，来获得多组OU最小值。如果这些值呈上涨趋势，则说明该 Java 程序的老年代内存己使用量在不断上涨，这意味着无法回收的对象在不断增加，因此很有可能存在内存泄漏。
+
+### 2.4 jinfo：实时==查看和修改==JVM配置参数
+
+jinfo(Configuration Info for Java)
+
+查看虚拟机配置参数信息，也可用于调整虛拟机的配置参数。
+
+在很多情况下，Java应用程序不会指定所有的==Java虚拟机参数==。而此时，开发人员可能不知道某一个具体的Java虛拟机参数的默认值。在这种情况下，可能需要通过查找文档获取某个参数的默认值。这个查找过程可能是非常艰难的。但有了jinfo工具，开发人员可以很方便地找到Java虛拟机参数的当前值。
+
+#### 基本语法
+
+`jinfo <option> <pid>`
+
+![](images/image-20230430112606791.png)
+
+> 🐞macOS 上的jinfo失效？！
+
+##### 查看
+
+- `jinfo -sysprops 进程id`
+
+可以查看由System.getProperties()取得的参数
+
+- `jinfo -flags 进程id`
+
+查看曾经赋过值的一些参数
+
+- `jinfo -flag 参数名称 进程id`
+
+查看某个java进程的具体参数信息
+
+```shell
+jinfo -flag UseG1GC 2157
+```
+
+
+
+##### 修改（能修改的参数有限）
+
+jinfo不仅可以查看运行时某一个Java虛拟机参数的实际取值，甚至可以在运行时修改部分参数，并使之立即生效。
+
+但是，并非所有参数都支持动态修改。参数只有被标记为`manageable`的flag可以被实时修改。其实，这个修改能力是极其有限的。可以查看被标记为manageable的参数:
+
+```
+java -XX:+PrintFlagsFinal -version | grep manageable
+```
+
+```shell
+➜ java -XX:+PrintFlagsFinal -version | grep manageable
+     intx CMSAbortablePrecleanWaitMillis            = 100                                 {manageable}
+     intx CMSTriggerInterval                        = -1                                  {manageable}
+     intx CMSWaitDuration                           = 2000                                {manageable}
+     bool HeapDumpAfterFullGC                       = false                               {manageable}
+     bool HeapDumpBeforeFullGC                      = false                               {manageable}
+     bool HeapDumpOnOutOfMemoryError                = false                               {manageable}
+    ccstr HeapDumpPath                              =                                     {manageable}
+    uintx MaxHeapFreeRatio                          = 100                                 {manageable}
+    uintx MinHeapFreeRatio                          = 0                                   {manageable}
+     bool PrintClassHistogram                       = false                               {manageable}
+     bool PrintClassHistogramAfterFullGC            = false                               {manageable}
+     bool PrintClassHistogramBeforeFullGC           = false                               {manageable}
+     bool PrintConcurrentLocks                      = false                               {manageable}
+     bool PrintGC                                   = false                               {manageable}
+     bool PrintGCDateStamps                         = false                               {manageable}
+     bool PrintGCDetails                            = false                               {manageable}
+     bool PrintGCID                                 = false                               {manageable}
+     bool PrintGCTimeStamps                         = false                               {manageable}
+openjdk version "1.8.0_352"
+OpenJDK Runtime Environment (Zulu 8.66.0.15-CA-macos-aarch64) (build 1.8.0_352-b08)
+OpenJDK 64-Bit Server VM (Zulu 8.66.0.15-CA-macos-aarch64) (build 25.352-b08, mixed mode)
+```
+
+
+
+- 针对boolean类型
+
+`jinfo -flag [+ | -]参数名称 进程id`
+
+如果使用+号，那就可以让该参数起作用，否则使用-号就让该参数不起作用，具体例子如下：
+
+```shell
+[root@localhost ~]# jinfo -flag PrintGCDetails 2157
+-XX:-PrintGCDetails
+[root@localhost ~]# jinfo -flag +PrintGCDetails 2157  // 修改成功
+[root@localhost ~]# jinfo -flag PrintGCDetails 2157
+-XX:+PrintGCDetails
+```
+
+
+
+- 针对非boolean类型
+
+`jinfo -flag 参数名称=参数值 进程id`
+
+```shell
+[root@localhost ~]# jinfo -flag MaxHeapFreeRatio 2157
+-XX:MaxHeapFreeRatio=70
+[root@localhost ~]# jinfo -flag MaxHeapFreeRatio=90 2157
+[root@localhost ~]# jinfo -flag MaxHeapFreeRatio 2157
+-XX:MaxHeapFreeRatio=90
+```
+
+
+
+#### 拓展
+
+- `java -XX:+PrintFlagsInitial`  查看所有JVM参数启动的初始值
+
+- `java -XX:+PrintFlagsFinal`  查看所有JVM参数的最终值
+
+- `java -参数名称:+PrintCommandLineFlags`  查看那些已经被用户或者JVM设置过的详细的XX参数的名称和值
+
+### 2.5 jmap：导出内存映像文件&内存使用情况等
+
+jmap(JVM Memory map)：作用一方面是获取**==dump文件(堆转储快照文件，二进制文件）==**，它还可以获取目标Java进程的<u>内存相关信息，包括Java堆各区域的使用情况、堆中对象的统计信息、类加载信息等</u>。
+
+开发人员可以在控制台中输入命令“`jmap -help`”查阅jmap工具的具体使用方式和一些标淮选项配置。
+
+官方帮助文档：https://docs.oracle.com/en/java/javase/11/tools/jmap.html
+
+#### 基本语法
+
+```shell
+jmap [option] <pid>
+jmap [option] <executable <core>
+jmap [option] [server_id@]<remote server IP or hostname>
+
+```
+
+option选项：（这些参数可能因为jdk版本和操作系统不同有所不同）
+
+1. **`-dump`**
+
+生成Java堆转储快照：dump文件
+
+特别的：`-dump:live`只保存堆中的存活对象
+
+2. **`-heap`**
+
+输出整个堆空间的详细信息，包括GC的使用、堆配置信息，以及内存的使用信息等
+
+3. **`-histo`**
+
+输出堆中对象的同级信息，包括类、实例数量和合计容量
+
+特别的：-histo:live只统计堆中的存活对象
+
+4. `-permstat`
+
+以ClassLoader为统计口径输出永久代的内存状态信息
+
+仅linux/solaris平台有效
+
+5. `-finalizerinfo`
+
+显示在F-Queue中等待Finalizer线程执行finalize方法的对象
+
+仅linux/solaris平台有效
+
+6. `-F`
+
+当虚拟机进程对-dump选项没有任何响应时，可使用此选项强制执行生成dump文件
+
+7. `-J <flag>`
+
+传递参数给jmap启动的jvm
+
+
+
+#### 使用1：导出内存映像文件
+
+一般来说，使用jmap指令生成dump文件的操作算得上是最常用的jmap命令之一，将堆中所有存活对象导出至一个文件之中。
+
+Heap Dump又叫做堆存储文件，指一个Java进程在某个时间点的内存快照。 Heap Dump在触发内存快照的时候会保存此刻的信,息如下：
+
+- All Objects
+
+Class, fields, primitive values and references
+
+- All Classes
+
+ClassLoader, name, super class,static fields
+
+- Garbage Collection Roots
+
+Objects defined to be reachable by the JVM
+
+- Thread Stacks and Local Variables
+
+The call-stacks of threads at the moment of the snapshot, and per-frame information about local objects
+
+说明：
+
+1. 通常在写Heap Dump文件前会触发一次Fu11 GC，所以heapdump文件里保存的都是Full GC后留下的对象信息。
+
+2. 由于生成dump文件比较耗时，因此大家需要耐心等待，尤其是大内存镜像生成dump文件则需要耗费更长的时间来完成。
+
+##### 手动的方式
+
+`jmap -dump:format=b,file=<filename.hprof> <pid>`
+
+`jmap -dump:live,format=b,file=<filename.hprof> <pid>`
+
+```shell
+➜  Downloads jmap -dump:format=b,file=/Users/andyron/Downloads/1.hprof 38869
+Dumping heap to /Users/andyron/Downloads/1.hprof ...
+Heap dump file created
+➜  Downloads jmap -dump:format=b,file=/Users/andyron/Downloads/2.hprof 38869
+Dumping heap to /Users/andyron/Downloads/2.hprof ...
+Heap dump file created
+➜  Downloads jmap -dump:format=b,file=/Users/andyron/Downloads/3.hprof 38869
+Dumping heap to /Users/andyron/Downloads/3.hprof ...
+Heap dump file created
+➜  Downloads jmap -dump:live,format=b,file=/Users/andyron/Downloads/4.hprof 38869
+Dumping heap to /Users/andyron/Downloads/4.hprof ...
+Heap dump file created
+```
+
+由于jmap将访问堆中的所有对象，为了保证在此过程中不被应用线程干扰，jmap需要借助安全点机制，让所有线程停留在不改变堆中数据的状态。也就是说，由jmap导出的堆快照==必定是安全点位置的==。这可能导致基于该堆快照的分析结果存在偏差。
+
+举个例子，假设在编译生成的机器码中，某些对象的生命周期在两个安全点之间，那么:live选项将无法探知到这些对象。
+
+另外，如果某个线程长时间无法跑到安全点，jmap将一直等下去。与前面讲的jstat则不同，垃圾回收器会主动将jstat所需要的摘要数据保存至固定位置之中，而jstat只需直接读取即可。
+
+##### 自动的方式
+
+当程序发生OOM退出系统时，一些瞬时信息都随着程序的终止而消失，而重现OOM问题往往比较困难或者耗时。此时若能在OOM时，自动导出dump文件就显得非常迫切。
+
+这里介绍一种比较常用的取得堆快照文件的方法，即使用：
+
+- ﻿`-XX:+HeapDumpOnOutofMemoryError`：在程序发生OOM时，导出应用程序的当前堆快照。
+- ﻿`-XX:HeapDumpPath=<filename.hprof>`：可以指定堆快照的保存位置。
+
+比如：
+
+`-Xms60m -Xmx60m -XX:SurvivorRatio=8 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/Users/andyron/Downloads/5.hprof`
+
+> 手动、自动方式应用于不同场景。
+
+#### 使用2：显示堆内存相关信息
+
+- `jmap -heap 进程id`  时间点，执行命令那一刻的堆内存信息。比jstat差一点
+
+- `jmap -histo 进程id` 时间点
+
+
+
+#### 使用3：其他作用
+
+- `jmap -permstat 进程id`  查看系统的ClassLoader信息
+
+- `jmap -finalizerinfo`  查看堆积在finalizer队列中的对象
 
 
 
 ### 2.6 jhat：JDK自带堆分析工具
 
-jhat命令在jdk9及其之后就被移除了，官方建议使用jvisualvm代替jhat，所以该指令只需简单了解一下即可
+jhat (JVM Heap Analysis Tool):
 
-### 2.7 jstack：打印JVM中线程快照
+sun JDK提供的jhat命令与jmap命令搭配使用，用于分析jmap生成的heap dump文件（堆转储快照）。jhat内罝了一个微型的HTTP/HTML服务器， 生成dump文件的分析结果后，用产可以在浏览器中查看分析结果(分析虛拟机转储快照信息）。
+
+使用了jhat命令，就启动了一个http服务，端口是7000，即http://1ocalhost:7000/，就可以在浏览器里分析。
+
+> jhat命令在jdk9及其之后就被移除了，官方建议使用jvisualvm代替jhat，所以该指令只需简单了解一下即可。
+
+![](images/image-20230430132703354.png)
+
+![](images/image-20230430132900591.png)
+
+### 2.7 jstack：打印JVM中==线程==快照
+
+每一个线程都有一个栈，所以叫jstack。
+
+jstack(JVM stack Trace)：用于生成虚拟机指定进程当前时刻的线程快照(虚拟机堆栈跟踪)。==线程快照==就是==当前虛拟机内指定进程的每一条线程正在执行的方法堆的集合==。
+
+生成线程快照的作用：可用于定位线程出现长时间停顿的原因，如<u>线程间死锁、死循环、请求外部资源导致的长时问等待等问题</u>。这些都是导致线程长时间停顿的常见原因。当线程出现停顿时，就可以用jstack显示各 个线程调用的堆栈情况。
+
+官方帮助文档：https://docs.oracle.com/en/java/javase/11/tools/jstack.html
+
+在thread dump中，要留意下面几种状态
+
+- ﻿**死锁，Deadlock(重点关注）**
+- ﻿**等待资源，Waiting on condition（重点关注）**
+- ﻿**等待获取监视器，waiting on monitor entry（重点关注）**
+- ﻿**阻塞，Blocked(重点关注）**
+- ﻿执行中，Runnable
+- ﻿暂停，Suspended
+
+#### 基本语法
+
+`jstack [option] <pid>`
+
+- option参数：-F
+
+当正常输出的请求不被响应时，强制输出线程堆栈
+
+- option参数：-l
+
+除堆栈外，显示关于锁的附加信息
+
+- option参数：-m
+
+如果调用本地方法的话，可以显示C/C++的堆栈
+
+- option参数：-h
+
+帮助操作
+
+```shell
+➜  jstack 40100
+2023-04-30 14:26:36
+Full thread dump OpenJDK 64-Bit Server VM (25.352-b08 mixed mode):
+
+"Attach Listener" #14 daemon prio=9 os_prio=31 tid=0x0000000117008800 nid=0x5207 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"DestroyJavaVM" #13 prio=5 os_prio=31 tid=0x000000011c873000 nid=0x1d03 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Thread-1" #12 prio=5 os_prio=31 tid=0x000000011406a800 nid=0x7a03 waiting for monitor entry [0x00000001723f6000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+	at com.andyron.jstack.TreadDeadLock$2.run(TreadDeadLock.java:53)
+	- waiting to lock <0x00000006c00176d8> (a java.lang.StringBuilder)
+	- locked <0x00000006c0000950> (a java.lang.StringBuilder)
+	at java.lang.Thread.run(Thread.java:750)
+
+"Thread-0" #11 prio=5 os_prio=31 tid=0x000000011c872000 nid=0x7c03 waiting for monitor entry [0x00000001721ea000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+	at com.andyron.jstack.TreadDeadLock$1.run(TreadDeadLock.java:29)
+	- waiting to lock <0x00000006c0000950> (a java.lang.StringBuilder)
+	- locked <0x00000006c00176d8> (a java.lang.StringBuilder)
+
+"Service Thread" #10 daemon prio=9 os_prio=31 tid=0x0000000114068800 nid=0x7f03 runnable [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"C1 CompilerThread3" #9 daemon prio=9 os_prio=31 tid=0x0000000114050000 nid=0x4803 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"C2 CompilerThread2" #8 daemon prio=9 os_prio=31 tid=0x000000011404f000 nid=0x4903 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"C2 CompilerThread1" #7 daemon prio=9 os_prio=31 tid=0x0000000116808800 nid=0x4a03 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"C2 CompilerThread0" #6 daemon prio=9 os_prio=31 tid=0x000000011400b800 nid=0x4c03 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Monitor Ctrl-Break" #5 daemon prio=5 os_prio=31 tid=0x0000000114009000 nid=0x4e03 runnable [0x0000000171396000]
+   java.lang.Thread.State: RUNNABLE
+	at java.net.SocketInputStream.socketRead0(Native Method)
+	at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	at java.net.SocketInputStream.read(SocketInputStream.java:171)
+	at java.net.SocketInputStream.read(SocketInputStream.java:141)
+	at sun.nio.cs.StreamDecoder.readBytes(StreamDecoder.java:284)
+	at sun.nio.cs.StreamDecoder.implRead(StreamDecoder.java:326)
+	at sun.nio.cs.StreamDecoder.read(StreamDecoder.java:178)
+	- locked <0x00000006c0016b80> (a java.io.InputStreamReader)
+	at java.io.InputStreamReader.read(InputStreamReader.java:184)
+	at java.io.BufferedReader.fill(BufferedReader.java:161)
+	at java.io.BufferedReader.readLine(BufferedReader.java:324)
+	- locked <0x00000006c0016b80> (a java.io.InputStreamReader)
+	at java.io.BufferedReader.readLine(BufferedReader.java:389)
+	at com.intellij.rt.execution.application.AppMainV2$1.run(AppMainV2.java:56)
+
+"Signal Dispatcher" #4 daemon prio=9 os_prio=31 tid=0x000000011d862000 nid=0x4503 runnable [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Finalizer" #3 daemon prio=8 os_prio=31 tid=0x000000011c827000 nid=0x3303 in Object.wait() [0x0000000170e66000]
+   java.lang.Thread.State: WAITING (on object monitor)
+	at java.lang.Object.wait(Native Method)
+	- waiting on <0x00000006c001f838> (a java.lang.ref.ReferenceQueue$Lock)
+	at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:144)
+	- locked <0x00000006c001f838> (a java.lang.ref.ReferenceQueue$Lock)
+	at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:165)
+	at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:188)
+
+"Reference Handler" #2 daemon prio=10 os_prio=31 tid=0x000000011c824800 nid=0x3803 in Object.wait() [0x0000000170c5a000]
+   java.lang.Thread.State: WAITING (on object monitor)
+	at java.lang.Object.wait(Native Method)
+	- waiting on <0x00000006c0008740> (a java.lang.ref.Reference$Lock)
+	at java.lang.Object.wait(Object.java:502)
+	at java.lang.ref.Reference.tryHandlePending(Reference.java:191)
+	- locked <0x00000006c0008740> (a java.lang.ref.Reference$Lock)
+	at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:153)
+
+"VM Thread" os_prio=31 tid=0x000000011c81d800 nid=0x3a03 runnable
+
+"ParGC Thread#0" os_prio=31 tid=0x000000011d816800 nid=0x2403 runnable
+
+"ParGC Thread#1" os_prio=31 tid=0x000000011d817800 nid=0x2a03 runnable
+
+"ParGC Thread#2" os_prio=31 tid=0x000000011d818000 nid=0x2b03 runnable
+
+"ParGC Thread#3" os_prio=31 tid=0x000000011d819000 nid=0x2c03 runnable
+
+"ParGC Thread#4" os_prio=31 tid=0x000000011d819800 nid=0x2e03 runnable
+
+"ParGC Thread#5" os_prio=31 tid=0x000000011d81a800 nid=0x3003 runnable
+
+"ParGC Thread#6" os_prio=31 tid=0x000000011d81b000 nid=0x3c03 runnable
+
+"ParGC Thread#7" os_prio=31 tid=0x000000011d81c000 nid=0x3b03 runnable
+
+"VM Periodic Task Thread" os_prio=31 tid=0x0000000114069800 nid=0x5603 waiting on condition
+
+JNI global references: 15
+
+
+Found one Java-level deadlock:
+=============================
+"Thread-1":
+  waiting to lock monitor 0x000000011d84ff60 (object 0x00000006c00176d8, a java.lang.StringBuilder),
+  which is held by "Thread-0"
+"Thread-0":
+  waiting to lock monitor 0x000000011d84eac0 (object 0x00000006c0000950, a java.lang.StringBuilder),
+  which is held by "Thread-1"
+
+Java stack information for the threads listed above:
+===================================================
+"Thread-1":
+	at com.andyron.jstack.TreadDeadLock$2.run(TreadDeadLock.java:53)
+	- waiting to lock <0x00000006c00176d8> (a java.lang.StringBuilder)
+	- locked <0x00000006c0000950> (a java.lang.StringBuilder)
+	at java.lang.Thread.run(Thread.java:750)
+"Thread-0":
+	at com.andyron.jstack.TreadDeadLock$1.run(TreadDeadLock.java:29)
+	- waiting to lock <0x00000006c0000950> (a java.lang.StringBuilder)
+	- locked <0x00000006c00176d8> (a java.lang.StringBuilder)
+
+Found 1 deadlock.
+```
 
 
 
 ### 2.8 jcmd：多功能命令行
 
+在JDK 1.7以后，新增了一个命令行工具jcmd。
 
+它是一个多功能的工具，可以用来实现前面除了jstat之外所有命令的功能。比如：用定来导出堆、内存使用、查看Java进程、导出线程信息、执行GC、JVM运行时间等。
+
+官方帮助文档：https://docs.oracle.com/en/java/javase/11/tools/jcmd.html
+
+jcmd拥有 jmap的大部分功能，并且在Oracle的官方网站上也推荐使用jcmd命令代jmap命令。
+
+
+
+#### 基本语法
+
+##### `jcmd -l`
+
+列出所有的JVM进程
+
+##### `jcmd 进程号 help`
+
+针对指定的进程，列出支持的所有具体命令
+
+##### `jcmd 进程号 具体命令`
+
+显示指定进程的指令命令的数据
+
+首先通过jcmd 进程号 help 得出以下命令列表：
+
+```shell
+➜  jcmd 40100 help
+40100:
+The following commands are available:
+VM.unlock_commercial_features
+JFR.configure
+JFR.stop
+JFR.start
+JFR.dump
+JFR.check
+VM.native_memory
+ManagementAgent.stop
+ManagementAgent.start_local
+ManagementAgent.start
+VM.classloader_stats
+GC.rotate_log
+Thread.print
+GC.class_stats
+GC.class_histogram
+GC.heap_dump
+GC.finalizer_info
+GC.heap_info
+GC.run_finalization
+GC.run
+VM.uptime
+VM.dynlibs
+VM.flags
+VM.system_properties
+VM.command_line
+VM.version
+help
+```
+
+ 
+
+根据以上命令来替换之前的那些操作：
+
+1. Thread.print 可以替换 jstack指令
+2. GC.class_histogram 可以替换 jmap中的-histo操作
+3. GC.heap_dump 可以替换 jmap中的-dump操作
+4. GC.run 可以查看GC的执行情况
+5. VM.uptime 可以查看程序的总执行时间，可以替换jstat指令中的-t操作
+6. VM.system_properties 可以替换 jinfo -sysprops 进程id 
+7. VM.flags 可以获取JVM的配置参数信息 
 
 ### 2.9 jstatd：远程主机信息收集
+
+之前的指令只涉及到监控本机的Java应用程序，而在这些工具中，一些监控工具也支持对远程计算机的监控（如jps、jstat）。为了启用远程监控，则需要配合使用jstatd工具。
+
+命令jstatd是一个RMI服务端程序，它的作用相当于代理服务器，建立本地计算机与远程监控工具的通信。jstatd服务器将本机的Java应用程序信息传递到远程计算机。
+
+![](images/image-20230430142419507.png)
 
 
 
