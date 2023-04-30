@@ -27,8 +27,8 @@ public class HeapSpaceInitial {
         System.out.println("-Xms: " + initalMemory + "M");
         System.out.println("-Xmx: " + maxMemory + "M");
 
-//        System.out.println("系统内存大小：" + initalMemory * 64.0 / 1024 + "G");
-//        System.out.println("系统内存大小：" + maxMemory * 4.0 / 1024 + "G");
+        System.out.println("系统内存大小：" + initalMemory * 64.0 / 1024 + "G");
+        System.out.println("系统内存大小：" + maxMemory * 4.0 / 1024 + "G");
 
         try {
             Thread.sleep(100000);
