@@ -9,8 +9,6 @@
 
 《性能监控与调优篇》三个篇章 p302-p381
 
-[JVM从入门到精通 · 语雀 ](https://www.yuque.com/u21195183/jvm)
-
 Java8 本课程基于
 
 Java11 LTS
@@ -8744,57 +8742,721 @@ P320
 
 ### 3.1 工具概述
 
+使用上一章命令行工具或组合能帮您获取目标Java应用性能相关的基础信息，但它们存在下列局限：
 
+1. ﻿﻿无法获取==方法级別==的分析数据，如方法问的调用关系、各方法的调用次数和调用时间等（这对定位应用性能瓶颈至关重要）。
+2. ﻿﻿要求用户登录到目标 Java 应用所在的宿主机上，使用起来不是很方便。
+3. ﻿﻿﻿分析数据通过终端输出，结果展示不够直观。
+
+为此，JDK提供了一些内存泄漏的分析工具，如jconsole， jvisualvm等，用于辅助开发人员定位问题，但是这些工具很多时候并不足以满足快速定位的需求。所以这里我们介绍的工具相对多一些、丰富一些。
+
+**图形化综合诊断工具**:
+
+#### ﻿JDK自带的工具
+
+- ﻿jconsole:JDK自带的可视化监控工具。查看Java应用程序的运行概况、监控堆信息、永久区（或元空间〕使用情況、类加载情況等。（简单，入门级别）
+  位置：jdk/bin/jconsole.exe
+- ﻿﻿Visual VM:visual VM是一个工具，它提供了一个可视界面，用于查看Java虚拟机上运行的基于Java技术的应用程序的详细信息。(jvisualvm是jdk自带的，Visual VM都是另外下的独立的客户端工具)
+
+​	位罝：jdk/bin/jvisualvm.exe
+
+- ﻿﻿JMC:Java Mission Control，内置Java Flight Recorder（飞行记录仪）。能够以极低的性能开销收集Java虚拟机的性能数据。
+
+#### ﻿第三方工具
+
+- ﻿MAT: MAT(Memory Analyzer TooL)是基于EClipse的内存分析工具，是一个快速、功能丰富的Java heap分析工具，它可以帮助我们查找内存泄漏和减少内存消耗。（Eclipse的插件形式，也可以独立下载使用）
+
+- JProfiler：商业软件，需要付费。功能强大。【与Visual VM类似】
+- ﻿Arthas:Alibaba开源的Java诊断工具。深受开发者喜爱。
+- ﻿Btrace:Java运行时追踪工具。可以在不停机的情况下，跟踪指定的方法调用、构造函数调用和系统内面等信息。https://github.com/btraceio/btrace
 
 ### 3.2 JConsole
 
+从Java5开始，在JDK中自带的java监控和管理控制台。
+
+用于对JVM中内存、线程和类等的监控，是一个基于JMX(java manegement extensions）的GUI性能
+监控工具。
+
+官方教程： https://docs.oracle.com/en/java/javase/11/tools/jconsole.html
 
 
-### 3.3 Visual VM
+
+#### 启动
+
+在jdk安装目录中找到jconsole.exe，双击该可执行文件就可以
+打开DOS窗口，直接输入jconsole就可以了
+
+#### 三种连接方式
+
+1. Local
+
+使用JConsole连接一个正在本地系统运行的JVM，并且执行程序的和运行JConsole的需要是同一个用户。JConsole使用文件系统的授权通过RMI连接起链接到平台的MBean的服务器上。这种从本地连接的监控能力只有Sun的JDK具有。
+
+2. Remote
+
+使用下面的URL通过RMI连接器连接到一个JMX代理，service:jmx:rmi:///jndi/rmi://hostName:portNum/jmxrmi。JConsole为建立连接，需要在环境变量中设置mx.remote.credentials来指定用户名和密码，从而进行授权。
+
+3. Advanced
+
+使用一个特殊的URL连接JMX代理。一般情况使用自己定制的连接器而不是RMI提供的连接器来连接JMX代理，或者是一个使用JDK1.4的实现了JMX和JMX Rmote的应用
+
+
+
+也可以用来检测死锁
+
+![](images/image-20230430161728147.png)
+
+### 3.3 Visual VM❤️
 
 jvisualvm和visual vm的区别：
 
 visual vm是单独下载的工具，然后将visual vm结合到jdk中就变成了jvisualvm，仅仅是添加了一个j而已，这个j应该是java的用处，所以说jvisualvm其实就是visual vm
 
+#### 基本概述
+
+- ﻿Visual VM是一个功能强大的多合一故障诊断和性能监控的可视化工具。
+- ﻿它集成了多个JDK命令行工具，使用Visual VM可用于显示虚拟机进程及进程的配置和环境信息(jps,jinfo)p监视应用程序的CPU、GC、堆、万法区及线程的信恩(jstat、jstack)等，甚至代替JConsole。
+
+- ﻿在JDK 6 Update 7以后，Visual VM便作为JDK的一部分发布(VisualvM 在JDK/bin目录下），即：它完全免费。
+- ﻿此外， Visual VM也可以作为独立的软件安装：https://visualvm.github.io/index.html
+
+#### 插件的安装
+
+- Visual VM本身自己的插件
+
+![](images/image-20230430162857053.png)
+
+- IDEA中Visual VM的插件
+
+![](images/image-20230430162920349.png)
+
+#### 连接方式
+
+- 本地连接
+  监控本地Java进程的CPU、类、线程等
+
+- 远程连接
+
+  1-确定远程服务器的ip地址
+  2-添加JMX（通过JMX技术具体监控远程服务器哪个Java进程）
+  3-修改bin/catalina.sh文件，连接远程的tomcat
+  4-在…/conf中添加jmxremote.access和jmxremote.password文件
+  5-将服务器地址改成公网ip地址
+  6-设置阿里云安全策略和防火墙策略
+  7-启动tomcat，查看tomcat启动日志和端口监听
+  8-JMX中输入端口号、用户名、密码登录    
 
 
-### 3.4 Eclipse MAT
+
+#### 主要功能
+
+- 生成/读取堆内存快照
+
+![](images/image-20230430164542126.png)
+
+与另一个dump文件比较
+
+![](images/image-20230430165442189.png)
 
 
 
-### 补充1：再谈内存泄露
+- 查看JVM参数和系统属性
+
+- 查看运行中的虚拟机进程
+
+- 生成/读取线程快照
+
+- 程序资源的实时监控
+
+- 其他功能
+      JMX代理连接
+      远程环境监控
+      CPU分析和内存分析
+
+> park 驻留
+
+- 抽样器
+
+![](images/iShot_2023-04-30_17.03.20.png)
+
+🔖p326 visual vm的使用过程
+
+### 3.4 Eclipse MAT❤️
+
+主要为了解决==内存泄漏==
+
+#### 基本概述
+
+MAT(Memory Analyzer Tool)工具是一款功能强大的Java堆内存分析器。可以用于查找内存泄漏以及查看内存消耗情況。
+
+MAT是基于Eclipse开发的，不仅可以单独使用，还可以作为插件的形式嵌入在Eclipse中使用。是一款免费的性能分析工具，使用起来非常方便。大家可以在https://www.eclipse.org/mat/downloads.php
+
+#### 获取堆dump文件
+
+##### dump文件内存
+
+MAT可以分析heap dump文件。在进行内存分析时，只要获得了反映当前设备内存映像的hprof文件，通过MAT打开就可以直观地看到当前的内存信息。
+
+一般说来，这些内存信息包含：
+
+- ﻿所有的对象信息，包括对象实例、成员变量、存储于栈中的基本类型值和存储于堆中的其他对象的引用值。
+- ﻿所有的类信息，包括classloader、类名称、父类、静态变量等
+- ﻿GCRoot到所有的这些对象的引用路径
+- ﻿线程信息，包括线程的调用栈及此线程的线程局部变量 (TLS)
+
+##### 两点说明
+
+说明1：缺点：
+
+MAT不是一个万能工具，它并不能处理所有类型的堆存储文件。但是比较主流的厂家和格式，例如sun，HP，SAP 所采用的 HPROF 二进制堆存储文件，以及IBM 的 PHD 堆存储文件等都能被很好的解析。
+
+说明2：
+
+最吸引人的还是能够快速为开发人员生成==内存泄漏报表==，方便定位问题和分析问题。虽然MAT有如此强大的功能，但是内存分析也没有简单到一键完成的程度，很多内存问题还是需要我们从MAT展现给我们的信息当中通过经验和直觉来判断才能发现。
+
+
+
+##### 获取dump文件
+
+方法一：通过前一章介绍的 jmap工具生成，可以生成任意一个java进程的dump文件；
+
+方法二：通过配置JVM参数生成。
+
+- ﻿选项“-xx:tHeapDumpOnoutOfMemoryError"或“-xx:tHeapDumpBeforeFu11GC"
+- ﻿选项"-xx:HeappumpPath"所代表的含义就是当程序出 现OutofMemory时，将会在相应的目录下生成一份dump文神。如果不指定选项“xx：HeapDumpPath”则在当前目录下生成dump文件。
+
+对比：考虑到生产环境中几乎不可能在线对其进行分析，大都是采用离线分析，因此使用==jmap+MAT工具==是最常见的组合。
+
+方法三：使用VisualVM可以导出堆dump文件
+
+方法四：
+
+使用MAT既可以打开一个已有的堆快照，也可以通过MAT==直接从活动Java程序中导出堆快照==。
+
+该功能将借助jps列出当前正在运行的Java 进程，以供选择并获取快照。
+
+
+
+🔖p328-p339
+
+#### 分析堆dump文件
+
+##### histogram
+
+​    展示了各个类的实例数目以及这些实例的Shallow heap或者Retained heap的总和
+
+##### thread overview
+
+​    查看系统中的Java线程
+​    查看局部变量的信息
+
+##### 获得对象互相引用的关系
+
+​    with outgoing references
+​    with incoming references
+
+##### 浅堆与深堆
+
+- shallow heap
+
+浅堆(Shallow Heap)是指一个对象所消耗的内存。在32位系统中，一个对象引用会占据4个字节，一个int类型会占据4个字节，long型变量会占据8个字节，每个对象头需要占用8个字节。根据堆快照格式不同，对象的大小可能会向8字节进行对齐。
+
+以String 为例：2个int值共占8字节，对象引用占用4宇节，对象头8字节，合计20字节，向8字节对齐，故占24字节。(jdk7中）
+
+![](images/image-20230430175217927.png)
+
+这24字节为string对象的浅堆大小。它与String的value实际取值无关，无论字符串长度如何，浅堆大小始终是24字节。
+
+- retained heap
+
+==保留集(Retained Set):==
+
+对象A的保留集指当对象A被垃圾回收后，可以被释放的所有的对象集合(包括对象A本身)，即对象A的保留集可以被认为是==只能通过==对象A被直接或问接访问到的所有对象的集合。通俗地说，就是指仅被对象A所持有的对象的集合。
+
+==深堆(Retained Heap)：==
+
+深堆是指对象的保留集中所有的对象的浅堆大小之和。
+
+注意：浅堆指对象本身占用的内存，不包括其内部引用对象的大小。一个对象的深堆指只能通过该对象
+
+访问到的(直接或间接)所有对象的浅堆之和，即对象被回收后，可以释放的真实空间。
+
+- 补充：对象实际大小
+
+另外一个常用的概念是对象的实际大小。这里，对象的实际大小定义为一个对象==所能触及的==所有对象的浅堆大小之和，也就是通常意义上我们说的对象大小。与深堆相比，似乎这个在日常开发中更为直观和被人按受，但==实际上，这个概念和垃圾回收无关==。
+
+下图显示了一个简单的对象引用关系图，对象A引用了C和D，对象B引用了C和E。那么对象A的浅堆大小只是A本身，不含C和D，而A的实际大小为A、C、D三者之和。而A的深堆大小为A与D之和，由于对象C还可以通过对象B访问到，因此不在对象A的深堆范围内。
+
+![image-20230430175616393](images/image-20230430175616393.png)
+
+
+
+- 练习
+
+看图理解Retained Size
+
+  ![](images/image-20230430175916605.png)  
+
+上图中，GC Roots 直接引用了A和B两个对象。
+
+对象的Retained Size=A对象的Shal1ow Size
+
+﻿对象的Retained Size=B对象的Shallow Size + C对象的Shallow Size
+
+这里不包括D对象，因为D对象被GC Roots直接引用。
+
+如果GC Roots不引用D对象呢？
+
+
+
+- 案例分析：StudentTrace
+
+🔖p332
+
+
+
+##### 支配树🔖
+
+支配树 (Dominator Tree)，支配树的概念源自图论。
+
+MAT提供了一个称为支配树 (Dominator Tree）的对象图。支配树体现了对象实例间的支配关系。在对象引用图中，所有指向对象B的路径都经过对象A，则认为==对象A支配对象B==。如果对象A是离对象B最近的一个支配对象，则认为对象A为对象B的==直接支配者==。支配树是基于对象间的引用图所建立的，它有以下基本性质：
+
+- ﻿对象A的子树《所有被对象A支配的对象集合）表示对象A的保留集 (retained set），即深堆。
+- ﻿•如果对象A支配对象B，那么对象A的直接支配者也支配对象B。
+- ﻿支配树的边与对象引用图的边不直接对应。
+
+如下图所示：左图表示对象引用图，右图表示左图所对应的支配树。对象A和B由根对象直接支配，由于在到对象C的路径中，可以经过A，也可以经过B，因此对象C的直接支配者也是根对象。对象F与对象D相互引用，因为到对象F的所有路径必然经过对象D，因此，对象D是对象F的直接支配者。而到对象D的所有路径中，必然经过对象C，即使是从对象F到对象口的引用，从根节点出发，也是经过对象C的，所以，对象D的直接支配者为对象C。
+
+![](images/image-20230430180827710.png)
+
+同理，对象E支配对象G。到达对象H的可以通过对象D，也可以通过对象E，因此对象口和E都不能支配对象H，而经过对象C既可以到达D世可以到达E，因此对象C为对象H的直接支配者。
+
+![](images/image-20230430181059351.png)
+
+#### 案例：Tomcat堆溢出分析🔖
+
+##### 说明
+
+Tomcat 是最常用的Java servlet容器之一，同时也可以当做单独的web服务器使用。Tomcat本身使用用Java实现，并运行于Java虚拟机之上。在大规模请求时，Tomcat有可能会因为无法承受压力而发生内存溢出错误。这里根据一个被压垮的Tomcat的堆快照文件，来分析Tomcat在朋溃时的内部情況。
+
+##### 分析过程
+
+![](images/image-20230430181506749.png)
+
+![](images/image-20230430181537231.png)
+
+![](images/image-20230430181612198.png)
+
+![](images/image-20230430181658539.png)
+
+![](images/image-20230430181723290.png)
+
+![](images/image-20230430181829334.png)
+
+![](images/image-20230430181848587.png)
+
+![](images/image-20230430181928478.png)
+
+![](images/image-20230430182047206.png)
+
+
+
+### 补充1：再谈内存泄露🔖
+
+#### 内存泄露的理解与分析
+
+<u>**何为内存泄漏 (memory leak)**</u>
+
+![](images/image-20230430182706562.png)
+
+可达性分析算法来判断对象是否是不再使用的对象，本质都是判断一个对象是否还被引用。那么对于这种情况下，由于代码的实现不同就会出现很多种内存泄漏问题(让JVM误以为此对象还在引用中，无，法回收，造成内存泄漏）。
+
+> 是否还被使用？ 
+>
+> 是否还被需要？
+>
+> 是、否 -> 泄漏， 
+
+**内存泄漏(memory leak ）的理解**
+
+严格来说，只有对象不会再被程序用到了，但是GC又不能回收他们的情況，才叫内存泄漏。
+
+但实际情况很多时候一些不太好的实践（或疏忽〉会导致对象的生命周期变得很长甚至导致OOM，也可以叫作==宽泛意义上的“内存泄漏”==。
+
+![](images/image-20230430183202700.png)
+
+对象X 引用对象Y，X的生命周期比 Y 的生命周期长；
+
+那么当Y生命周期结東的时候，x依然引用着V，这时候，垃圾回收期是不会回收对象丫的；
+
+如果对象X还引用着生命周期比较短的A、B、C，对象A叉引用着对象日、b、c，这样就可能造成大量无用的对象不能被回收，进而占据了内存资源，造成内存泄漏，直到内存溢出。
+
+
+
+**内存泄漏与内存溢出的关系：**
+
+1．内存泄漏(memory leak )
+
+申请了内存用完了不释放，比如一共有 1024M 的内存，分配了512M 的内存一直不回收，那么可以用的内存只有 512M 了，仿佛泄露掉了一部分：通俗一点讲的话，内存泄漏就是【占着茅坑不拉shi】【不操作也不使用】。
+
+2．内存溢出 (out of memory)
+
+申请内存时，没有足够的内存可以使用；
+
+通俗一点儿讲，一个厕所就三个坑，有两个站着茅坑不走的（内存泄漏），剩下最后一个坑，厕所表示接待压力很大，这时候一下子来了两个人，坑位（内存）就不够了，内存泄漏变成内存溢出了。
+
+可见，内存泄漏和内存溢出的关系：内存泄漏的增多，最终会导致内存溢出。
+
+
+
+**泄漏的分类**
+
+经常发生：发生内存泄露的代码会被多次执行，每次执行，泄露一块内存；
+
+偶然发生：在某些特定情况下才会发生；
+
+一次性：发生内存泄露的方法只会执行一次；
+
+隐式泄漏：一直占着内存不释放，直到执行结束：严格的说这个不算内存泄漏，因为最终释放掉了，但是如果执行时间特别长，也可能会导致内存耗尽。
+
+
+
+
+
+#### Java中内存泄露的8种情况
+
+##### 1-静态集合类
+
+##### 2-单例模式
+
+##### 3-内部类持有外部类
+
+##### 4-各种连接，如数据库连接、网络连接和IO连接等
+
+##### 5-变量不合理的作用域
+
+##### 6-改变哈希值
+
+##### 7-缓存泄露
+
+##### 8-监听器和回调
+
+
+
+#### 内存泄露案例分析
+
+案例代码
+分析
+解决办法
+
+
 
 
 
 ### 补充2：支持使用OQL语言查询对象信息
 
+MAT支持一种类似于SQL的查询语言OQL (Object Query Language）。 OQL使用类SQL语法，可以在堆中进行对象的查找和筛选。
+
+SELECT子句
+
+![](images/image-20230430184659455.png)
+
+FROM子句
+
+![](images/image-20230430184721627.png)
+
+WHERE子句
+
+![](images/image-20230430184800641.png)
+
+内置对象与方法
+
+![](images/image-20230430184905139.png)
+
+
+
+**例子：** 
+
+1. select  * from  java.util.ArrayList（列出所有的ArrayList对象信息） 
+2. select  v.elementData from  java.util.ArrayList v（注意：elementData代表ArrayList中的数组，结果最终以数组形式将结果呈现出来） 
+3. select  objects  v.elementData from  java.util.ArrayList v（注意：elementData代表ArrayList中的数组，objects代表对象类型，所以最终以对象形式将结果呈现出来，同时展示出来的还有浅堆、深堆） 
+4. select  as  retained  set  * from  com.atguigu.mat.Student（得到对象的保留级） 
+5. select  * from  0x6cd57c828（0x6cd57c828是Student类的地址值） 
+6. select  * from  char[] s where  s.@length > 10（char型数组长度大于10的数组） 
+7. select  * from  java.lang.String s where  s.value != null（字符串值不为空的字符串信息） 
+
+1. select toString (f.path.value) from java.io.File f（列出文件的路径值） 
+2. select  v.elementData.@length from  java.util.ArrayList v（列出Arraylist对象中ArrayList中的数组长度） 
+
+
+
+
+
 
 
 ### 3.5 JProfiler
+
+#### 基本概述
+
+在运行Java餘时 候有时候想测试运行时占用内存情况，这时候就需要使用测试工具查看了。在eclipse里面有 Eclipse Memory Analvzer tool（MAT)插件可以测试，而在IDEA中也有这么一个插件，就是JProfiler。
+
+JProfiler 是由 ej-technologies 公司开发的一款 Java应用性能诊断工具。功能强大，但是收费。
+
+官网下载地址：https://www.ej-technologies.com/products/jprofiler/overview.html
+
+
+特点
+  主要功能
+    1-方法调用
+      对方法调用的分析可以帮助您了解应用程序正在做什么，并找到提高其性能的方法
+    2-内存分配
+      通过分析堆上对象、引用链和垃圾收集能帮您修复内存泄露问题，优化内存使用
+    3-线程和锁
+      JProfiler提供多种针对线程和锁的分析视图助您发现多线程问题
+    4-高级子系统
+      许多性能问题都发生在更高的语义级别上。例如，对于JDBC调用，您可能希望找出执行最慢的SQL语句。JProfiler支持对这些子系统进行集成分析
+
+#### 安装与配置
+
+  下载与安装
+  JProfiler中配置IDEA
+  IDEA集成JProfiler
+
+#### 具体使用
+
+- 数据采集方式
+      instrumentation重构模式
+      Sampling抽样模式
+
+
+
+- 遥感监测 Telemetries
+
+![](images/image-20230430185855918.png)
+
+- 内存视图 Live Memory
+
+![](images/image-20230430185925409.png)
+
+- 堆遍历 heap walker
+
+
+
+- cpu视图 cpu views
+
+![](images/image-20230430190005085.png)
+
+- 线程视图 threads
+
+![](images/image-20230430190031592.png)
+
+- 监视器&锁 Monitors&locks
+
+#### 案例分析
+
+案例1
+
+
+
+案例2
+
+
 
 
 
 ### 3.6 Arthas
 
+阿尔萨斯
+
+#### 基本概述
+
+背景
+
+Visual VM和JProfiler这两款工具在业界知名度也比较高，他们的优点是可以图形界面上看到各维度的性能数据，使用者根据这些数据进行综合分析，然后判断哪里出现了性能问题。
+
+但是这两款工具也有个缺点，**<u>都必须在服务端项目进程中配置相关的监控参数。然后工具通过远程连按到项目进程，获取相关的数据</u>**。这样就会带来一些不便，比如线上环境的网络是隔离的，本地的监控工具根本连不上线上环境。并且类似于Jprofiler这样的商业工具，是需要付费的。
+
+那么有没有一款工具不需要远程连接，也不需要配置监控参数，同时也提供了丰富的性能监控数据呢?
+
+今天跟大家介绍一款阿里巴巴开源的性能分析神器Arthas（阿尔萨斯）  
+
+
+
+#### 概述
+
+Arthas（阿尔萨斯）是Alibaba开源的Java诊断工具，深受开发者喜爱。在线排查问题，无需重启；动态跟踪Java代码；实时监控JVM状态。
+
+Arthas 支持JDK 6+，支持Linux/Mac/Windows，采用命令行交互模式来同时提供丰富的 Tab 自动补全功能，进一步方便进行问题的定位和诊断。
+
+当你遇到以下类似问题而束手无策时，Arthas可以帮助你解决：
+
+- ﻿这个类从哪个jar 包加载的？为什么会报各种类相关的 Exception?
+- ﻿我改的代码为什么没有执行到？难道是我没commit？分支搞错了？
+- ﻿遇到问题无法在线上debug，难道只能通过加日志再重新发布吗？
+- ﻿线上遇到某个用户的数据处理有问题，但线上同样无法 debug，线下无法重现！
+- ﻿是否有一个全局视角来杳看系统的运行状况？
+- ﻿有什么办決可以监控到JVM的实时运行状杰？
+- ﻿怎么快速定位应用的热点，生成火焰图？
+
+
+
+#### 基于哪些工具开发而来
+
+- ﻿﻿greys-anatomy： Arthas代码基于Greys二次开发而来，非常感谢Greys之前所有的工作，以及Greys原作者对Arthas提出的意见和建议！
+- ﻿﻿termd： Arthas的命令行实现基于termd开发，是一款优秀的命令行程序开发框架，感谢termd提供了优秀的框架。
+- ﻿crash：Arthas的文本渲染功能基于crash中的文本渲染功能开发，可以从这里看到源码，感谢crash在这方面所做的优秀工作。
+- ﻿﻿cli： Arthas的命令行界面基于vert.x提供的cli库进行开发，感谢vert.x在这方面做的优秀工作。
+- ﻿compiler Arthas里的内行编绎器代码来源
+- ﻿﻿Apache Commons Net Arthas里的Telnet Client代码来源
+- ﻿JavaAgent：运行在 main方法之前的拦截器，它内定的方法名叫 premain，也就是说先执行premain 方法然后再执行 main 方法
+- ﻿ASM： 一个通用的Java宇节码操作和分析框架。它可以用于修改现有的类或直接以二进制形式动态生成类。ASM提供了一些常见的字节码转换和分析算法，可以从它们构建定制的复尜转换和代码分析工具。ASM提供了与其他Java字节码框架类似的功能，但是主要关注性能。因为它被设计和实现得尽可能小和快，所以非常适合在动态系统中使用(当然也可以以静态方式使用，例如在编译器中）
+
+
+
+官方使用文档  https://arthas.aliyun.com/doc/quick-start.html
+
+
+
+#### 安装与使用
+
+  安装
+  工程目录
+  启动
+  查看进程
+  查看日志
+    cat ~/logs/arthas/arthas.log
+  查看帮助
+    java -jar arthas-boot.jar -h
+  web console
+  退出
+
+#### 相关诊断指令
+
+基础指令
+
+
+
+jvm相关
+    dashboard
+    thread
+    jvm
+    其他
+
+
+
+class/classloader相关
+    sc
+    sm
+    jad
+    mc、redefine
+    classloader
+
+monitor/watch/trace相关
+    monitor
+    watch
+    trace
+    stack
+    tt
+
+
+
+其他
+    profiler/火焰图
+    options
+
+
+
+
+
 
 
 ### 3.7 Java Misssion Control
+
+#### 历史
+
+在 Oracle 收购sun 之前，Oracle 的 JRockit 虛拟机提供了一款叫做 JRockit Mission control 的虚拟机诊断工具。
+
+在Oracle收购Sun之后，Oracle公司同时拥有了Sun Hotspot和JRockit两款虚拟机。根据oracle对于Java的战略，在今后的发展中，会將JRockit的优秀特性移植到Hotspot上。其中，一个重要的改进就是在Sun的JDK中加入了JRockit的支持。
+
+在Oracle JDK 7u40之后，Mission Control这款工具己经鄉定在Oracle JDK中发布。
+
+自 Java 11 开始，本节介绍的 JFR 己经开源。但在之前的 Java 版本，JFR 属于Commercial Feature， 需要通过 Java 虛拟机参数`-XX:+UnlockcommercialFeatures`开启。
+
+如果你有兴趣请可以查看OpenJDK的Mission control项目。
+
+https://github.com/JDKMissionControl/jmc
+
+
+
+#### 启动
+
+#### 概述
+
+Java Mission control （简称JMC），Java官方提供的性能强劲的工具。是一个用于对Java 应用程序进行管理、监视、概要分析和故障排除的工具套件。
+
+它包含一个GUI 客户端，以及众多用来收集 Java 虚拟机性能数据的插件，如 JMX Console（能够访问用来存放虚拟机各个子系统运行数据的MxBeans），以及虚拟机内罝的高效profiling 工具 Java Flight Recorder ( JFR)。
+
+JMC 的另一个优点就是：**采用取样，而不是传统的代码植入技术，对应用性能的影响非常非常小，完全可以开着JMC 来做压测（唯一影响可能是full gC多了）。**
+
+
+
+#### 功能：实时监控JVM运行时的状态
+
+
+
+#### Java Flight Recorder
+
+  事件类型
+  启动方式
+    方式1：使用-XX:StartFlightRecording=参数
+    方式2：使用jcmd的JFR.*子命令
+    方式3：JMC的JFR插件
+  Java Flight Recorder 取样分析
+    代码
+    结果
+
+
 
 
 
 ### 3.8 其他工具
 
-​	Flame Graphs（火焰图）
 
-​	Tprofiler
 
-​	Btrace
+#### Flame Graphs（火焰图）
 
-​	YourKit
+在追求极致性能的场景下，了解你的程序运行过程中cpu在干什么很重要，火焰图就是一种非常直观的展示cpu在程序整个生命周期过程中时间分配的工具。
 
-​	JProbe
+火焰图对于现代的程序员不应该陌生，这个工具可以非常直观的显示出调用栈中的CPU消耗瓶颈。
 
-​	Spring Insight
+网上的关于java火焰图的讲解大部分来自于Brendan Gregg的博客：
+
+http://www.brendangregg.com/flamegraphs.html
+
+
+
+#### Tprofiler
+
+- 案例：
+
+使用 JDK 自身提供的工具进行 JVM 调优可以将 TPS 由 2.5 提升到 20（提升了 7倍），并淮确定位系统瓶颈。
+
+系统瓶颈有：应用里静态对象不是太多、有大量的业务线程在频繁创建一些生命周期很长的临时对象，代码里有问题。
+
+那么，如何在海量业务代码里边准确定位这些性能代码？这里使用阿里开源工具 TProfiler 来定位这些性能代码，成功解决掉了 GC 过于频繁的性能瓶颈，并最终在上次优化的基础上将 TPS 再提升了4 倍，即提升到 100。
+
+- ﻿﻿TProfiler 配置部署、远程操作、日志阅读都不太复杂，操作还是很简单的。但是其却是能够起到一针见血、立竿见影的效果，帮我们解决了 GC 过于频繁的性能瓶颈。
+- ﻿TProfiler 最重要的特性就是==能够统计出你指定时间段内 JVM 的top method==，这些topmethod 极有可能就是造成你 JVM 性能瓶颈的元凶。这是其他大多数JVM 调优工具所不具备的，包括 JRockit Mission Control。 jRokit 首席开发者 Marcus Hirt 在其私人博客《Low Overhead Method profiling with Java Mission control》下的评论中曾明确指出JRMC 并不支持 TOP 方法的统计。
+
+#### Btrace
+
+Java运行时追踪工具
+
+#### YourKit
+
+#### JProbe
+
+#### Spring Insight
 
 
 
@@ -8808,13 +9470,191 @@ https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
 
 #### 类型一：标准参数选项
 
+特点：比较稳定，后续版本基本不会变化，==以-开头==。
 
+直接在DOS窗口中运行java或者java -help可以看到所有的标准选项。
+
+```shell
+➜  java
+用法: java [-options] class [args...]
+           (执行类)
+   或  java [-options] -jar jarfile [args...]
+           (执行 jar 文件)
+其中选项包括:
+    -d32	  使用 32 位数据模型 (如果可用)
+    -d64	  使用 64 位数据模型 (如果可用)
+    -server	  选择 "server" VM
+                  默认 VM 是 server,
+                  因为您是在服务器类计算机上运行。
+
+
+    -cp <目录和 zip/jar 文件的类搜索路径>
+    -classpath <目录和 zip/jar 文件的类搜索路径>
+                  用 : 分隔的目录, JAR 档案
+                  和 ZIP 档案列表, 用于搜索类文件。
+    -D<名称>=<值>
+                  设置系统属性
+    -verbose:[class|gc|jni]
+                  启用详细输出
+    -version      输出产品版本并退出
+    -version:<值>
+                  警告: 此功能已过时, 将在
+                  未来发行版中删除。
+                  需要指定的版本才能运行
+    -showversion  输出产品版本并继续
+    -jre-restrict-search | -no-jre-restrict-search
+                  警告: 此功能已过时, 将在
+                  未来发行版中删除。
+                  在版本搜索中包括/排除用户专用 JRE
+    -? -help      输出此帮助消息
+    -X            输出非标准选项的帮助
+    -ea[:<packagename>...|:<classname>]
+    -enableassertions[:<packagename>...|:<classname>]
+                  按指定的粒度启用断言
+    -da[:<packagename>...|:<classname>]
+    -disableassertions[:<packagename>...|:<classname>]
+                  禁用具有指定粒度的断言
+    -esa | -enablesystemassertions
+                  启用系统断言
+    -dsa | -disablesystemassertions
+                  禁用系统断言
+    -agentlib:<libname>[=<选项>]
+                  加载本机代理库 <libname>, 例如 -agentlib:hprof
+                  另请参阅 -agentlib:jdwp=help 和 -agentlib:hprof=help
+    -agentpath:<pathname>[=<选项>]
+                  按完整路径名加载本机代理库
+    -javaagent:<jarpath>[=<选项>]
+                  加载 Java 编程语言代理, 请参阅 java.lang.instrument
+    -splash:<imagepath>
+                  使用指定的图像显示启动屏幕
+有关详细信息, 请参阅 http://www.oracle.com/technetwork/java/javase/documentation/index.html。
+```
 
 #### 类型二：-X参数选项
+
+特点：非标准化参数，功能还是比较稳定的。但官方说后续版本可能会变更，以`-X`开头。
+
+直接在DOS窗口中运行java -X命令可以看到所有的X选项
+
+```shell
+➜  java -X
+    -Xmixed           混合模式执行 (默认)
+    -Xint             仅解释模式执行
+    -Xbootclasspath:<用 : 分隔的目录和 zip/jar 文件>
+                      设置搜索路径以引导类和资源
+    -Xbootclasspath/a:<用 : 分隔的目录和 zip/jar 文件>
+                      附加在引导类路径末尾
+    -Xbootclasspath/p:<用 : 分隔的目录和 zip/jar 文件>
+                      置于引导类路径之前
+    -Xdiag            显示附加诊断消息
+    -Xnoclassgc       禁用类垃圾收集
+    -Xincgc           启用增量垃圾收集
+    -Xloggc:<file>    将 GC 状态记录在文件中 (带时间戳)
+    -Xbatch           禁用后台编译
+    -Xms<size>        设置初始 Java 堆大小
+    -Xmx<size>        设置最大 Java 堆大小
+    -Xss<size>        设置 Java 线程堆栈大小
+    -Xprof            输出 cpu 配置文件数据
+    -Xfuture          启用最严格的检查, 预期将来的默认值
+    -Xrs              减少 Java/VM 对操作系统信号的使用 (请参阅文档)
+    -Xcheck:jni       对 JNI 函数执行其他检查
+    -Xshare:off       不尝试使用共享类数据
+    -Xshare:auto      在可能的情况下使用共享类数据 (默认)
+    -Xshare:on        要求使用共享类数据, 否则将失败。
+    -XshowSettings    显示所有设置并继续
+    -XshowSettings:all
+                      显示所有设置并继续
+    -XshowSettings:vm 显示所有与 vm 相关的设置并继续
+    -XshowSettings:properties
+                      显示所有属性设置并继续
+    -XshowSettings:locale
+                      显示所有与区域设置相关的设置并继续
+
+-X 选项是非标准选项, 如有更改, 恕不另行通知。
+
+
+以下选项为 Mac OS X 特定的选项:
+    -XstartOnFirstThread
+                      在第一个 (AppKit) 线程上运行 main() 方法
+    -Xdock:name=<应用程序名称>"
+                      覆盖停靠栏中显示的默认应用程序名称
+    -Xdock:icon=<图标文件的路径>
+                      覆盖停靠栏中显示的默认图标
+```
+
+JVM的JIT编译模式相关的选项：
+
+- `-Xint`
+
+​	只使用解释器（**interpreter**）：所有字节码都被解释执行，这个模式的速度是很慢的。
+
+- `-Xcomp`
+
+​	只使用编译器（**compiler**）：所有字节码第一次使用就被编译成本地代码，然后在执行。
+
+- `-Xmixed`
+
+​	混合模式：这是默认模式，刚开始的时候使用解释器慢慢解释执行，后来让JIT即时编译器根据程序运行的情况，有选择地将某些热点代码提前编译并缓存在本地，在执行的时候效率就非常高了
+
+
+
+-Xmx -Xms -Xss属于XX参数？
+
+`-Xms<size>`    设置初始Java堆大小，等价于-XX:InitialHeapSize
+
+`-Xmx<size>`    设置最大Java堆大小，等价于-XX:MaxHeapSize
+
+`-Xss<size>`     设置Java线程堆栈大小，等价于-XX:ThreadStackSize
 
 
 
 #### 类型三：-XX参数选项
+
+特点：非标准化参数，使用的最多的参数类型，这类选项属于实验性，不稳定，以`-XX`开头。
+
+作用：用于开发和调试JVM
+
+##### 分类
+
+- Boolean类型格式
+
+  `-XX:+<option>` 表示启用option属性，`-XX:-<option>`表示禁用option属性
+
+  ```shell
+  -XX:+UseParallelGC 		选择垃圾收集器为并行收集器
+  -XX:+UseG1GC 					表示启用G1收集器
+  -XX:+UseAdaptivesizePolicy 自动选择年轻代区大小和相应的Survivor区比例
+  ```
+
+  说明：因为有的指令默认是开启的，所以可以使用-关闭
+
+- 非Boolean类型格式（key-value类型）
+
+  子类型1：数值型格式`-XX:<option>=<number>`
+
+  number表示数值，number可以带上单位，比如：‘m’、‘M° 表示兆，‘k‘、‘K’表示兆，‘g’、‘G’表示g（例如 32k跟32768是一样的效果）例如：
+
+  ﻿`-XX:NewSize=1024m` 表示设置新生代初始大小为1024兆
+
+  `-XX:MaxGCPauseMi11is=500` 表示设置GC停顿时间：500毫秒
+
+  ﻿`-XX:GCTimeRatio=19` 表佘设置吞吐量
+
+  `-XX:NewRatio=2` 表示新生代与老年代的比例
+
+  子类型2：非数值型格式`-XX:<name>=<string>`
+
+  `-XX:HeapDumpPath=/usr/local/heapdump.hprof` 用来指定heap转存文件的存储路径。
+
+
+
+特别地：`-XX:+PrintFlagsFinal`
+
+​		输出所有参数的名称和默认值
+
+​		默认不包括Diagnostic和Experimental的参数
+
+​		可以配合-XX:+UnlockDiagnosticVMOptions和-XX:UnlockExperimentalVMOptions使用
 
 
 
@@ -8822,7 +9662,24 @@ https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
 
 
 
-#### 
+运行jar包：
+
+`java -Xms50m -Xmx50m -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -jar demo.jar`
+
+
+
+通过Tomcat运行war包：
+
+- Linux系统下可以在tomcat/bin/catalina.sh中添加类似如下配置：JAVA_OPTS="-Xms512M -Xmx1024M"
+
+- Windows系统下载catalina.bat中添加类似如下配置：set "JAVA_OPTS=-Xms512M -Xmx1024M"
+
+
+
+程序运行过程中
+
+- 使用`jinfo -flag <name>=<value> <pid>`设置非Boolean类型参数
+- 使用`jinfo -flag [+|-]<name> <pid>`设置Boolean类型参数
 
 
 
@@ -8830,31 +9687,231 @@ https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
 
 #### 打印设置的XX选项及值
 
-
+- `-XX:+PrintCommandLineFlags`  可以让程序运行前打印出用户手动设置或者JVM自动设置的XX选项
+- `-XX:+PrintFlagsInitial`  表示打印出所有XX选项的默认值
+- `-XX:+PrintFlagsFinal`  表示打印出XX选项在运行程序时生效的值  
+- `-XX:+PrintVMOptions`  打印JVM的参数
 
 #### 堆、栈、方法区等内存大小设置
 
+栈 1 2
 
+- `-Xss128k`
 
-#### OutOfMemory相关的选项
+堆内存
 
+- `-Xms3550m`  等价于-XX:InitialHeapSize，设置JVM初始堆内存为3500M
 
+- `-Xmx3550m`    等价于-XX:MaxHeapSize，设置JVM最大堆内存为3500M
+
+- `-Xmn2g`
+      设置年轻代大小为2G，即等价于-XX:NewSize=2g -XX:MaxNewSize=2g，也就是设置年轻代初始值和年轻代最大值都是2G
+      官方推荐配置为整个堆大小的3/8
+
+- `-XX:NewSize=1024m`
+      设置年轻代初始值为1024M
+
+- `-XX:MaxNewSize=1024m`
+      设置年轻代最大值为1024M
+
+- `-XX:SurvivorRatio=8`
+      设置年轻代中Eden区与一个Survivor区的比值，默认为8
+
+- `-XX:+UseAdaptiveSizePolicy`
+      自动选择各区大小比例，默认开启
+
+- `-XX:NewRatio=2`
+      设置老年代与年轻代（包括1个Eden区和2个Survivor区）的比值，默认为2
+
+- `-XX:PretenureSizeThreadshold=1024`
+      设置让大于此阈值的对象直接分配在老年代，单位为字节
+      只对Serial、ParNew收集器有效
+
+- `-XX:MaxTenuringThreshold=15`
+      默认值为15
+      新生代每次MinorGC后，还存活的对象年龄+1，当对象的年龄大于设置的这个值时就进入老年代
+
+- `-XX:+PrintTenuringDistribution`
+      让JVM在每次MinorGC后打印出当前使用的Survivor中对象的年龄分布
+
+- `-XX:TargetSurvivorRatio`
+      表示MinorGC结束后Survivor区域中占用空间的期望比例
+
+  
+
+方法区（永久代）
+
+- `-XX:PermSize=256m`
+        设置永久代初始值为256M
+- `-XX:MaxPermSize=256m`
+        设置永久代最大值为256M
+
+方法区（元空间）
+
+- `-XX:MetaspaceSize`
+        初始空间大小
+
+- `-XX:MaxMetaspaceSize`
+        最大空间，默认没有限制    
+
+- `-XX:+UseCompressedOops`
+        使用压缩对象指针
+
+- `-XX:+UseCompressedClassPointers`
+        使用压缩类指针
+
+- `-XX:CompressedClassSpaceSize`
+        设置Klass Metaspace的大小，默认1G
+
+  
+
+直接内存
+
+- `-XX:MaxDirectMemorySize`
+      指定DirectMemory容量，若未指定，则默认与Java堆最大值一样
+
+#### OutOfMemory相关的选项🔖
+
+`-XX:+HeapDumpOnOutMemoryError`
+  表示在内存出现OOM的时候，生成Heap转储文件，以便后续分析，-XX:+HeapDumpBeforeFullGC和-XX:+HeapDumpOnOutMemoryError只能设置1个
+`-XX:+HeapDumpBeforeFullGC`
+  表示在出现FullGC之前，生成Heap转储文件，以便后续分析，-XX:+HeapDumpBeforeFullGC和-XX:+HeapDumpOnOutMemoryError只能设置1个，请注意FullGC可能出现多次，那么dump文件也会生成多个
+`-XX:HeapDumpPath=<path>`
+  指定heap转存文件的存储路径，如果不指定，就会将dump文件放在当前目录中
+`-XX:OnOutOfMemoryError`
+  指定一个可行性程序或者脚本的路径，当发生OOM的时候，去执行这个脚本
 
 #### 垃圾收集器相关选项
+
+- 查看默认的垃圾回收器
+
+-xx:+PrintCommandLineFlags：查看命令行相关参数《包含使用的垃圾收集器）
+
+使用命令行指令：jinfo - f1ag 相关垃圾回收器参数 进程ID
+
+- Serial回收器
+
+
+
+- Parnew回收器
+
+
+
+- Parallel回收器
+
+![](images/image-20230430222538892.png)
+
+- CMS回收器
+
+![image-20230430222647041](images/image-20230430222647041.png)
+
+补充参数
+
+![](images/image-20230430222734843.png) 
+
+特别说明
+
+
+
+- G1回收器
+
+![](images/image-20230430222824454.png)
+
+Mixed GC调优参数
+
+![](images/image-20230430223212365.png)
+
+
+
+##### 怎么选择垃圾收集器
+
+优先调整堆的大小让JVM自适应完成。
+
+- ﻿如果内存小于100M，使用串行收集器
+- ﻿如果是单核、单机程序，并且没有停顿时间的要求，串行收集器
+- ﻿如果是多CPU、需要高吞吐量、允许停顿时间超过1秒，选择并行或者JVM自己选择
+- ﻿如果是多CPU、追求低停顿时间，需快速响应（比如延迟不能超过1秒，如互联网应用），使用并发收集器。官方推荐G1，性能高。现在互联网的项目，基本都是使用G1。
+
+特别说明：
+
+1．没有最好的收集器，更没有万能的收集：
+
+2．调优永远是针对特定场景、特定需求，不存在一劳永逸的收集器
 
 
 
 #### GC日志相关选项
 
+##### 常用参数
 
+`-verbose:gc`
+  输出日志信息，默认输出的标准输出
+  可以独立使用
+`-XX:+PrintGC`
+  等同于-verbose:gc 表示打开简化的日志
+  可以独立使用
+`-XX:+PrintGCDetails`
+  在发生垃圾回收时打印内存回收详细的日志， 并在进程退出时输出当前内存各区域的分配情况
+  可以独立使用
+`-XX:+PrintGCTimeStamps`
+  程序启动到GC发生的时间秒数
+  不可以独立使用，需要配合-XX:+PrintGCDetails使用
+`-XX:+PrintGCDateStamps`
+  输出GC发生时的时间戳（以日期的形式，例如：2013-05-04T21:53:59.234+0800）
+  不可以独立使用，可以配合-XX:+PrintGCDetails使用
+`-XX:+PrintHeapAtGC`
+  每一次GC前和GC后，都打印堆信息
+  可以独立使用
+`-XIoggc:<file>`
+  把GC日志写入到一个文件中去，而不是打印到标准输出中
+
+##### 其他参数
+
+`-XX:TraceClassLoading`
+  监控类的加载
+`-XX:PrintGCApplicationStoppedTime`
+  打印GC时线程的停顿时间
+`-XX:+PrintGCApplicationConcurrentTime`
+  垃圾收集之前打印出应用未中断的执行时间
+`-XX:+PrintReferenceGC`
+  记录回收了多少种不同引用类型的引用
+`-XX:+PrintTenuringDistribution`
+  让JVM在每次MinorGC后打印出当前使用的Survivor中对象的年龄分布
+`-XX:+UseGCLogFileRotation`
+  启用GC日志文件的自动转储
+`-XX:NumberOfGCLogFiles=1`
+  GC日志文件的循环数目
+`-XX:GCLogFileSize=1M`
+  控制GC日志文件的大小
 
 #### 其他参数
+
+`-XX:+DisableExplicitGC`
+  禁用hotspot执行System.gc()，默认禁用
+`-XX:ReservedCodeCacheSize=<n>[g|m|k]`、`-XX:InitialCodeCacheSize=<n>[g|m|k]`
+  指定代码缓存（JIT会缓存热点代码的编译后指令到方法区）的大小
+`-XX:+UseCodeCacheFlushing`
+  使用该参数让jvm放弃一些被编译的代码， 避免代码缓存被占满时JVM切换到interpreted-only的情况
+`-XX:+DoEscapeAnalysis`
+  开启逃逸分析
+`-XX:+UseBiasedLocking`
+  开启偏向锁
+`-XX:+UseLargePages`
+  开启使用大页面
+`-XX:+PrintTLAB`
+  打印TLAB的使用情况
+`-XX:TLABSize`
+  设置TLAB大小
+
+
 
 
 
 ### 4.4 通过java代码获取JVM参数
 
+Java提供了 java.1ang.management包用于监视和管理Java虚拟机和Java运行时中的其他组件，它允许本地和远程监控和管理运行的Java虛拟机。其中ManagementFactory这个类还是挺常用的。另外还有Runtime 类也可以获取一些内存、CPU核数等相关的数据。
 
+通过这些api可以监控我们的应用服务器的堆内存使用情况，设置一些阈值进行报警等处理。
 
 
 
@@ -8918,7 +9975,7 @@ GCViewer
 
 ## 6 OOM常见各种场景及解决方案
 
-P381
+P302
 
 案例1：堆溢出
 
@@ -8972,3 +10029,10 @@ P381
 
 
 
+
+
+> 延迟满足
+>
+> 遵守时间的价值
+>
+> 保有好奇心
