@@ -32,4 +32,12 @@ public class Student {
                 ", score=" + score +
                 '}';
     }
+
+    public static String getCollegeName() {
+        return "Chushui School";
+    }
+
+    public static String getCollegeName(String name) {
+        return name + "School";
+    }
 }
