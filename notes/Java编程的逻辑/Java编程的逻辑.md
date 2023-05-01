@@ -10064,13 +10064,13 @@ protected ClassLoader(ClassLoader parent)
 
 ## 26 函数式编程
 
-ambda表达式是一种紧凑的传递代码的方式。
+Lambda表达式是一种紧凑的传递代码的方式。
 
-基于Lambda表达式，针对常见的集合数据处理，Java 8引入了一套新的类库，位于包java.util.stream下，称为**Stream API**。
+基于Lambda表达式，针对常见的集合数据处理，Java 8引入了一套新的类库，位于包java.util.stream下，称为**==Stream API==**。
 
 Stream API是对容器类的增强，它可以**将对集合数据的多个操作以流水线的方式组合在一起**。
 
-Java 8新增的CompletableFuture是对并发编程的增强，可以方便地**将多个有一定依赖关系的异步任务以流水线的方式组合在一起**，大大简化多异步任务的开发。
+Java 8新增的`CompletableFuture`是对并发编程的增强，可以方便地**将多个有一定依赖关系的异步任务以流水线的方式组合在一起**，大大简化多异步任务的开发。
 
 利用Lambda表达式，Java 8还增强了日期和时间API。
 
@@ -10078,7 +10078,7 @@ Java 8新增的CompletableFuture是对并发编程的增强，可以方便地**�
 
 #### 通过接口传递代码
 
-针对接口而非具体类型进行编程，可以降低程序的耦合性，提高灵活性，提高复用性。**接口常被用于传递代码**，比如：
+针对接口而非具体类型进行编程，可以降低程序的耦合性，提高灵活性，提高复用性。**接口常被用于==传递代码==**，比如：
 
 1. `File`有方法：
 
@@ -10107,7 +10107,7 @@ Java 8新增的CompletableFuture是对并发编程的增强，可以方便地**�
 
    Callable和Runnable接口也用于传递任务代码。
 
-通过接口传递行为代码，就要传递一个实现了该接口的实例对象，之前最简洁的方式是使用匿名内部类：
+通过接口传递行为代码，就要**传递一个==实现了该接口的实例对象==**，之前最简洁的方式是使用匿名内部类：
 
 ```java
 File f = new File(".");
@@ -10149,6 +10149,8 @@ File[] files = f.listFiles((File dir, String name) -> {
   }
 });
 ```
+
+> 前面是方法的参数，后面{}内是方法的代码。
 
 简化：
 
@@ -10196,7 +10198,7 @@ Lambda表达式内部实现上，利用了Java 7引入的为支持动态类型�
 
 ### 函数式接口
 
-**==函数式接口==也是接口，但只能有一个抽象方法**（java8引入）。还是运行有静态方法和默认方法的。
+**==函数式接口==也是接口，但==只能有一个抽象方法==**（java8引入）。还是运行有静态方法和默认方法的。
 
 Lambda表达式就是函数接口，可以赋值给函数接口：
 
@@ -10212,6 +10214,10 @@ FilenameFilter filenameFilter= ((dir, name) -> name.endsWith(".txt"));
 Java 8定义了大量的预定义函数式接口，用于常见类型的代码传递，在`java.util.function`包内。
 
 ![](images/image-20220602152042189.png)
+
+为避免装箱/拆箱，Java 8提供了一些专门的函数，类似：
+
+![](images/image-20230501145201567.png)
 
 #### 1 Predicate示例
 
@@ -10257,7 +10263,7 @@ public class PredicateTest {
 
 #### 2 Function示例
 
-列表处理的另一个常见需求是转换。比如，给定一个学生列表，需要返回名称列表，或者将名称转换为大写返回，可以借助Function写一个通用的方法:
+列表处理的另一个常见需求是==转换==。比如，给定一个学生列表，需要返回名称列表，或者将名称转换为大写返回，可以借助Function写一个通用的方法:
 
 ```java
 public class FunctionTest {
@@ -10316,6 +10322,8 @@ public class ConsumerTest {
 
 ### 方法引用
 
+官方文档：https://docs.oracle.com/javase/specs/jls/se8/html/jls-15.html#jls-15.13
+
 Lambda表达式经常用于调用对象的某个方法，比如：
 
 ```java
@@ -10332,59 +10340,282 @@ List<String> names = map(students,  Student::getName);
 
 `::`前面是类名或变量名，后面是方法名。方法可以是实例方法，也可以是静态方法，但含义不同。
 
-🔖
+对于静态方法，方法引用是`Supplier`，下面是等价的：🔖如果静态方法名相同参数不同的呢？
+
+```java
+Supplier<String> s1 = Student::getCollegeName;
+Supplier<String> s2 = () -> Student.getCollegeName();
+```
+
+对于实例方法，方法引用是`Function`，它的第一个参数就是该类型的实例，下面等价：
+
+```java
+Function<Student, String> f1 = Student::getName;
+Function<Student, String> f2 = (Student t) -> t.getName();
+```
+
+对于Student::setName，它是一个`BiConsumer`，即如下两条语句是等价的：
+
+```java
+BiConsumer<Student, String> c1 = Student::setName;
+BiConsumer<Student, String> c2 = (t, name) -> t.setName(name);
+```
+
+对于方法引用前面是变量名时：
+
+```java
+Student t = new Student("andy", 99.9d);
+Supplier<String> s3 = t::getName;
+Supplier<String> s4 = () -> t.getName();
+
+Consumer<String> c3 = t::setName;
+Consumer<String> c4 = (name) -> t.setName(name);
+```
+
+对于构造方法，方法引用的语法是`<类名>::new`： 🔖构造方法参数多余2个的呢？
+
+```java
+BiFunction<String, Double, Student> s5 = Student::new;
+BiFunction<String, Double, Student> s6 = (name, score) -> new Student(name, score);
+```
+
+> ```java
+> public interface Supplier<T> {
+>     T get();
+> }
+> public interface Function<T, R> {
+>     R apply(T t);
+> }
+> public interface BiConsumer<T, U> {
+>     void accept(T t, U u);
+> }
+> public interface Consumer<T> {
+>     void accept(T t);
+> }
+> public interface BiFunction<T, U, R> {
+>     R apply(T t, U u);
+> }
+> ```
+
+
 
 ### 函数的复合
 
 函数式接口和Lambda表达式还可用作方法的返回值，传递代码回调用者，将这两种用法结合起来，可以构造复合的函数，使程序简洁易读。
 
-🔖
+#### Comparator中的复合方法
 
-### 26.2 函数式数据处理：基本用法🔖
+Comparator接口中的静态方法：
+
+```java
+public static <T, U extends Comparable<? super U>> Comparator<T> comparing(
+  Function<? super T, ? extends U> keyExtractor)
+{
+  Objects.requireNonNull(keyExtractor);
+  return (Comparator<T> & Serializable)
+    (c1, c2) -> keyExtractor.apply(c1).compareTo(keyExtractor.apply(c2));
+}
+```
+
+```java
+Arrays.sort(files, (f1, f2) -> f1.getName().compareTo(f2.getName()));
+```
+
+简化为：
+
+```java
+Arrays.sort(files, Comparator.comparing(File::getName));
+```
+
+
+
+```java
+// 将学生列表按照分数倒序排（高分在前），分数一样的按照名字进行排序
+students.sort(Comparator.comparing(Student::getScore).reversed().thenComparing(Student::getName));
+```
+
+#### function包中的复合方法
+
+
+
+### 26.2 函数式数据处理：基本用法
+
+接口Stream类似于一个迭代器，但提供了更为丰富的操作。
+
+Java 8给Collection接口增加了两个默认方法，它们可以返回一个Stream：
+
+```java
+default Stream<E> stream() {
+  return StreamSupport.stream(spliterator(), false);
+}
+default Stream<E> parallelStream() {
+  return StreamSupport.stream(spliterator(), true);
+}
+```
+
+前者返回的是一个==顺序流==，后者是一个并行流；顺序流就是由==一个线程执行操作==。而并行流背后==可能有多个线程并行执行==，与之前介绍的并发技术不同，使用并行流不需要显式管理线程，使用方法与顺序流是一样的。
 
 #### 基本示例
 
 ##### 1．基本过滤
 
+```java
+List<Student> list = students.stream().filter(t -> t.getScore() > 87).collect(Collectors.toList());
+list.stream().forEach(e -> System.out.println(e));
+```
 
+==函数式数据处理==。与传统代码相比，其特点是：
+
+- 没有显式的循环迭代，循环过程被Stream的方法隐藏了。
+- 提供了声明式的处理函数，比如filter，它封装了数据过滤的功能，而传统代码是命令式的，需要一步步的操作指令。
+- 流畅式接口，方法调用链接在一起，清晰易读。
 
 ##### 2．基本转换
 
-
+```java
+List<String> nameList = students.stream().map(Student::getName).collect(Collectors.toList());
+```
 
 ##### 3．基本的过滤和转换组合
 
+```java
+ List<String> aboveName = students.stream().filter(t -> t.getScore() > 87).map(Student::getName).collect(Collectors.toList());
+```
 
+filter()和map()一起使用不会遍历两次，它们都不会执行任何实际的操作，只是在构建操作的流水线，调用collect才会触发实际的遍历执行，在一次遍历中完成过滤、转换以及收集结果的任务。
+
+像filter和map这种不实际触发执行、用于构建流水线、返回Stream的操作称为==中间操作（intermediate operation）==，而像collect这种触发实际执行、返回具体结果的操作称为==终端操作（terminal operation）==。
 
 #### 中间操作
 
+除了filter和map，还有：
+
 ##### 1. distinct
 
+distinct返回一个新的Stream，过滤重复的元素，只留下唯一的元素，是否重复是根据equals方法来比较的，distinct可以与其他函数（如filter、map）结合使用。
 
+```java
+ List<String> list = Arrays.asList(new String[]{"abc", "def", "hello", "Abc"});
+List<String> retList = list.stream().filter(s -> s.length() <= 3).map(String::toLowerCase).distinct().collect(Collectors.toList());      
+```
+
+filter和map都是无状态的，对于流中的每一个元素，处理都是独立的，处理后即交给流水线中的下一个操作；distinct不同，它是有状态的，在处理过程中，它需要在内部记录之前出现过的元素，如果已经出现过，即重复元素，它就会过滤掉，不传递给流水线中的下一个操作。对于顺序流，内部实现时，distinct操作会使用HashSet记录出现过的元素，如果流是有顺序的，需要保留顺序，会使用LinkedHashSet。
 
 ##### 2. sorted
 
+```java
+List<Student> list = students.stream().filter(t -> t.getScore() > 90)
+                .sorted(Comparator.comparing(Student::getScore).reversed().thenComparing(Student::getName))
+                .collect(Collectors.toList());
+```
 
+与distinct一样，sorted也是一个有状态的中间操作，在处理过程中，需要在内部记录出现过的元素。其不同是，每碰到流中的一个元素，distinct都能立即做出处理，要么过滤，要么马上传递给下一个操作；sorted需要先排序，为了排序，它需要先在内部数组中保存碰到的每一个元素，到流结尾时再对数组排序，然后再将排序后的元素逐个传递给流水线中的下一个操作。
 
 ##### 3. skip/limit
 
+```java
+Stream<T> skip(long n)
+Stream<T> limit(long maxSize)
+```
 
+```java
+// 将学生列表按照分数排序，返回第3名到第5名
+list = students.stream().sorted(Comparator.comparing(Student::getScore).reversed())
+                .skip(2).limit(3).collect(Collectors.toList());
+```
+
+skip和limit只能根据元素数目进行操作，Java 9增加了两个新方法，相当于更为通用的skip和limit：
+
+```java
+//通用的skip，在谓词返回为true的情况下一直进行skip操作，直到某次返回false
+default Stream<T> dropWhile(Predicate<? super T> predicate)
+//通用的limit，在谓词返回为true的情况下一直接受，直到某次返回false
+default Stream<T> takeWhile(Predicate<? super T> predicate)
+```
 
 ##### 4. peek
 
+```java
+        Stream<T> peek(Consumer<? super T> action)
+```
 
+它返回的流与之前的流是一样的，没有变化，但它提供了一个Consumer，会将流中的每一个元素传给该Consumer。这个方法的主要目的是==支持调试==，可以使用该方法观察在流水线中流转的元素：
+
+```java
+List<String> above90Name = students.stream().filter(t -> t.getScore() > 90)
+                .peek(System.out::println).map(Student::getName).collect(Collectors.toList());
+```
 
 ##### 5. mapToLong/mapToInt/mapToDouble
 
+map函数接受的参数是一个Function<T, R>，为避免装箱/拆箱，提高性能，Stream还有如下返回基本类型特定流的方法：
 
+```java
+DoubleStream mapToDouble(ToDoubleFunction<? super T> mapper)
+IntStream mapToInt(ToIntFunction<? super T> mapper)
+LongStream mapToLong(ToLongFunction<? super T> mapper)
+```
+
+DoubleStream/IntStream/LongStream是基本类型特定的流，有一些专门的更为高效的方法。比如，求学生列表的分数总和，代码为：
+
+```java
+double sum = students.stream().mapToDouble(Student::getScore).sum();
+```
 
 ##### 6. flatMap
+
+```java
+<R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper);
+```
+
+它接受一个函数mapper，对流中的每一个元素，mapper会将该元素转换为一个流Stream，然后把新生成流的每一个元素传递给下一个操作。
+
+```java
+List<String> lines = Arrays.asList(new String[]{"hello abc", "老李 编程", "my name is andy"});
+List<String> words = lines.stream().flatMap(line -> Arrays.stream(line.split("\\s+"))).collect(Collectors.toList());
+System.out.println(words);
+```
+
+```java
+[hello, abc, 老李, 编程, my, name, is, andy]
+```
 
 
 
 #### 终端操作
 
+除了collect，还有：
+
 ##### 1. max/min
+
+```java
+        Optional<T> max(Comparator<? super T> comparator)
+        Optional<T> min(Comparator<? super T> comparator)
+```
+
+`java.util.Optional`是Java 8引入的一个新类，它是一个泛型容器类，内部只有一个类型为T的单一变量value，可能为null，也可能不为null。
+
+Optional定义了一些方法：
+
+```java
+        //value不为null时返回true
+        public boolean isPresent()
+        //返回实际的值，如果为null，抛出异常NoSuchElementException
+        public T get()
+        //如果value不为null，返回value，否则返回other
+        public T orElse(T other)
+        //构建一个空的Optional, value为null
+        public static<T> Optional<T> empty()
+        //构建一个非空的Optional, 参数value不能为null
+        public static <T> Optional<T> of(T value)
+        //构建一个Optional，参数value可以为null，也可以不为null
+        public static <T> Optional<T> ofNullable(T value)
+```
+
+```java
+// 返回分数最高的学生
+Student student = students.stream().max(Comparator.comparing(Student::getScore)).get();
+```
 
 
 
@@ -10394,31 +10625,115 @@ List<String> names = map(students,  Student::getName);
 
 ##### 3. allMatch/anyMatch/noneMatch
 
+这几个函数都接受一个谓词Predicate，返回一个boolean值，用于判定流中的元素是否满足一定的条件。它们的区别是：
 
+- allMatch：只有在流中所有元素都满足条件的情况下才返回true。
+
+- anyMatch：只要流中有一个元素满足条件就返回true。
+- noneMatch：只有流中所有元素都不满足条件才返回true。
 
 ##### 4. findFirst/findAny
 
-
+```java
+// 随便找一个不及格的学生
+Optional<Student> student = students.stream().filter(t -> t.getScore() < 60).findAny();
+if (student.isPresent()) {
+  // 处理不及格的学生
+}
+```
 
 ##### 5. forEach
+
+```java
+students.stream().filter(t -> t.getScore() > 90).forEach(System.out::println);
+```
 
 
 
 ##### 6. toArray
 
+将流转换为数组，有两个方法：
 
+```java
+        Object[] toArray()
+        <A> A[] toArray(IntFunction<A[]> generator)
+```
+
+不带参数的toArray返回的数组类型为Object[]，这通常不是期望的结果，如果希望得到正确类型的数组，需要传递一个类型为IntFunction的generator。
+
+```java
+Student[] above90Arr = students.stream().filter(t -> t.getScore() > 90).toArray(Student[]::new);
+```
+
+`Student[]::new`就是一个类型为IntFunction<Student[]>的generator。
 
 ##### 7. reduce
+
+```java
+Optional<T> reduce(BinaryOperator<T> accumulator);
+T reduce(T identity, BinaryOperator<T> accumulator);
+<U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner);
+```
 
 
 
 #### 构建流
 
+换做parallelStream方法，就会使用并行流，**接口方法都是通用的**。但并行流内部会使用多线程，线程个数一般与系统的CPU核数一样，以充分利用CPU的计算能力。
 
+
+
+流定义了很多数据处理的基本函数，对于一个具体的数据处理问题，解决的主要思路就是组合利用这些基本函数，以声明式的方式简洁地实现期望的功能，这种思路就是函数式数据处理思维，相比直接利用容器类API的命令式思维，思考的层次更高。
+
+除了通过Collection接口的stream/parallelStream获取流，还有一些其他方式可以获取流。Arrays有一些stream方法，可以将数组或子数组转换为流，比如：
+
+```java
+public static IntStream stream(int[] array)
+public static DoubleStream stream(double[] array, int startInclusive,
+                                    int endExclusive)
+public static <T> Stream<T> stream(T[] array)
+```
+
+Stream也有一些静态方法，可以构建流，比如：
+
+```java
+	//返回一个空流
+	public static<T> Stream<T> empty()
+  //返回只包含一个元素t的流
+  public static<T> Stream<T> of(T t)
+  //返回包含多个元素values的流
+  public static<T> Stream<T> of(T... values)
+  //通过Supplier生成流，流的元素个数是无限的
+  public static<T> Stream<T> generate(Supplier<T> s)
+  //同样生成无限流，第一个元素为seed，第二个为f(seed)，第三个为f(f(seed))，以此类推
+  public static<T> Stream<T> iterate(final T seed, final UnaryOperator<T> f)
+```
+
+
+
+```java
+// 输出10个随机数
+Stream.generate(() -> Math.random()).limit(10).forEach(System.out::println);
+
+// 输出100个递增的奇数
+Stream.iterate(1, t -> t + 2).limit(100).forEach(System.out::println);
+```
 
 #### 函数式数据处理思维
 
-流定义了很多数据处理的基本函数，对于一个具体的数据处理问题，解决的主要思路就是组合利用这些基本函数，以声明式的方式简洁地实现期望的功能，这种思路就是函数式数据处理思维，相比直接利用容器类API的命令式思维，思考的层次更高。
+使用Stream API处理数据集合，与直接使用容器类API处理数据的思路是完全不一样的。流定义了很多数据处理的==基本函数==，对于一个具体的数据处理问题，解决的主要思路就是==组合利用==这些基本函数，以==声明式==的方式简洁地实现期望的功能，这种思路就是函数式数据处理思维，相比直接利用容器类API的命令式思维，==思考的层次更高==。
+
+Stream API的这种思路也不是新发明，它与数据库查询语言SQL是很像。
+
+Stream API也与各种基于Unix系统的管道命令类似。
+
+Unix有很多命令，大部分命令只是专注于完成一件事情，但可以通过管道的方式将多个命令链接起来，完成一些复杂的功能，比如：
+
+```shell
+ cat nginx_access.log | awk '{print $1}' | sort | uniq -c | sort -rnk 1 | head -n 20
+```
+
+分析nginx访问日志，统计出访问次数最多的前20个IP地址及其访问次数。cat命令输出nginx访问日志到流，一行为一个元素，awk输出行的第一列，这里为IP地址，sort按IP进行排序，"uniq -c"按IP统计计数，"sort -rnk 1"按计数从高到低排序，"head -n 20"输出前20行。
 
 ### 26.3 函数式数据处理：强大方便的收集器🔖
 
