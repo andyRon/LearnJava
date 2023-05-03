@@ -1,7 +1,10 @@
-package com.andyron.bcdlj.c16;
+package com.andyron.bcdlj.c16.c161;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ *  AtomicInteger的应用示例
+ */
 public class AtomicIntegerDemo {
     private static AtomicInteger counter = new AtomicInteger(0);
 
