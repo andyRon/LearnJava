@@ -12,10 +12,13 @@ public class HelloThread extends Thread {
         System.out.println(this.getName());
         System.out.println(this.getPriority());
         System.out.println(this.getState());
+        System.out.println(this.isDaemon());
     }
 
     public static void main(String[] args) {
         HelloThread thread = new HelloThread();
         thread.start();
+
+
     }
 }

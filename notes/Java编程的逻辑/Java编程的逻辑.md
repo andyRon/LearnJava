@@ -7201,7 +7201,7 @@ public long getId()
 public final String getName()
 ```
 
-操作系统负责调度，<u>在单CPU的机器上，同一时刻只能有一个线程在执行，在多CPU的机器上，同一时刻可以有多个线程同时执行</u>，但操作系统给我们屏蔽了这种差异，给程序员的感觉就是多个线程并发执行
+操作系统负责调度，<u>在单CPU的机器上，同一时刻只能有一个线程在执行，在多CPU的机器上，同一时刻可以有多个线程同时执行</u>，但操作系统给我们屏蔽了这种差异，给程序员的感觉就是多个线程并发执行。
 
 ##### 2.实现Runnable接口
 
@@ -7427,7 +7427,7 @@ public class CounterThread extends Thread {
 
 解决办法：
 
-- 使用synchronized关键字；
+- 使用`synchronized`关键字；
 - 使用显式锁；
 - 使用原子变量。
 
@@ -7465,8 +7465,8 @@ public class VisibilityDemo {
 
 解决办法：
 
-- 使用volatile关键字。
-- 使用synchronized关键字或显式锁同步。
+- 使用`volatile`关键字。
+- 使用`synchronized`关键字或显式锁同步。
 
 #### 线程的优点及成本
 
@@ -7492,7 +7492,7 @@ public class VisibilityDemo {
 
 #### 用法和基本原理
 
-`synchronized`可以用于修饰类的<u>实例方法、静态方法和代码块</u>。
+`synchronized`可以用于修饰类的<u>**实例方法、静态方法和代码块**</u>。
 
 ##### 1.实例方法
 
@@ -7649,13 +7649,25 @@ public class Counter {
 
 ##### 1.可重入性
 
-对同一个执行线程，它在获得了锁之后，在调用其他需要同样锁的代码时，可以直接调用。比如，在一个synchronized实例方法内，可以直接调用其他synchronized实例方法。
+**对同一个执行线程，它在获得了锁之后，在调用其他需要同样锁的代码时，可以直接调用**。比如，在一个synchronized实例方法内，可以直接调用其他synchronized实例方法。
 
 **可重入是通过记录锁的==持有线程和持有数量==来实现的**，当调用被synchronized保护的代码时，检查对象是否已被锁，如果是，再检查是否被当前线程锁定，如果是，增加持有数量，如果不是被当前线程锁定，才加入等待队列，当释放锁时，减少持有数量，当数量变为0时才释放整个锁。
 
 ##### 2.内存可见性
 
-🔖
+```java
+public class Switcher {
+  private boolean on;
+  public boolean isOn() {
+    return on;
+  }
+  public void setOn(boolean on) {
+    this.on = on;
+  }
+}
+```
+
+
 
 synchronized除了==保证原子操作==外，它还有一个重要的作用，就是==保证内存可见性==，在释放锁时，所有写入都会写回内存，而获得锁后，都会从内存中读最新数据。
 
@@ -7667,13 +7679,58 @@ synchronized除了==保证原子操作==外，它还有一个重要的作用，�
 
 > 有a、b两个线程，a持有锁A，在等待锁B，而b持有锁B，在等待锁A, a和b陷入了互相等待，最后谁都执行不下去
 
+```java
+public class DeadLockDemo {
+    private static Object lockA = new Object();
+    private static Object lockB = new Object();
+    private static void startThreadA() {
+        Thread aThread = new Thread() {
+            @Override
+            public void run() {
+                synchronized (lockA) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
 
+                    }
+                    synchronized (lockB) {
 
+                    }
+                }
+            }
+        };
+        aThread.start();
+    }
 
+    private static void startThreadB() {
+        Thread bThread = new Thread() {
+            @Override
+            public void run() {
+                synchronized (lockB) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+
+                    }
+                    synchronized (lockA) {
+
+                    }
+                }
+            }
+        };
+        bThread.start();
+    }
+
+    public static void main(String[] args) {
+        startThreadA();
+        startThreadB();
+    }
+}
+```
 
 **应该尽量避免在持有一个锁的同时去申请另一个锁，如果确实需要多个锁，所有代码都应该按照相同的顺序去申请锁。**
 
-显式锁接口`Lock`，它支持<u>尝试获取锁（tryLock）和带时间限制的获取锁方法</u>。
+显式锁接口`Lock`，它支持<u>尝试获取锁（tryLock）和带时间限制的获取锁方法</u>。🔖
 
 `jstack`会报告发现的死锁。
 
@@ -7683,8 +7740,8 @@ synchronized除了==保证原子操作==外，它还有一个重要的作用，�
 
 ```java
 public static <T> Collection<T> synchronizedCollection(Collection<T> c)
-  public static <T> List<T> synchronizedList(List<T> list)
-  public static <K, V> Map<K, V> synchronizedMap(Map<K, V> m)
+public static <T> List<T> synchronizedList(List<T> list)
+public static <K, V> Map<K, V> synchronizedMap(Map<K, V> m)
 ```
 
 它们是给所有容器方法都加上synchronized来实现安全的，比如`SynchronizedCollection`：
@@ -7712,26 +7769,161 @@ static class SynchronizedCollection<E> implements Collection<E> {
 }
 ```
 
-这里线程安全针对的是**容器对象**，指的是当多个线程并发访问同一个容器对象时，不需要额外的同步操作，也不会出现错误的结果。
+这里线程安全针对的是**容器对象**，指的是当多个线程并发访问同一个容器对象时，不需要额外的同步操作，也不会出现错误的结果。🔖
 
-🔖
+加了synchronized，所有方法调用变成了原子操作，客户端在调用时，是不是就绝对安全了呢？不是的，至少有以下情况需要注意：1️⃣ 复合操作，比如先检查再更新。2️⃣ 伪同步。3️⃣ 迭代。
 
 ##### 1.复合操作
 
+```java
+package com.andyron.bcdlj.c15.c152;
+
+import java.util.Collections;
+import java.util.Map;
+
+/**
+ * @author andyron
+ **/
+public class EnhancedMap <K, V> {
+    Map<K, V> map;
+    public EnhancedMap(Map<K, V> map) {
+        this.map = Collections.synchronizedMap(map);
+    }
+    public V putIfAbsent(K key, V value) {
+        V old = map.get(key);
+        if (old != null) {
+            return old;
+        }
+        return map.put(key, value);
+    }
+    public V put(K key, V value) {
+        return map.put(key, value);
+    }
+    // ...
+}
+```
+
+map的每个方法都是安全的，但这个复合方法putIfAbsent是安全的吗？显然是否定的，这是一个检查然后再更新的复合操作，在多线程的情况下，可能有多个线程都执行完了检查这一步，都发现Map中没有对应的键，然后就会都调用put，这就破坏了putIfAbsent方法期望保持的语义。
+
 ##### 2.伪同步
+
+那给该方法加上synchronized就能实现安全吗？
+
+```java
+public synchronized V putIfAbsent(K key, V value){
+  V old = map.get(key);
+  if(old! =null){
+    return old;
+  }
+  return map.put(key, value);
+}
+```
+
+答案是否定的！为什么呢？同步错对象了。putIfAbsent同步使用的是EnhancedMap对象，而其他方法（如代码中的put方法）使用的是Collections.synchronizedMap返回的对象map，两者是不同的对象。要解决这个问题，所有方法必须使用相同的锁，可以使用EnhancedMap的对象锁，也可以使用map。使用EnhancedMap对象作为锁，则EnhancedMap中的所有方法都需要加上synchronized。
+
+使用map作为锁，putIfAbsent方法可以改为：
+
+```java
+public V putIfAbsent(K key, V value){
+  synchronized(map){
+    V old = map.get(key);
+    if(old! =null){
+      return old;
+    }
+    return map.put(key, value);
+  }
+}
+```
+
+
 
 ##### 3.迭代
 
+对于同步容器对象，虽然单个操作是安全的，但迭代并不是。
+
+```java
+public class IterationTest {
+    private static void startModifyThread(final List<String> list) {
+        Thread modifyThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < 100; i++) {
+                    list.add("item " + i);
+                    try {
+                        Thread.sleep((int) (Math.random() * 10));
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        modifyThread.start();
+    }
+    private static void startIteratorThread(final List<String> list) {
+       Thread iteratorThread = new Thread(new Runnable() {
+           @Override
+           public void run() {
+               while (true) {
+                   for (String s : list) {
+                   }
+               }
+           }
+       });
+       iteratorThread.start();
+    }
+    public static void main(String[] args) {
+        final List<String> list = Collections.synchronizedList(new ArrayList<String>());
+        startIteratorThread(list);
+        startModifyThread(list);
+    }
+}
+```
+
+抛出异常：
+
+```
+Exception in thread "Thread-0" java.util.ConcurrentModificationException
+	at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:911)
+	at java.util.ArrayList$Itr.next(ArrayList.java:861)
+	at com.andyron.bcdlj.c15.c152.IterationTest$2.run(IterationTest.java:37)
+	at java.lang.Thread.run(Thread.java:750)
+```
+
+如果在遍历的同时容器发生了结构性变化，就会抛出该异常`ConcurrentModificationException`。
+
+同步容器并没有解决这个问题，如果要避免这个异常，需要在遍历的时候给整个容器对象加锁。比如：
+
+```java
+        private static void startIteratorThread(final List<String> list) {
+            Thread iteratorThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(true) {
+                        synchronized(list){
+                            for(String str : list) {
+                            }
+                        }
+                    }
+                }
+            });
+            iteratorThread.start();
+        }
+```
+
+
+
 ##### 4.并发容器
 
-- CopyOnWriteArrayList。 
-- ConcurrentHashMap。
-- ConcurrentLinkedQueue。
-- ConcurrentSkipListSet。
+除了以上这些注意事项，同步容器的性能也是比较低的，当并发访问量比较大的时候性能比较差。所幸的是，Java中还有很多专为并发设计的容器类，比如：
 
-这些容器类都是线程安全的，但都没有使用synchronized，没有迭代问题，直接支持一些复合操作，性能也高得多。
+- `CopyOnWriteArrayList`。 
+- `ConcurrentHashMap`。
+- `ConcurrentLinkedQueue`。
+- `ConcurrentSkipListSet`。
 
-### 15.3 线程的基本协作机制
+这些容器类都是线程安全的，但都没有使用`synchronized`，没有迭代问题，直接支持一些复合操作，性能也高得多。
+
+### 15.3 线程的基本协作机制🔖
 
 多线程之间除了竞==争访问同一个资源==外，也经常需要==相互协作==。协作的基本机制是==wait/notify==。
 
@@ -7743,7 +7935,7 @@ static class SynchronizedCollection<E> implements Collection<E> {
 
 2. 同时开始
 
-   类似运动员比赛，在听到比赛开始枪响后同时开始，在一些程序，尤其是**模拟仿真程序**中，要求多个线程能同时开始
+   类似运动员比赛，在听到比赛开始枪响后同时开始，在一些程序，尤其是**模拟仿真程序**中，要求多个线程能同时开始。
 
 3. 等待结束
 
@@ -7751,7 +7943,7 @@ static class SynchronizedCollection<E> implements Collection<E> {
 
 4. 异步结果
 
-   在主从协作模式中，主线程手工创建子线程的写法往往比较麻烦，一种常见的模式是将子线程的管理封装为**异步调用**，异步调用马上返回，但返回的不是最终的结果，而是一个一般称为**Future**的对象，通过它可以在随后获得最终的结果。
+   在主从协作模式中，主线程手工创建子线程的写法往往比较麻烦，一种常见的模式是将子线程的管理封装为**异步调用**，异步调用马上返回，但返回的不是最终的结果，而是一个一般称为**`Future`**的对象，通过它可以在随后获得最终的结果。
 
 5. 集合点
 
@@ -7779,7 +7971,7 @@ public final void wait(long timeout, int nanos) throws InterruptedException
 
 ```java
 public final native void notify();
-public final native void notifyALL();
+public final native void notifyAll();
 ```
 
 notify做的事情就是**从条件队列中选一个线程，将其从队列中移除并唤醒**，notifyAll和notify的区别是，它会**移除条件队列中所有的线程并全部唤醒**。
@@ -7834,51 +8026,111 @@ public class WaitThread extends Thread {
 
 它们被不同的线程调用，但共享相同的锁和条件等待队列（相同对象的synchronized代码块内），它们围绕一个<u>共享的条件变量</u>进行协作，这个条件变量是程序自己维护的，当条件不成立时，线程调用wait进入条件等待队列，另一个线程修改了条件变量后调用notify，调用wait的线程唤醒后需要重新检查条件变量。从多线程的角度看，它们围绕共享变量进行协作，从调用wait的线程角度看，它阻塞等待一个条件的成立。
 
-计多线程协作时，需要**==想清楚协作的共享变量和条件是什么==**，这是协作的核心。
+设计多线程协作时，需要**==想清楚协作的共享变量和条件是什么==**，这是协作的核心。
 
 #### 生产者/消费者模式
 
 在生产者/消费者模式中，协作的共享变量是**队列**，生产者往队列上放数据，如果满了就wait，而消费者从队列上取数据，如果队列为空也wait。
 
-🔖
+```java
+/**
+ * 生产者/消费者协作队列
+ * @author andyron
+ **/
+public class MyBlockingQueue<E> {
+    private Queue<E> queue = null;
+    private int limit;
+    public MyBlockingQueue(int limit) {
+        this.limit = limit;
+        queue = new ArrayDeque<>(limit);
+    }
+
+    public synchronized void put(E e) throws InterruptedException {
+        while (queue.size() == limit) {
+            wait();
+        }
+        queue.add(e);
+        notifyAll();
+    }
+
+    public synchronized E take() throws InterruptedException {
+        while (queue.isEmpty()) {
+            wait();
+        }
+        E e = queue.poll();
+        notifyAll();
+        return e;
+    }
+}
+```
+
+put是给生产者使用的，往队列上放数据，满了就wait，放完之后调用notifyAll，通知可能的消费者。
+
+take是给消费者使用的，从队列中取数据，如果为空就wait，取完之后调用notifyAll，通知可能的生产者。
+
+<u>put等待的是队列不为满，而take等待的是队列不为空</u>，但它们都会加入相同的条件等待队列。由于条件不同但又使用相同的等待队列，所以要调用notifyAll而不能调用notify，因为notify只能唤醒一个线程，如果唤醒的是同类线程就起不到协调的作用。
+
+==只能有一个条件等待队列==，这是Java wait/notify机制的局限性，这使得对于等待条件的分析变得复杂，后续章节我们会介绍**显式的锁和条件**，它可以解决该问题。
+
+
 
 
 
 Java提供了专门的阻塞队列实现：
 
-- 接口BlockingQueue和BlockingDeque。
+- 接口`BlockingQueue`和`BlockingDeque`。
 - 基于数组的实现类ArrayBlockingQueue。
 - 基于链表的实现类LinkedBlockingQueue和LinkedBlockingDeque。
 - 基于堆的实现类PriorityBlockingQueue。
 
 #### 同时开始
 
-
+同时开始，类似于运动员比赛，在听到比赛开始枪响后同时开始。
 
 #### 等待结束
 
-
-
-#### 异步结果🔖
-
-Callable
+join实际上就是调用了wait。
 
 
 
-#### 集合点🔖
+`CountDownLatch`
+
+#### 异步结果
+
+在主从模式中，手工创建线程往往比较麻烦，一种常见的模式是异步调用，异步调用返回一个一般称为`Future`的对象，通过它可以获得最终的结果。在Java中，表示子任务的接口是`Callable`，声明为：
+
+```java
+public interface Callable<V> {
+  V call() throws Exception;
+}
+```
+
+
+
+
+
+Java一套完善的框架`Executors`，相关的部分接口和类有：
+
+- 表示异步结果的接口`Future`和实现类`FutureTask`。
+- 用于执行异步任务的接口`Executor`，以及有更多功能的子接口`ExecutorService`。
+- 用于创建`Executor`和`ExecutorService`的工厂方法类`Executors`。
+
+#### 集合点
 
 
 
 ### 15.4 线程的中断
 
+> 如何在Java中取消或关闭一个线程？
+
 #### 取消/关闭的场景
 
 线程的start方法启动一个线程后，线程开始执行run方法，run方法运行结束后线程退出，那为什么还需要结束一个线程呢？
 
-1. 很多线程的运行模式是死循环
+1. 很多线程的运行模式是死循环。比如在生产者/消费者模式中，消费者主体就是一个死循环，它不停地从队列中接受任务，执行任务，在停止程序时，我们需要一种“优雅”的方法以关闭该线程。
 2. 在一些图形用户界面程序中，线程是用户启动的，完成一些任务，比如从远程服务器上下载一个文件，在下载过程中，用户可能会希望取消该任务。
-3. 在一些场景中，比如从第三方服务器查询一个结果，我们希望在限定的时间内得到结果，如果得不到，我们会希望取消该任务
-4. 有时，我们会启动多个线程做同一件事，比如类似抢火车票，我们可能会让多个好友帮忙从多个渠道买火车票，只要有一个渠道买到了，我们会通知取消其他渠道。
+3. 在一些场景中，比如从第三方服务器查询一个结果，我们希望在限定的时间内得到结果，如果得不到，我们会希望取消该任务。
+4. 有时，我们会启动**多个线程做同一件事**，比如类似抢火车票，我们可能会让多个好友帮忙从多个渠道买火车票，只要有一个渠道买到了，我们会通知取消其他渠道。
 
 
 
@@ -7896,15 +8148,13 @@ public static boolean interrupted()
 
 - isInterrupted：返回对应线程的中断标志位是否为true。
 - interrupt：表示中断对应的线程。
-- interrupted：返回当前线程的中断标志位是否为true（会调用Thread. currentThread()），但它还有一个重要的副作用，就是清空中断标志位，也就是说，连续两次调用interrupted()，第一次返回的结果为true，第二次一般就是false（除非同时又发生了一次中断）。
-
-
-
-
+- interrupted：返回当前线程的中断标志位是否为true（会调用Thread.currentThread()），但它还有一个重要的副作用，就是清空中断标志位，也就是说，连续两次调用interrupted()，第一次返回的结果为true，第二次一般就是false（除非同时又发生了一次中断）。
 
 #### 线程对中断的反应🔖
 
-interrupt()对线程的影响与线程的状态和在进行的IO操作有关。
+`interrupt()`对线程的影响与==线程的状态==和在进行的==IO操作==有关。
+
+线程状态有：
 
 ##### 1.RUNNABLE
 
@@ -7914,17 +8164,36 @@ interrupt()对线程的影响与线程的状态和在进行的IO操作有关。
 
 线程在等待某个条件或超时。
 
+线程调用join/wait/sleep方法会进入WAITING或TIMED_WAITING状态，在这些状态时，对线程对象调用interrupt()会使得该线程抛出`InterruptedException`。需要注意的是，抛出异常后，中断标志位会被清空，而不是被设置。
+
 ##### 3.BLOCKED
 
 线程在等待锁，试图进入同步块。
+
+如果线程在等待锁，对线程对象调用interrupt()只是会设置线程的中断标志位，线程依然会处于BLOCKED状态，也就是说，<u>interrupt()并不能使一个在等待锁的线程真正“中断”</u>。
 
 ##### 4.NEW/TERMINATED
 
 线程还未启动或已结束。
 
-
+如果线程尚未启动（NEW），或者已经结束（TERMINATED），则调用interrupt()对它没有任何效果，中断标志位也不会被设置。
 
 #### 如何正确地取消/关闭线程
+
+interrupt方法不一定会真正“中断”线程，它只是一种**协作机制**，如果不明白线程在做什么，不应该贸然地调用线程的interrupt方法，以为这样就能取消线程。
+
+对于以线程提供服务的程序模块而言，它应该**封装取消/关闭操作**，提供单独的取消/关闭方法给调用者，外部调用者应该调用这些方法而不是直接调用interrupt。Java并发库的一些代码就提供了单独的取消/关闭方法，比如，Future接口提供了如下方法以取消任务：
+
+```java
+boolean cancel(boolean mayInterruptIfRunning);
+```
+
+ExecutorService提供了如下两个关闭方法：
+
+```java
+void shutdown();
+List<Runnable> shutdownNow();
+```
 
 
 

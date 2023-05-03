@@ -9,6 +9,7 @@ public class WaitThread extends Thread {
             synchronized (this) {
                 while (!fire) {
                     wait();
+//                    System.out.println(Thread.currentThread().getState());
                 }
             }
             System.out.println("fired");
@@ -18,6 +19,7 @@ public class WaitThread extends Thread {
     }
 
     public synchronized void fire() {
+        System.out.println(Thread.currentThread().getState());
         this.fire = true;
         notify();
     }
