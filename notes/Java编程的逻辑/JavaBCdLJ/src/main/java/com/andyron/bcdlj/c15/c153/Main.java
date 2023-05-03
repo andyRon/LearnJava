@@ -8,5 +8,6 @@ public class Main {
         MyBlockingQueue<String> queue = new MyBlockingQueue<>(10);
         new Producer(queue).start();
         new Consumer(queue).start();
+
     }
 }

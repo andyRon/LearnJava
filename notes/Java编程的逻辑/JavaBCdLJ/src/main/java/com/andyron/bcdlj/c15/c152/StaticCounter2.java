@@ -9,6 +9,7 @@ public class StaticCounter2 {
         synchronized (StaticCounter2.class) {
             count++;
         }
+
     }
 
     public static int getCount() {

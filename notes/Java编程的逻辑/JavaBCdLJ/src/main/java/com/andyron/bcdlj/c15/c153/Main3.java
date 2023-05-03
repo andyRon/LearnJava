@@ -1,6 +1,8 @@
 package com.andyron.bcdlj.c15.c153;
 
+
 /**
+ * 等待结束
  * @author andyron
  **/
 public class Main3 {
@@ -16,7 +18,9 @@ public class Main3 {
         System.out.println("collect worker results");
     }
 
-
+    /**
+     * 使用MyLatch的工作子线程
+     */
     static class Worker extends Thread {
         MyLatch latch;
 
