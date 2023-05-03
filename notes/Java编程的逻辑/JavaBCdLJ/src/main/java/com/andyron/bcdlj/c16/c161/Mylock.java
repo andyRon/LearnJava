@@ -1,4 +1,4 @@
-package com.andyron.bcdlj.c16;
+package com.andyron.bcdlj.c16.c161;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -8,13 +8,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Mylock {
     private AtomicInteger status = new AtomicInteger(0);
-
     public void lock() {
         while (!status.compareAndSet(0, 1)) {
             Thread.yield();
         }
     }
-
     public void unlock() {
         status.compareAndSet(1, 0);
     }

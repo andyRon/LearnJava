@@ -8212,9 +8212,9 @@ List<Runnable> shutdownNow();
 - `AtomicLong`：原子Long类型，常用来在程序中生成唯一序列号。
 - `AtomicReference`：原子引用类型，用来以原子方式更新复杂类型。
 
-另外还又针对数组的类：AtomicLongArray、AtomicReferenceArray，以及用于以原子方式更新对象中的字段的类，如AtomicIntegerFieldUpdater、AtomicReferenceFieldUpdater等。
+另外还又针对数组的类：`AtomicLongArray`、`AtomicReferenceArray`，以及用于以原子方式更新对象中的字段的类，如`AtomicIntegerFieldUpdater`、`AtomicReferenceFieldUpdater`等。
 
-Java 8之后增加了几个类，在高并发统计汇总的场景中更为适合，包括LongAdder、LongAccumulator、DoubleAdder和DoubleAccumulator。
+Java 8之后增加了几个类，在高并发统计汇总的场景中更为适合，包括`LongAdder`、`LongAccumulator`、`DoubleAdder`和`DoubleAccumulator`。
 
 #### AtomicInteger
 
@@ -8245,7 +8245,9 @@ public final int addAndGet(int delta)
 public final boolean compareAndSet(int expect, int update)
 ```
 
-compareAndSet是一个非常重要的方法，比较并设置，我们以后将简称为**CAS**。该方法有两个参数expect和update，以原子方式实现了如下功能：<u>如果当前值等于expect，则更新为update，否则不更新，如果更新成功，返回true，否则返回false。</u>
+compareAndSet是一个非常重要的方法，==比较并设置==，我们以后将简称为**==CAS==**。该方法有两个参数expect和update，以原子方式实现了如下功能：<u>如果当前值等于expect，则更新为update，否则不更新，如果更新成功，返回true，否则返回false。</u>
+
+AtomicInteger可以在程序中用作一个计数器，多个线程并发更新，也总能实现正确性。
 
 ##### 2.基本原理和思维
 
@@ -8259,25 +8261,76 @@ volatile是必需的，以保证**内存可见性**。
 
 与synchronized锁相比，**这种原子更新方式代表一种不同的思维方式**。synchronized是**悲观**的，它假定更新很可能冲突，所以先获取锁，得到锁后才更新。原子变量的更新逻辑是**乐观**的，它假定冲突比较少，但使用CAS更新，也就是进行冲突检测，如果确实冲突了，那也没关系，继续尝试就好了。
 
-synchronized代表一种**阻塞式**算法，得不到锁的时候，进入锁等待队列，等待其他线程唤醒，有上下文切换开销。原子变量的更新逻辑是**非阻塞式**的，更新冲突的时候，它就重试，不会阻塞，不会有上下文切换开销。对于大部分比较简单的操作，无论是在低并发还是高并发情况下，这种乐观非阻塞方式的**性能都远高于**悲观阻塞式方式。
+synchronized代表一种**阻塞式**算法，得不到锁的时候，进入锁等待队列，等待其他线程唤醒，有上下文切换开销。原子变量的更新逻辑是**非阻塞式**的，更新冲突的时候，它就重试，不会阻塞，不会有上下文切换开销。对于大部分比较简单的操作，无论是在低并发还是高并发情况下，这种<u>乐观非阻塞方式</u>的**性能都远高于**<u>悲观阻塞式方式</u>。
 
- ConcurrentLinkedQueue和ConcurrentLinkedDeque：非阻塞并发队列。 
+原子变量相对比较简单，但对于复杂一些的数据结构和算法，非阻塞方式往往难于实现和理解，幸运的是，Java并发包中已经提供了一些==非阻塞容器==，我们只需要会使用就可以了，比如：
 
-ConcurrentSkipListMap和ConcurrentSkipListSet：非阻塞并发Map和Set。
+- `ConcurrentLinkedQueue`和`ConcurrentLinkedDeque`：非阻塞并发队列。 
+
+- `ConcurrentSkipListMap`和`ConcurrentSkipListSet`：非阻塞并发Map和Set。
 
 `sun.misc.Unsafe`是Sun的私有实现，名字的意思是是“不安全”，一般应用程序不应该直接使用。原理上，**一般的计算机系统都在硬件层次上直接支持CAS指令**。
 
 ##### 3.实现锁
 
-基于CAS，除了可以实现乐观非阻塞算法之外，还可以实现悲观阻塞式算法，比如锁。
+基于CAS，除了可以实现==乐观非阻塞算法==之外，还可以实现==悲观阻塞式算法==，比如锁。
 
-实际上，Java并发包中的所有阻塞式工具、容器、算法也都是基于CAS的（不过，也需要一些别的支持）。
+实际上，<u>Java并发包中的所有阻塞式工具、容器、算法也都是基于CAS的</u>（不过，也需要一些别的支持）。
+
+```java
+/**
+ * 使用AtomicInteger实现锁
+ * status表示锁的状态，0表示未锁定，1表示锁定，lock()、unlock()使用CAS方法更新，lock()只有在更新成功后才退出，实现了阻塞的效果
+ */
+public class Mylock {
+    private AtomicInteger status = new AtomicInteger(0);
+    public void lock() {
+        while (!status.compareAndSet(0, 1)) {
+            Thread.yield();
+        }
+    }
+    public void unlock() {
+        status.compareAndSet(1, 0);
+    }
+}
+```
+
+MyLock只是用于演示基本概念，实际开发中应该使用Java并发包中的类，如`ReentrantLock`。
 
 #### ABA问题
 
 使用CAS方式更新有一个ABA问题：假设当前值为A，如果另一个线程先将A修改成B，再修改回成A，当前线程的CAS操作无法分辨当前值发生过变化。
 
-🔖
+ABA是不是一个问题与程序的逻辑有关，一般不是问题。而如果确实有问题，解决方法是使用`AtomicStampedReference`，在修改值的同时附加一个时间戳，只有值和时间戳都相同才进行修改，其CAS方法声明为：
+
+```java
+public boolean compareAndSet(V expectedReference, V newReference, int expectedStamp, int newStamp)
+```
+
+
+
+
+
+```java
+public boolean compareAndSet(V   expectedReference,
+                             V   newReference,
+                             int expectedStamp,
+                             int newStamp) {
+  Pair<V> current = pair;
+  return
+    expectedReference == current.reference &&
+    expectedStamp == current.stamp &&
+    ((newReference == current.reference &&
+      newStamp == current.stamp) ||
+     casPair(current, Pair.of(newReference, newStamp)));
+}
+```
+
+
+
+
+
+
 
 >  CAS是Java并发包的基础，基于它可以实现高效的、乐观、非阻塞式数据结构和算法，它也是并发包中锁、同步工具和各种容器的基础。
 
@@ -8285,9 +8338,9 @@ ConcurrentSkipListMap和ConcurrentSkipListSet：非阻塞并发Map和Set。
 
 Java并发包中的显式锁可以解决synchronized的一些局限性。
 
-`java.util.concurrent.locks`，主要接口和类有：
+Java并发包中的显式锁接口和类位于包`java.util.concurrent.locks`下，主要接口和类有：
 
-- 锁接口Lock，主要实现类是`ReentrantLock`；
+- 锁接口`Lock`，主要实现类是`ReentrantLock`；
 - 读写锁接口`ReadWriteLock`，主要实现类是`ReentrantReadWriteLock`。
 
 #### 接口Lock
@@ -8317,6 +8370,12 @@ public interface Lock {
 
 ##### 1.基本用法
 
+Lock接口的主要实现类是`ReentrantLock`，它的基本用法lock/unlock实现了与synchronized一样的语义，包括：
+
+- 可重入，一个线程在持有一个锁的前提下，可以继续获得该锁；
+- 可以解决竞态条件问题；
+- 可以保证内存可见性。
+
 构造方法：
 
 ```java
@@ -8327,6 +8386,8 @@ public ReentrantLock(boolean fair)
 参数fair，默认是false，表示不公平。所谓公平指，**等待时间最长的线程优先获得锁**。
 
 **保证公平会影响性能**，一般也不需要，所以默认不保证，synchronized锁也是不保证公平的。
+
+==使用显式锁，一定要记得调用unlock==。一般而言，应该将lock之后的代码包装到try语句内，在finally语句内释放锁。
 
 ```java
 public class Counter {
@@ -8349,9 +8410,13 @@ public class Counter {
 
 ##### 2.使用tryLock避免死锁
 
-🔖
+使用tryLock()，可以避免死锁。在持有一个锁获取另一个锁而获取不到的时候，可以释放已持有的锁，给其他线程获取锁的机会，然后重试获取所有锁。
 
-#### ReentrantLock的实现原理
+
+
+#### ReentrantLock的实现原理🔖
+
+ReentrantLock在最底层，它依赖于16.1节介绍的CAS方法。
 
 ##### 1.LockSupport
 
@@ -8385,6 +8450,8 @@ park的两个变体：
 
 #### 对比ReentrantLock和synchronized
 
+相比synchronized, ReentrantLock可以实现与synchronized相同的语义，而且支持**以非阻塞方式获取锁，可以响应中断，可以限时，更为灵活**。不过，synchronized的使用**更为简单，写的代码更少，也更不容易出错**。
+
 synchronized代表一种**声明式编程思维**，程序员更多的是表达一种同步声明，由Java系统负责具体实现，程序员不知道其实现细节；显式锁代表一种**命令式编程思维**，程序员实现所有细节。
 
 声明式编程的好处除了简单，还在于性能，在较新版本的JVM上，ReentrantLock和synchronized的性能是接近的，但Java编译器和虚拟机可以不断优化synchronized的实现，比如自动分析synchronized的使用，对于没有锁竞争的场景，自动省略对锁获取/释放的调用。
@@ -8397,9 +8464,9 @@ synchronized代表一种**声明式编程思维**，程序员更多的是表达�
 
 #### 用法
 
-锁用于解决竞态条件问题，条件是线程间的协作机制。
+==锁用于解决竞态条件问题，条件是线程间的协作机制。==
 
-显式锁与synchronized相对应，而显式条件与wait/notify相对应。wait/notify与synchronized配合使用，显式条件与显式锁配合使用。
+显式锁与`synchronized`相对应，而显式条件与`wait/notify`相对应。wait/notify与synchronized配合使用，显式条件与显式锁配合使用。
 
 Lock接口定义了创建方法：
 
@@ -8419,6 +8486,19 @@ public interface Condition {
 }
 ```
 
+await对应于Object的wait, signal对应于notify, signalAll对应于notifyAll，语义也是一样的。
+
+与Object的wait方法类似，await也有几个限定等待时间的方法，但功能更多一些：
+
+```java
+//等待时间是相对时间，如果由于等待超时返回，返回值为false，否则为true
+boolean await(long time, TimeUnit unit) throws InterruptedException;
+//等待时间也是相对时间，但参数单位是纳秒，返回值是nanosTimeout减去实际等待的时间
+long awaitNanos(long nanosTimeout) throws InterruptedException;
+//等待时间是绝对时间，如果由于等待超时返回，返回值为false，否则为true
+boolean awaitUntil(Date deadline) throws InterruptedException;
+```
+
 
 
 await在进入等待队列后，会释放锁，释放CPU，当其他线程将它唤醒后，或等待超时后，或发生中断异常后，它都需要重新获取锁，获取锁后，才会从await方法中退出。
@@ -8435,18 +8515,18 @@ await在进入等待队列后，会释放锁，释放CPU，当其他线程将它
 
 显式条件与显式锁配合使用，与wait/notify相比，可以支持多个条件队列，代码更为易读，效率更高，使用时注意不要将signal/signalAll误写为notify/notifyAll。
 
-## 17 并发容器
-
-Copy-On-Write即写时复制，或称写时拷贝，是解决并发问题的一种重要思路。
+## 17 并发容器🔖
 
 ### 17.1 写时复制的List和Set
 
+Copy-On-Write即写时复制，或称写时拷贝，是解决并发问题的一种重要思路。
+
 #### CopyOnWriteArrayList
 
-CopyOnWriteArrayList的用法与其他List（如ArrayList）基本是一样的。它的特点如下：
+CopyOnWriteArrayList的用法与其他List（如ArrayList）<u>基本是一样的</u>。它的特点如下：
 
 - 线程安全
-- 迭代器不支持修改操作，但也不会抛出ConcurrentModificationException
+- 迭代器不支持修改操作，但也不会抛出`ConcurrentModificationException`
 - 以原子方式支持一些复合操作
 
 两个原子方法：
@@ -8480,9 +8560,28 @@ HashMap的并发版本，与HashMap相比，它有如下特点：
 
 #### 原子复合操作
 
-实现了ConcurrentMap接口
+除了Map接口，还实现了ConcurrentMap接口，java7具体定义：
 
+```java
+public interface ConcurrentMap<K, V> extends Map<K, V> {
+  //条件更新，如果Map中没有key，设置key为value，返回原来key对应的值，
+  //如果没有，返回null
+  V putIfAbsent(K key, V value);
+  //条件删除，如果Map中有key，且对应的值为value，则删除，如果删除了，返回true，
+  //否则返回false
+  boolean remove(Object key, Object value);
+  //条件替换，如果Map中有key，且对应的值为oldValue，则替换为newValue，
+  //如果替换了，返回ture，否则false
+  boolean replace(K key, V oldValue, V newValue);
+  //条件替换，如果Map中有key，则替换值为value，返回原来key对应的值，
+  //如果原来没有，返回null
+  V replace(K key, V value);
+}
+```
 
+Java 8增加了几个默认方法，包括getOrDefault、forEach、computeIfAbsent、merge等。
+
+如果使用同步容器，调用方必须加锁，而Concurrent-HashMap将它们实现为了原子操作。实际上，使用ConcurrentHashMap，调用方也没有办法进行加锁，它没有暴露锁接口，也不使用synchronized。
 
 #### 高并发的基本机制
 
@@ -8493,11 +8592,19 @@ HashMap的并发版本，与HashMap相比，它有如下特点：
 
 #### 迭代安全
 
+ConcurrentHashMap在迭代器创建后，在迭代过程中，如果另一个线程对容器进行了修改，迭代会继续，不会抛出异常。
+
 
 
 #### 弱一致性
 
+ConcurrentHashMap的迭代器创建后，就会按照哈希表结构遍历每个元素，但在遍历过程中，内部元素可能会发生变化，如果变化发生在已遍历过的部分，迭代器就不会反映出来，而如果变化发生在未遍历过的部分，迭代器就会发现并反映出来，这就是弱一致性。
 
+
+
+> ConcurrentHashMap是并发版的HashMap，通过降低锁的粒度和CAS等实现了高并发，支持原子条件更新操作，不会抛出ConcurrentModificationException，实现了弱一致性。
+>
+> Java中没有并发版的HashSet，但可以通过Collections.newSetFromMap方法基于ConcurrentHashMap构建一个。
 
 ### 17.3 基于跳表的Map和Set
 
@@ -8513,39 +8620,101 @@ ConcurrentSkipListMap是基于SkipList实现的，`SkipList`称为跳跃表或==
 >
 > 原因也很简单，因为跳表更易于实现高效并发算法。
 
+`ConcurrentSkipListMap`的下特点：
+
+1. 没有使用锁，所有操作都是无阻塞的，所有操作都可以并行，包括写，多线程可以同时写。
+2. 与ConcurrentHashMap类似，迭代器不会抛出ConcurrentModificationException，是弱一致的，迭代可能反映最新修改也可能不反映，一些方法如putAll、clear不是原子的。
+3. 与ConcurrentHashMap类似，同样实现了ConcurrentMap接口，支持一些原子复合操作。
+4. 与TreeMap一样，可排序，默认按键的自然顺序，也可以传递比较器自定义排序，实现了SortedMap和NavigableMap接口。
 
 
 
-
-#### 基本实现原理🔖
+#### 基本实现原理
 
 跳表是基于链表的，在链表的基础上加了多层索引结构。
 
+ConcurrentSkipListMap会构造类似图17-1所示的跳表结构：
+
+![](images/image-20230503215341436.png)
+
+
+
+![](images/image-20230503215423599.png)
+
+
+
+
+
+![](images/image-20230503215452736.png)
+
 ### 17.4 并发队列
 
+==无锁非阻塞==是指，这些队列不使用锁，所有操作总是可以立即执行，主要通过循环CAS实现并发安全。
 
+==阻塞队列==是指，这些队列使用锁和条件，很多操作都需要先获取锁或满足特定条件，获取不到锁或等待条件时，会等待（即阻塞），获取到锁或条件满足再返回。
+
+这些队列迭代都不会抛出`ConcurrentModificationException`，都是弱一致的。
 
 #### 无锁非阻塞并发队列
 
-ConcurrentLinkedQueue、ConcurrentLinkedDeque
+`ConcurrentLinkedQueue`、`ConcurrentLinkedDeque`
 
 
 
 #### 普通阻塞队列
 
-基于数组的ArrayBlockingQueue，基于链表的LinkedBlockingQueue和LinkedBlockingDeque。
+基于数组的`ArrayBlockingQueue`，基于链表的`LinkedBlockingQueue`和`LinkedBlockingDeque`。
+
+
+
+```java
+//入队，如果队列满，等待直到队列有空间
+void put(E e) throws InterruptedException;
+//出队，如果队列空，等待直到队列不为空，返回头部元素
+E take() throws InterruptedException;
+//入队，如果队列满，最多等待指定的时间，如果超时还是满，返回false
+boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException;
+//出队，如果队列空，最多等待指定的时间，如果超时还是空，返回null
+E poll(long timeout, TimeUnit unit) throws InterruptedException;
+```
+
+
 
 #### 优先级阻塞队列
 
-PriorityBlockingQueue
+`PriorityBlockingQueue`
+
+
 
 #### 延时阻塞队列
 
-DelayQueue
+`DelayQueue`
+
+
 
 #### 其它阻塞队列
 
-SynchronousQueue和LinkedTransferQueue。
+`SynchronousQueue`和`LinkedTransferQueue`。
+
+
+
+```java
+public interface TransferQueue<E> extends BlockingQueue<E> {
+  //如果有消费者在等待(执行take或限时的poll)，直接转给消费者，
+  //返回true，否则返回false，不入队
+  boolean tryTransfer(E e);
+  //如果有消费者在等待，直接转给消费者，否则入队，阻塞等待直到被消费者接收后再返回
+  void transfer(E e) throws InterruptedException;
+  //如果有消费者在等待，直接转给消费者，返回true
+  //否则入队，阻塞等待限定的时间，如果最后被消费者接收，返回true
+  boolean tryTransfer(E e, long timeout, TimeUnit unit)
+    throws InterruptedException;
+  //是否有消费者在等待
+  boolean hasWaitingConsumer();
+  //等待的消费者个数
+  int getWaitingConsumerCount();
+}
+```
 
 
 
@@ -8561,9 +8730,9 @@ SynchronousQueue和LinkedTransferQueue。
 
 任务执行服务涉及的基本接口：
 
-- Runnable和Callable：表示要执行的异步任务。
-- Executor和ExecutorService：表示执行服务。
-- Future：表示异步任务的结果。
+- `Runnable`和`Callable`：表示要执行的异步任务。
+- `Executor`和`ExecutorService`：表示执行服务。
+- `Future`：表示异步任务的结果。
 
 #### 基本用法
 
@@ -8621,11 +8790,20 @@ public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveT
 
 ##### 2.队列
 
-
+ThreadPoolExecutor要求的队列类型是阻塞队列BlockingQueue
 
 ##### 3.任务拒绝策略
 
+`RejectedExecutionException`
 
+
+
+拒绝策略是可以自定义的，ThreadPoolExecutor实现了4种处理方式:
+
+1. hreadPoolExecutor.AbortPolicy：这就是默认的方式，抛出异常。
+2. ThreadPoolExecutor.DiscardPolicy：静默处理，忽略新任务，不抛出异常，也不执行。
+3. ThreadPoolExecutor.DiscardOldestPolicy：将等待时间最长的任务扔掉，然后自己排队。
+4. ThreadPoolExecutor.CallerRunsPolicy：在任务提交者线程中执行任务，而不是交给线程池中的线程执行。
 
 ##### 4.线程工厂
 

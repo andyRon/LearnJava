@@ -3,6 +3,9 @@ package com.andyron.bcdlj.c16.c162;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * 账户
+ */
 public class Account {
     private Lock lock = new ReentrantLock();
     private volatile double money;
