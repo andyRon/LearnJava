@@ -8257,11 +8257,11 @@ AtomicInteger的主要内部成员：
 private volatile int value;
 ```
 
-volatile是必需的，以保证**内存可见性**。
+volatile是必需的，以保证**==内存可见性==**。
 
-与synchronized锁相比，**这种原子更新方式代表一种不同的思维方式**。synchronized是**悲观**的，它假定更新很可能冲突，所以先获取锁，得到锁后才更新。原子变量的更新逻辑是**乐观**的，它假定冲突比较少，但使用CAS更新，也就是进行冲突检测，如果确实冲突了，那也没关系，继续尝试就好了。
+与synchronized锁相比，**这种原子更新方式代表一种不同的思维方式**。synchronized是**==悲观==**的，它假定更新很可能冲突，所以先获取锁，得到锁后才更新。原子变量的更新逻辑是**==乐观==**的，它假定冲突比较少，但使用CAS更新，也就是进行冲突检测，如果确实冲突了，那也没关系，继续尝试就好了。
 
-synchronized代表一种**阻塞式**算法，得不到锁的时候，进入锁等待队列，等待其他线程唤醒，有上下文切换开销。原子变量的更新逻辑是**非阻塞式**的，更新冲突的时候，它就重试，不会阻塞，不会有上下文切换开销。对于大部分比较简单的操作，无论是在低并发还是高并发情况下，这种<u>乐观非阻塞方式</u>的**性能都远高于**<u>悲观阻塞式方式</u>。
+synchronized代表一种**阻塞式**算法，得不到锁的时候，进入<u>锁等待队列</u>，等待其他线程唤醒，有上下文切换开销。原子变量的更新逻辑是**非阻塞式**的，更新冲突的时候，它就重试，不会阻塞，不会有上下文切换开销。对于大部分比较简单的操作，无论是在低并发还是高并发情况下，这种<u>==乐观非阻塞方式==</u>的**性能都远高于**<u>==悲观阻塞式方式==</u>。
 
 原子变量相对比较简单，但对于复杂一些的数据结构和算法，非阻塞方式往往难于实现和理解，幸运的是，Java并发包中已经提供了一些==非阻塞容器==，我们只需要会使用就可以了，比如：
 
@@ -8269,7 +8269,13 @@ synchronized代表一种**阻塞式**算法，得不到锁的时候，进入锁�
 
 - `ConcurrentSkipListMap`和`ConcurrentSkipListSet`：非阻塞并发Map和Set。
 
-`sun.misc.Unsafe`是Sun的私有实现，名字的意思是是“不安全”，一般应用程序不应该直接使用。原理上，**一般的计算机系统都在硬件层次上直接支持CAS指令**。
+```java
+    public final boolean compareAndSet(int expect, int update) {
+        return unsafe.compareAndSwapInt(this, valueOffset, expect, update);
+    }
+```
+
+`sun.misc.Unsafe`是Sun的私有实现，名字的意思是是“不安全”，一般应用程序不应该直接使用。原理上，**一般的计算机系统都==在硬件层次上直接支持CAS指令==**，而Java的实现都会利用这些特殊指令。从程序的角度看，可以将compareAndSet视为计算机的基本操作，直接接纳就好。
 
 ##### 3.实现锁
 
@@ -8299,17 +8305,26 @@ MyLock只是用于演示基本概念，实际开发中应该使用Java并发包�
 
 #### ABA问题
 
-使用CAS方式更新有一个ABA问题：假设当前值为A，如果另一个线程先将A修改成B，再修改回成A，当前线程的CAS操作无法分辨当前值发生过变化。
+使用CAS方式更新有一个ABA问题：<u>假设当前值为A，如果另一个线程先将A修改成B，再修改回成A，当前线程的CAS操作无法分辨当前值发生过变化</u>。
 
-ABA是不是一个问题与程序的逻辑有关，一般不是问题。而如果确实有问题，解决方法是使用`AtomicStampedReference`，在修改值的同时附加一个时间戳，只有值和时间戳都相同才进行修改，其CAS方法声明为：
+ABA是不是一个问题与程序的逻辑有关，一般不是问题。而如果确实有问题，解决方法是使用`AtomicStampedReference`，**在修改值的同时附加一个时间戳，只有值和时间戳都相同才进行修改**，其CAS方法声明为：
 
 ```java
 public boolean compareAndSet(V expectedReference, V newReference, int expectedStamp, int newStamp)
 ```
 
+例子：
 
+```java
+Pair pair = new Pair(100, 200);
+int stamp = 1;
+AtomicStampedReference<Pair> pairRef = new AtomicStampedReference<>(pair, stamp);
+int newStamp = 2;
+pairRef.compareAndSet(pair, new Pair(200, 200), stamp, newStamp);
+System.out.println(pair);  // Pair{item=100, weight=200}
+```
 
-
+AtomicStampedReference在compareAndSet中要同时修改两个值：一个是引用，另一个是时间戳。它怎么实现原子性呢？实际上，内部AtomicStampedReference会将两个值组合为一个对象，修改的是一个值，我们看代码：
 
 ```java
 public boolean compareAndSet(V   expectedReference,
@@ -8326,11 +8341,23 @@ public boolean compareAndSet(V   expectedReference,
 }
 ```
 
+这个Pair是AtomicStampedReference的一个内部类，成员包括引用和时间戳，具体定义为：
 
+```java
+    private static class Pair<T> {
+        final T reference;
+        final int stamp;
+        private Pair(T reference, int stamp) {
+            this.reference = reference;
+            this.stamp = stamp;
+        }
+        static <T> Pair<T> of(T reference, int stamp) {
+            return new Pair<T>(reference, stamp);
+        }
+    }
+```
 
-
-
-
+AtomicStampedReference将对引用值和时间戳的组合比较和修改转换为了对这个内部类Pair单个值的比较和修改。
 
 >  CAS是Java并发包的基础，基于它可以实现高效的、乐观、非阻塞式数据结构和算法，它也是并发包中锁、同步工具和各种容器的基础。
 
@@ -8356,15 +8383,13 @@ public interface Lock {
 }
 ```
 
-- lock()：普通的获取锁，会阻塞直到成功；unlock()：释放锁方法。
-- lockInterruptibly()：与lock()的不同是，它可以响应中断，如果被其他线程中断了，则抛出InterruptedException。
-- tryLock()：只是尝试获取锁，立即返回，不阻塞，如果获取成功，返回true，否则返回false。
-- tryLock(long time, TimeUnit unit)：先尝试获取锁，如果能成功则立即返回true，否则阻塞等待，但等待的最长时间由指定的参数设置，在等待的同时响应中断，如果发生了中断，抛出InterruptedException，如果在等待的时间内获得了锁，返回true，否则返回false。
-- newCondition：新建一个条件，一个Lock可以关联多个条件。
+- `lock()`：普通的获取锁，会阻塞直到成功；`unlock()`：释放锁方法。
+- `lockInterruptibly()`：与lock()的不同是，它可以响应中断，如果被其他线程中断了，则抛出`InterruptedException`。
+- `tryLock()`：只是尝试获取锁，立即返回，不阻塞，如果获取成功，返回true，否则返回false。
+- `tryLock(long time, TimeUnit unit)`：先尝试获取锁，如果能成功则立即返回true，否则阻塞等待，但等待的最长时间由指定的参数设置，在等待的同时响应中断，如果发生了中断，抛出InterruptedException，如果在等待的时间内获得了锁，返回true，否则返回false。
+- `newCondition()`：新建一个条件，一个Lock可以关联多个条件。
 
 相比synchronized，**显式锁支持以非阻塞方式获取锁、可以响应中断、可以限时**。
-
-
 
 #### 可重入锁ReentrantLock
 
@@ -8412,11 +8437,124 @@ public class Counter {
 
 使用tryLock()，可以避免死锁。在持有一个锁获取另一个锁而获取不到的时候，可以释放已持有的锁，给其他线程获取锁的机会，然后重试获取所有锁。
 
+```java
+public class AccountMgr {
+    public static void main(String[] args) throws NoEnoughMoneyException {
+        simulateDeadLock();
+    }
+    public static class NoEnoughMoneyException extends Exception {}
+
+    /**
+     * 转账的错误写法
+     * 如果两个账户都同时给对方转账，都先获取了第一个锁，则会发生死锁。
+     * @param from
+     * @param to
+     * @param money
+     * @throws NoEnoughMoneyException
+     */
+    public static void transfer(Account from, Account to, double money) throws NoEnoughMoneyException {
+        from.lock();
+        try {
+            to.lock();
+            try {
+                if (from.getMoney() >= money) {
+                    from.reduce(money);
+                    to.add(money);
+                } else {
+                    throw new NoEnoughMoneyException();
+                }
+            } finally {
+                to.unlock();
+            }
+        } finally {
+            from.unlock();
+        }
+    }
+
+    /**
+     * 模拟账户转账的死锁过程'
+     * 创建了10个账户，100个线程，每个线程执行100次循环，在每次循环中，随机挑选两个账户进行转账
+     */
+    public static void simulateDeadLock() {
+        final int accountNum = 10;
+        final Account[] accounts = new Account[accountNum];
+        final Random rnd = new Random();
+        for (int i = 0; i < accountNum; i++) {
+            accounts[i] = new Account(rnd.nextInt(10000));
+        }
+        int threadNum = 100;
+        Thread[] threads = new Thread[threadNum];
+        for (int i = 0; i < threadNum; i++) {
+            threads[i] = new Thread() {
+                @Override
+                public void run() {
+                    int loopNum = 100;
+                    for (int k = 0; k < loopNum; k++) {
+                        int i = rnd.nextInt(accountNum);
+                        int j = rnd.nextInt(accountNum);
+                        int money = rnd.nextInt(10);
+                        if (i != j) {
+                            try {
+//                                transfer(accounts[i], accounts[j], money);
+                                transfer_(accounts[i], accounts[j], money);
+                            } catch (NoEnoughMoneyException e) {
+
+                            }
+                        }
+                    }
+                }
+            };
+            threads[i].start();
+        }
+    }
+
+    /**
+     * 使用tryLock尝试转账
+     * 如果两个锁都能够获得，且转账成功，则返回true，否则返回false。
+     */
+    public static boolean tryTransfer(Account from, Account to, double money) throws NoEnoughMoneyException {
+        if (from.tryLock()) {
+            try {
+                if (to.tryLock()) {
+                    try {
+                        if (from.getMoney() >= money) {
+                            from.reduce(money);
+                            to.add(money);
+                        } else {
+                            throw new NoEnoughMoneyException();
+                        }
+                        return true;
+                    } finally {
+                        to.unlock();
+                    }
+                }
+            } finally {
+                from.unlock();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * transfer方法改进版：循环调用tryTransfer以避免死锁
+     */
+    public static void transfer_(Account from, Account to, double money) throws NoEnoughMoneyException {
+        boolean success = false;
+        do {
+            success = tryTransfer(from, to, money);
+            if (!success) {
+                Thread.yield();
+            }
+        } while (!success);
+    }
+}
+```
 
 
-#### ReentrantLock的实现原理🔖
 
-ReentrantLock在最底层，它依赖于16.1节介绍的CAS方法。
+#### ReentrantLock的实现原理
+
+ReentrantLock在最底层，它依赖于16.1节介绍的CAS方法。另外还依赖于类LockSupport中的一些方法。
 
 ##### 1.LockSupport
 
@@ -8429,6 +8567,25 @@ ReentrantLock在最底层，它依赖于16.1节介绍的CAS方法。
 
 park使得当前线程放弃CPU，进入等待状态（WAITING）；当有其他线程对它调用了unpark, unpark使参数指定的线程恢复可运行状态，操作系统对其进行再调度。
 
+```java
+    public static void main(String[] args) throws InterruptedException {
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                LockSupport.park(); // 放弃CPU
+                System.out.println("exit");
+            }
+        };
+
+        t.start();  // 启动子线程
+        Thread.sleep(1000);
+
+        LockSupport.unpark(t);
+    }
+```
+
+主线程启动子线程t，线程t启动后调用park，放弃CPU，主线程睡眠1秒以确保子线程已执行LockSupport.park()，调用unpark，线程t恢复运行，输出exit。
+
 > park不同于Thread.yield(), yield只是告诉操作系统可以先让其他线程运行，但自己依然是可运行状态，而park会放弃调度资格，使线程进入WAITING状态。
 
 park的两个变体：
@@ -8438,15 +8595,195 @@ park的两个变体：
 
 ##### 2.AQS
 
-抽象类AbstractQueuedSynchronizer，简称AQS。
+利用CAS和LockSupport提供的基本方法，就可以用来实现ReentrantLock了。但Java中还有很多其他并发工具，如ReentrantReadWriteLock、Semaphore、CountDownLatch，它们的实现有很多类似的地方，为了复用代码，Java提供了一个抽象类`AbstractQueuedSynchronizer`，简称AQS，它简化了并发工具的实现。
 
-🔖
+AQS封装了一个状态，给子类提供了查询和设置状态的方法：
+
+```java
+private volatile int state;
+protected final int getState()
+protected final void setState(int newState)
+protected final boolean compareAndSetState(int expect, int update)
+```
+
+用于实现锁时，AQS可以保存锁的当前持有线程，提供了方法进行查询和设置：
+
+```java
+private transient Thread exclusiveOwnerThread;
+protected final void setExclusiveOwnerThread(Thread t)
+protected final Thread getExclusiveOwnerThread()
+```
+
+AQS内部维护了一个等待队列，借助CAS方法实现了无阻塞算法进行更新。
+
+
+
+下面以ReentrantLock的使用为例简要介绍AQS的原理。
 
 ##### 3.ReentrantLock
 
-🔖
+ReentrantLock内部使用AQS，有三个内部类：
+
+```java
+abstract static class Sync extends AbstractQueuedSynchronizer
+static final class NonfairSync extends Sync
+static final class FairSync extends Sync
+```
+
+Sync是抽象类，NonfairSync是fair为false时使用的类，FairSync是fire为true时使用的类。
+
+```java
+private final Sync sync;
+
+public ReentrantLock() {
+  sync = new NonfairSync();
+}
+```
+
+ReentrantLock中的基本方法lock/unlock的实现：
+
+```java
+public void lock() {
+  sync.lock();
+}
+
+// sync默认类型是NonfairSync中lock实现
+final void lock() {
+  if(compareAndSetState(0, 1))
+    setExclusiveOwnerThread(Thread.currentThread());
+  else
+    acquire(1);
+}
+```
+
+ReentrantLock使用state表示==是否被锁和持有数量==，如果当前未被锁定，则立即获得锁，否则调用acquire(1)获得锁。acquire是AQS中的方法，代码为：
+
+```java
+public final void acquire(int arg) {
+  if(! tryAcquire(arg) &&
+     acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+    selfInterrupt();
+}
+```
+
+调用tryAcquire获取锁，tryAcquire必须被子类重写。NonfairSync的实现为：
+
+```java
+protected final boolean tryAcquire(int acquires) {
+  return nonfairTryAcquire(acquires);
+}
+```
+
+nonfairTryAcquire是sync中实现的：
+
+```java
+final boolean nonfairTryAcquire(int acquires) {
+  final Thread current = Thread.currentThread();
+  int c = getState();
+  if (c == 0) {
+    if (compareAndSetState(0, acquires)) {
+      setExclusiveOwnerThread(current);
+      return true;
+    }
+  }
+  else if (current == getExclusiveOwnerThread()) {
+    int nextc = c + acquires;
+    if (nextc < 0) // overflow
+      throw new Error("Maximum lock count exceeded");
+    setState(nextc);
+    return true;
+  }
+  return false;
+}
+```
+
+如果未被锁定，则使用CAS进行锁定；如果已被当前线程锁定，则增加锁定次数。
+
+如果tryAcquire返回false，则AQS会调用`acquireQueued(addWaiter(Node.EXCLUSIVE), arg)`。
+
+其中，addWaiter会新建一个节点Node，代表当前线程，然后加入内部的等待队列中。放入等待队列后，调用acquireQueued尝试获得锁，代码为：
+
+```java
+final boolean acquireQueued(final Node node, int arg) {
+  boolean failed = true;
+  try {
+    boolean interrupted = false;
+    for(; ; ) {
+      final Node p = node.predecessor();
+      if(p == head && tryAcquire(arg)) {
+        setHead(node);
+        p.next = null; // help GC
+        failed = false;
+        return interrupted;
+      }
+      if(shouldParkAfterFailedAcquire(p, node) &&
+         parkAndCheckInterrupt())
+        interrupted = true;
+    }
+  } finally {
+    if(failed)
+      cancelAcquire(node);
+  }
+}
+```
+
+主体是一个死循环，在每次循环中，首先检查当前节点是不是第一个等待的节点，如果是且能获得到锁，则将当前节点从等待队列中移除并返回，否则最终调用LockSupport. park放弃CPU，进入等待，被唤醒后，检查是否发生了中断，记录中断标志，在最终方法返回时返回中断标志。如果发生过中断，acquire方法最终会调用selfInterrupt方法设置中断标志位，其代码为：
+
+```java
+private static void selfInterrupt() {
+  Thread.currentThread().interrupt();
+}
+```
 
 
+
+以上就是lock方法的基本过程，能获得锁就立即获得，否则加入等待队列，被唤醒后检查自己是否是第一个等待的线程，如果是且能获得锁，则返回，否则继续等待。这个过程中如果发生了中断，lock会记录中断标志位，但不会提前返回或抛出异常。
+
+
+
+ReentrantLock的unlock方法的代码为：
+
+```java
+public void unlock() {
+  sync.release(1);
+}
+```
+
+release是AQS中定义的方法，代码为：
+
+```java
+public final boolean release(int arg) {
+  if(tryRelease(arg)) {
+    Node h = head;
+    if(h ! = null && h.waitStatus ! = 0)
+      unparkSuccessor(h);
+    return true;
+  }
+  return false;
+}
+```
+
+tryRelease方法会修改状态释放锁，unparkSuccessor会调用LockSupport.unpark将第一个等待的线程唤醒，具体代码就不列举了。
+
+FairSync和NonfairSync的主要区别是：在获取锁时，即在tryAcquire方法中，如果当前未被锁定，即c==0, FairSync多了一个检查，如下：
+
+```java
+protected final boolean tryAcquire(int acquires) {
+  final Thread current = Thread.currentThread();
+  int c = getState();
+  if(c == 0) {
+    if(! hasQueuedPredecessors() &&
+       compareAndSetState(0, acquires)) {
+      setExclusiveOwnerThread(current);
+      return true;
+    }
+  }
+  ..
+```
+
+这个检查是指，只有不存在其他等待时间更长的线程，它才会尝试获取锁。
+
+这样保证公平不是很好吗？为什么默认不保证公平呢？保证公平整体性能比较低，低的原因不是这个检查慢，而是会让活跃线程得不到锁，进入等待状态，引起频繁上下文切换，降低了整体的效率，通常情况下，谁先运行关系不大，而且长时间运行，从统计角度而言，虽然不保证公平，也基本是公平的。需要说明是，即使fair参数为true， ReentrantLock中不带参数的tryLock方法也是不保证公平的，它不会检查是否有其他等待时间更长的线程。
 
 #### 对比ReentrantLock和synchronized
 
@@ -8458,7 +8795,7 @@ synchronized代表一种**声明式编程思维**，程序员更多的是表达�
 
 > 总结：**能用synchronized就用synchronized**，不满足要求时再考虑ReentrantLock。
 
-### 16.3 显式条件🔖
+### 16.3 显式条件
 
 显式条件在不同上下文中也可以被称为**条件变量、条件队列、或条件**。
 
@@ -8499,23 +8836,83 @@ long awaitNanos(long nanosTimeout) throws InterruptedException;
 boolean awaitUntil(Date deadline) throws InterruptedException;
 ```
 
+这些await方法都是响应中断的，如果发生了中断，会抛出InterruptedException，但中断标志位会被清空。`Condition`还定义了一个不响应中断的等待方法：
 
+```java
+void awaitUninterruptibly();
+```
+
+该方法不会由于中断结束，但当它返回时，如果等待过程中发生了中断，中断标志位会被设置。
+
+一般而言，与Object的wait方法一样，调用await方法前需要先获取锁，如果没有锁，会抛出异常`IllegalMonitorStateException`。
 
 await在进入等待队列后，会释放锁，释放CPU，当其他线程将它唤醒后，或等待超时后，或发生中断异常后，它都需要重新获取锁，获取锁后，才会从await方法中退出。
 
+另外，与Object的wait方法一样，await返回后，不代表其等待的条件就一定满足了，通常要将await的调用放到一个循环内，只有条件满足后才退出。
 
+一般而言，signal/signalAll与notify/notifyAll一样，调用它们需要先获取锁，如果没有锁，会抛出异常IllegalMonitorStateException。signal与notify一样，挑选一个线程进行唤醒，signalAll与notifyAll一样，唤醒所有等待的线程，但这些线程被唤醒后都需要重新竞争锁，获取锁后才会从await调用中返回。
+
+🔖
 
 #### 生产者/消费者模式
 
+用wait/notify可以实现生产者/消费者模式，但有一个局限，它只能有一个条件等待队列，分析等待条件也很复杂。在生产者/消费者模式中，其实有两个条件，一个与队列满有关，一个与队列空有关。使用显式锁，可以创建多个条件等待队列。
 
+```java
+/**
+ * 使用显式锁/条件实现的阻塞队列
+ * @author andyron
+ **/
+public class MyBlockingQueue<E> {
+    private Queue<E> queue = null;
+    private int limit;
+    private Lock lock = new ReentrantLock();
+    private Condition notFull = lock.newCondition();
+    private Condition notEmpty = lock.newCondition();
+
+    public MyBlockingQueue(int limit) {
+        this.limit = limit;
+        queue = new ArrayDeque<>(limit);
+    }
+
+    public void put(E e) throws InterruptedException {
+        lock.lockInterruptibly();
+        try {
+            while (queue.size() == limit) {
+                notFull.await();
+            }
+            queue.add(e);
+            notEmpty.signal();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public E take() throws InterruptedException {
+        lock.lockInterruptibly();
+        try {
+            while (queue.isEmpty()) {
+                notEmpty.await();
+            }
+            E e = queue.poll();
+            notFull.signal();
+            return e;
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+```
+
+代码定义了两个等待条件：不满（notFull）、不空（notEmpty）。在put方法中，如果队列满，则在notFull上等待；在take方法中，如果队列空，则在notEmpty上等待。put操作后通知notEmpty, take操作后通知notFull。这样，代码更为清晰易读，同时避免了不必要的唤醒和检查，提高了效率。Java并发包中的类`ArrayBlockingQueue`就采用了类似的方式实现。
 
 #### 实现原理
 
-
+🔖
 
 显式条件与显式锁配合使用，与wait/notify相比，可以支持多个条件队列，代码更为易读，效率更高，使用时注意不要将signal/signalAll误写为notify/notifyAll。
 
-## 17 并发容器🔖
+## 17 并发容器
 
 ### 17.1 写时复制的List和Set
 
@@ -8523,13 +8920,16 @@ Copy-On-Write即写时复制，或称写时拷贝，是解决并发问题的一�
 
 #### CopyOnWriteArrayList
 
-CopyOnWriteArrayList的用法与其他List（如ArrayList）<u>基本是一样的</u>。它的特点如下：
+`CopyOnWriteArrayList`的用法与其他List（如ArrayList）<u>基本是一样的</u>。它的特点如下：
 
 - 线程安全
 - 迭代器不支持修改操作，但也不会抛出`ConcurrentModificationException`
 - 以原子方式支持一些复合操作
 
-两个原子方法：
+基于synchronized的同步容器的问题：
+
+- 迭代时，需要对整个列表对象加锁，否则会抛出ConcurrentModificationException；CopyOnWriteArrayList迭代时不需要加锁。
+- 复合操作，比如先检查再更新，也需要调用方加锁，而CopyOnWriteArrayList直接支持两个原子方法：
 
 ```java
 //不存在才添加，如果添加了，返回true，否则返回false
@@ -8540,13 +8940,13 @@ public int addAllAbsent(Collection<? extends E> c)
 
 CopyOnWriteArrayList的内部也是一个数组，但这个数组是以原子方式被整体更新的。每次修改操作，都会新建一个数组，复制原数组的内容到新数组，在新数组上进行需要的修改，然后以原子方式设置内部的数组引用，这就是**==写时复制==**。
 
-
+🔖
 
 > **写时复制是一种重要的思维，用于各种计算机程序中，比如操作系统内部的进程管理和内存管理。**在进程管理中，子进程经常共享父进程的资源，只有在写时才复制。在内存管理中，当多个程序同时访问同一个文件时，操作系统在内存中可能只会加载一份，只有程序要写时才会复制，分配自己的内存，复制可能也不会全部复制，只会复制写的位置所在的。
 
 #### CopyOnWriteArraySet
 
-CopyOnWriteArraySet内部是通过CopyOnWriteArrayList实现的。
+`CopyOnWriteArraySet`实现了Set接口，不包含重复元素，使用比较简单，其内部是通过CopyOnWriteArrayList实现的。
 
 
 
@@ -8556,7 +8956,7 @@ HashMap的并发版本，与HashMap相比，它有如下特点：
 
 #### 并发安全
 
-
+🔖
 
 #### 原子复合操作
 
@@ -8585,28 +8985,53 @@ Java 8增加了几个默认方法，包括getOrDefault、forEach、computeIfAbse
 
 #### 高并发的基本机制
 
+ConcurrentHashMap实现高并发的思路：
+
 - 分段锁 
 - 读不需要锁
 
 同步容器使用synchronized，所有方法竞争同一个锁；而ConcurrentHashMap**采用分段锁技术，将数据分为多个段，而每个段有一个独立的锁**，每一个段相当于一个独立的哈希表，分段的依据也是哈希值，无论是保存键值对还是根据键查找，都先根据键的哈希值映射到段，再在段对应的哈希表上进行操作。
 
+采用分段锁，可以大大提高并发度，多个段之间可以并行读写。默认情况下，段是16个，不过，这个数字可以通过构造方法进行设置，如下所示：
+
+```java
+public ConcurrentHashMap(int initialCapacity, float loadFactor, int concurrencyLevel)
+```
+
+concurrencyLevel表示估计的并行更新的线程个数，ConcurrentHashMap会将该数转换为2的整数次幂，比如14转换为16,25转换为32。
+
+在对每个段的数据进行读写时，ConcurrentHashMap也不是简单地使用锁进行同步，内部使用了CAS。对一些写采用原子方式的方法，实现比较复杂，我们就不介绍了。实现的效果是，对于写操作，需要获取锁，不能并行，但是读操作可以，多个读可以并行，写的同时也可以读，这使得ConcurrentHashMap的并行度远高于同步容器。
+
+Java 8对ConcurrentHashMap的实现进一步做了优化。首先，与HashMap的改进类似，在哈希冲突比较严重的时候，会将单向链表转化为平衡的排序二叉树，提高查找的效率；其次，锁的粒度进一步细化了，以提高并行性，哈希表数组中的每个位置（指向一个单链表或树）都有一个单独的锁，具体比较复杂。
+
 #### 迭代安全
 
 ConcurrentHashMap在迭代器创建后，在迭代过程中，如果另一个线程对容器进行了修改，迭代会继续，不会抛出异常。
 
-
+🔖
 
 #### 弱一致性
 
-ConcurrentHashMap的迭代器创建后，就会按照哈希表结构遍历每个元素，但在遍历过程中，内部元素可能会发生变化，如果变化发生在已遍历过的部分，迭代器就不会反映出来，而如果变化发生在未遍历过的部分，迭代器就会发现并反映出来，这就是弱一致性。
+ConcurrentHashMap的迭代器创建后，就会按照哈希表结构遍历每个元素，但在遍历过程中，内部元素可能会发生变化，如果变化发生在已遍历过的部分，迭代器就不会反映出来，而如果变化发生在未遍历过的部分，迭代器就会发现并反映出来，这就是==弱一致性==。
+
+类似的情况还会出现在ConcurrentHashMap的另一个方法：
+
+```java
+//批量添加m中的键值对到当前Map
+public void putAll(Map<? extends K, ? extends V> m)
+```
+
+该方法并非原子操作，而是调用put方法逐个元素进行添加的，在该方法没有结束的时候，部分修改效果就会体现出来。
 
 
 
-> ConcurrentHashMap是并发版的HashMap，通过降低锁的粒度和CAS等实现了高并发，支持原子条件更新操作，不会抛出ConcurrentModificationException，实现了弱一致性。
->
-> Java中没有并发版的HashSet，但可以通过Collections.newSetFromMap方法基于ConcurrentHashMap构建一个。
+#### 小结
 
-### 17.3 基于跳表的Map和Set
+ConcurrentHashMap是并发版的HashMap，通过降低锁的粒度和CAS等实现了高并发，支持原子条件更新操作，不会抛出ConcurrentModificationException，实现了弱一致性。
+
+Java中没有并发版的HashSet，但可以通过Collections.newSetFromMap方法基于ConcurrentHashMap构建一个。
+
+### 17.3 基于跳表的Map和Set🔖
 
 Java并发包中与TreeMap/TreeSet对应的并发版本是`ConcurrentSkipListMap`和`ConcurrentSkipListSet`。
 
@@ -8647,7 +9072,7 @@ ConcurrentSkipListMap会构造类似图17-1所示的跳表结构：
 
 ![](images/image-20230503215452736.png)
 
-### 17.4 并发队列
+### 17.4 并发队列🔖
 
 ==无锁非阻塞==是指，这些队列不使用锁，所有操作总是可以立即执行，主要通过循环CAS实现并发安全。
 
@@ -8718,11 +9143,11 @@ public interface TransferQueue<E> extends BlockingQueue<E> {
 
 
 
-## 18 异步任务执行服务
+## 18 异步任务执行服务🔖
 
 **执行服务**，将“**任务的提交**”和“**任务的执行**”相分离。
 
-“执行服务”封装了任务执行的细节，对于任务提交者而言，它可以关注于任务本身，如提交任务、获取结果、取消任务，而不需要关注任务执行的细节，如线程创建、任务调度、线程关闭等。
+“执行服务”封装了任务执行的细节，对于任务提交者而言，它可以关注于任务本身，如**提交任务、获取结果、取消任务**，而不需要关注任务执行的细节，如**线程创建、任务调度、线程关闭**等。
 
 ### 18.1 基本概念和原理
 
@@ -8753,7 +9178,9 @@ public interface TransferQueue<E> extends BlockingQueue<E> {
 - 它可以重用线程，避免线程创建的开销。
 - 任务过多时，通过排队避免创建过多线程，减少系统资源消耗和竞争，确保任务有序完成。
 
-ThreadPoolExecutor
+
+
+Java并发包中线程池的实现类是`ThreadPoolExecutor`，它继承自`AbstractExecutorService`，实现了`ExecutorService`。
 
 #### 理解线程池
 
@@ -8790,7 +9217,7 @@ public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveT
 
 ##### 2.队列
 
-ThreadPoolExecutor要求的队列类型是阻塞队列BlockingQueue
+ThreadPoolExecutor要求的队列类型是阻塞队列BlockingQueue。
 
 ##### 3.任务拒绝策略
 
@@ -8827,6 +9254,10 @@ ThreadPoolExecutor要求的队列类型是阻塞队列BlockingQueue
 
 
 
+#### 小结
+
+ThreadPoolExecutor实现了生产者/消费者模式，工作者线程就是消费者，任务提交者就是生产者，线程池自己维护任务队列。当我们碰到类似生产者/消费者问题时，应该优先考虑直接使用线程池，而非“重新发明轮子”，应自己管理和维护消费者线程及任务队列。
+
 ### 18.3 定时任务的陷阱
 
 定时任务的应用场景很多，比如：
@@ -8834,6 +9265,11 @@ ThreadPoolExecutor要求的队列类型是阻塞队列BlockingQueue
 - 闹钟程序或任务提醒，指定时间叫床或在指定日期提醒还信用卡。
 - 监控系统，每隔一段时间采集下系统数据，对异常事件报警。
 - 统计系统，一般凌晨一定时间统计昨日的各种数据指标。
+
+在Java中，主要有两种方式实现定时任务：
+
+- 使用java.util包中的`Timer`和`TimerTask`。
+- 使用Java并发包中的`ScheduledExecutorService`。
 
 #### Timer和TimerTask
 
@@ -8907,7 +9343,7 @@ Timer和ScheduledExecutorService，实践中建议使用ScheduledExecutorService
 
 在并发应用程序中，一般我们应该尽量利用高层次的服务，比如各种并发容器、任务执行服务和线程池等，避免自己管理线程和它们之间的同步。
 
-## 19 同步和协作工具类
+## 19 同步和协作工具类🔖
 
 ### 19.1 读写锁ReentrantReadWriteLock
 

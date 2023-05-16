@@ -3,11 +3,29 @@ package com.andyron.bcdlj.c16.c162;
 import java.util.Random;
 
 /**
- * 转账的错误写法
+ *
  * @author andyron
  **/
 public class AccountMgr {
+    public static void main(String[] args) throws NoEnoughMoneyException {
+//        Account from = new Account(10);
+//        Account to = new Account(5);
+//        transfer(from, to, 3);
+//        System.out.println(from);
+//        System.out.println(to);
+
+        simulateDeadLock();
+    }
     public static class NoEnoughMoneyException extends Exception {}
+
+    /**
+     * 转账的错误写法
+     * 如果两个账户都同时给对方转账，都先获取了第一个锁，则会发生死锁。
+     * @param from
+     * @param to
+     * @param money
+     * @throws NoEnoughMoneyException
+     */
     public static void transfer(Account from, Account to, double money) throws NoEnoughMoneyException {
         from.lock();
         try {
@@ -51,7 +69,8 @@ public class AccountMgr {
                         int money = rnd.nextInt(10);
                         if (i != j) {
                             try {
-                                transfer(accounts[i], accounts[j], money);
+//                                transfer(accounts[i], accounts[j], money);
+                                transfer_(accounts[i], accounts[j], money);
                             } catch (NoEnoughMoneyException e) {
 
                             }

@@ -19,4 +19,12 @@ public class Pair {
         this.item = item;
         this.weight = weight;
     }
+
+    @Override
+    public String toString() {
+        return "Pair{" +
+                "item=" + item +
+                ", weight=" + weight +
+                '}';
+    }
 }
