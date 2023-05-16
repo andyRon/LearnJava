@@ -14,5 +14,6 @@ public class ABADemo {
         AtomicStampedReference<Pair> pairRef = new AtomicStampedReference<>(pair, stamp);
         int newStamp = 2;
         pairRef.compareAndSet(pair, new Pair(200, 200), stamp, newStamp);
+        System.out.println(pair);  // Pair{item=100, weight=200}
     }
 }
