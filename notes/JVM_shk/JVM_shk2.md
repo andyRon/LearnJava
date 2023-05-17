@@ -3832,7 +3832,7 @@ JProfiler 是由 ej-technologies 公司开发的一款 Java应用性能诊断工
 
 
 
-### 3.6 Arthas
+### 3.6 Arthas❤️ 
 
 阿尔萨斯
 
@@ -3840,15 +3840,15 @@ JProfiler 是由 ej-technologies 公司开发的一款 Java应用性能诊断工
 
 背景
 
-Visual VM和JProfiler这两款工具在业界知名度也比较高，他们的优点是可以图形界面上看到各维度的性能数据，使用者根据这些数据进行综合分析，然后判断哪里出现了性能问题。
+Visual VM和JProfiler这两款工具在业界知名度也比较高，他们的==优点==是可以图形界面上看到各维度的性能数据，使用者根据这些数据进行综合分析，然后判断哪里出现了性能问题。
 
-但是这两款工具也有个缺点，**<u>都必须在服务端项目进程中配置相关的监控参数。然后工具通过远程连按到项目进程，获取相关的数据</u>**。这样就会带来一些不便，比如线上环境的网络是隔离的，本地的监控工具根本连不上线上环境。并且类似于Jprofiler这样的商业工具，是需要付费的。
+但是这两款工具也有个==缺点==，**<u>都必须在服务端项目进程中配置相关的监控参数。然后工具通过远程连按到项目进程，获取相关的数据</u>**。这样就会带来一些不便，比如线上环境的网络是隔离的，本地的监控工具根本连不上线上环境。并且类似于Jprofiler这样的商业工具，是需要付费的。
 
 那么有没有一款工具不需要远程连接，也不需要配置监控参数，同时也提供了丰富的性能监控数据呢?
 
 今天跟大家介绍一款阿里巴巴开源的性能分析神器Arthas（阿尔萨斯）  
 
-
+项目上线后之前的工具都不太方便实用了，这时需要Arthas。
 
 #### 概述
 
@@ -3866,71 +3866,198 @@ Arthas 支持JDK 6+，支持Linux/Mac/Windows，采用命令行交互模式来�
 - ﻿有什么办決可以监控到JVM的实时运行状杰？
 - ﻿怎么快速定位应用的热点，生成火焰图？
 
-
-
 #### 基于哪些工具开发而来
 
-- ﻿﻿greys-anatomy： Arthas代码基于Greys二次开发而来，非常感谢Greys之前所有的工作，以及Greys原作者对Arthas提出的意见和建议！
-- ﻿﻿termd： Arthas的命令行实现基于termd开发，是一款优秀的命令行程序开发框架，感谢termd提供了优秀的框架。
-- ﻿crash：Arthas的文本渲染功能基于crash中的文本渲染功能开发，可以从这里看到源码，感谢crash在这方面所做的优秀工作。
-- ﻿﻿cli： Arthas的命令行界面基于vert.x提供的cli库进行开发，感谢vert.x在这方面做的优秀工作。
+- ﻿﻿greys-anatomy： **Arthas代码基于Greys二次开发而来**，非常感谢Greys之前所有的工作，以及Greys原作者对Arthas提出的意见和建议！
+- ﻿﻿termd： **Arthas的命令行实现基于termd开发**，是一款优秀的命令行程序开发框架，感谢termd提供了优秀的框架。
+- ﻿crash：**Arthas的文本渲染功能基于crash中的文本渲染功能开发**，可以从这里看到源码，感谢crash在这方面所做的优秀工作。
+- ﻿﻿cli： **Arthas的命令行界面基于vert.x提供的cli库进行开**发，感谢vert.x在这方面做的优秀工作。
 - ﻿compiler Arthas里的内行编绎器代码来源
 - ﻿﻿Apache Commons Net Arthas里的Telnet Client代码来源
-- ﻿JavaAgent：运行在 main方法之前的拦截器，它内定的方法名叫 premain，也就是说先执行premain 方法然后再执行 main 方法
+- ﻿JavaAgent：运行在 main方法之前的**拦截器**，它内定的方法名叫 **premain**，也就是说先执行premain 方法然后再执行 main 方法
 - ﻿ASM： 一个通用的Java宇节码操作和分析框架。它可以用于修改现有的类或直接以二进制形式动态生成类。ASM提供了一些常见的字节码转换和分析算法，可以从它们构建定制的复尜转换和代码分析工具。ASM提供了与其他Java字节码框架类似的功能，但是主要关注性能。因为它被设计和实现得尽可能小和快，所以非常适合在动态系统中使用(当然也可以以静态方式使用，例如在编译器中）
-
-
 
 官方使用文档  https://arthas.aliyun.com/doc/quick-start.html
 
-
-
 #### 安装与使用
 
-  安装
-  工程目录
-  启动
-  查看进程
-  查看日志
-    cat ~/logs/arthas/arthas.log
-  查看帮助
-    java -jar arthas-boot.jar -h
-  web console
-  退出
+##### 安装
+
+
+
+##### 工程目录
+
+https://github.com/alibaba/arthas
+
+![](images/image-20230517182500683.png)
+
+
+
+##### 启动
+
+Arthas 只是一个java程序，所以可以直接用 java -jar 运行。
+
+执行成功后，arthas提供了一种命令行方式的交互方式，arthas会检测当前服务器上的Java进程，并将进程列表展示出来，用户输入对应的编号（1、2、3、4⋯）进行选择，然后回车。
+
+比如：方式1:
+
+```shell
+java -jar arthas-boot.jar
+```
+
+![](images/image-20230517183427640.png)
+
+方式2：运行时选择 Java 进程 PID
+
+```shell
+java -jar arthas-boot.jar [PID]
+```
+
+##### 查看进程
+
+##### 查看日志
+
+`cat ~/logs/arthas/arthas.log`
+
+##### 查看帮助
+
+`java -jar arthas-boot.jar -h`
+
+##### web console
+
+http://127.0.0.1:8563/
+
+##### 退出
+
+- quit\exit  退出当前客户端
+- stop\shutdown  关闭arthas服务端，并退出所有客户端
 
 #### 相关诊断指令
 
-基础指令
+https://arthas.aliyun.com/doc/commands.html
+
+##### 基础指令
 
 
 
-jvm相关
-    dashboard
-    thread
-    jvm
-    其他
+##### jvm相关
+
+dashboard
+thread
+jvm
+
+heapdump
+
+其他    
 
 
 
-class/classloader相关
-    sc
-    sm
-    jad
-    mc、redefine
-    classloader
+##### class/classloader相关
 
-monitor/watch/trace相关
-    monitor
-    watch
-    trace
-    stack
-    tt
+进程中具体类的情况
+
+sc
+
+```shell
+[arthas@20815]$ sc -d com.andyron.java.*
+ class-info        com.andyron.java.OOMTest
+ code-source       /Users/andyron/myfield/github/LearnJava/notes/JVM_shk/JVMDemo2/ch36ArthasDemo/target/classes/
+ name              com.andyron.java.OOMTest
+ isInterface       false
+ isAnnotation      false
+ isEnum            false
+ isAnonymousClass  false
+ ...
+```
 
 
 
-其他
-    profiler/火焰图
-    options
+sm
+
+```shell
+sm  java.lang.String
+sm -d java.lang.String
+```
+
+jad
+
+```shell
+jad java.lang.String toString
+```
+
+
+
+mc、redefine
+
+
+
+classloader
+
+```shell
+[arthas@20815]$ classloader  -l
+ name                                                loadedCount  hash      parent
+ BootstrapClassLoader                                3075         null      null
+ com.taobao.arthas.agent.ArthasClassloader@3a8967e7  3051         3a8967e7  sun.misc.Launcher$ExtClassLoader@3e0c9904
+ sun.misc.Launcher$AppClassLoader@18b4aac2           8            18b4aac2  sun.misc.Launcher$ExtClassLoader@3e0c9904
+ sun.misc.Launcher$ExtClassLoader@3e0c9904           63           3e0c9904  null
+Affect(row-cnt:4) cost in 8 ms.
+[arthas@20815]$ classloader -c 3e0c9904
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/sunec.jar
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/nashorn.jar
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/cldrdata.jar
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/legacy8ujsse.jar
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/dnsns.jar
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/localedata.jar
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/openjsse.jar
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/sunjce_provider.jar
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/crs-agent.jar
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/sunpkcs11.jar
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/jaccess.jar
+file:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext/zipfs.jar
+Affect(row-cnt:24) cost in 2 ms.
+```
+
+
+
+##### monitor/watch/trace相关
+
+monitor
+
+```shell
+[arthas@20815]$ monitor -c 5 com.andyron.java.Picture <init>
+Press Q or Ctrl+C to abort.
+Affect(class count: 1 , method count: 1) cost in 128 ms, listenerId: 1
+ timestamp                   class                                     method                                    total         success       fail          avg-rt(ms)    fail-rate
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 2023-05-17 19:19:23         com.andyron.java.Picture                  <init>                                    790           790           0             0.02          0.00%
+```
+
+watch
+
+```
+watch com.andyron.java.Picture <init> "{params,returnObj}" -x 2
+```
+
+
+
+trace
+
+```
+trace com.andyron.java.Picture <init>
+```
+
+
+
+stack
+
+tt TimeTunnel，方法执行数据的时空隧道，记录下指定方法每次调用的入参和返回信息，并能对这些不同的时间下调用进行观测
+
+
+
+##### 其他
+
+profiler/火焰图
+options
 
 
 

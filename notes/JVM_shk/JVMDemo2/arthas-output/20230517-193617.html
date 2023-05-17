@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<style>
+	body {margin: 0; padding: 10px; background-color: #ffffff}
+	h1 {margin: 5px 0 0 0; font-size: 18px; font-weight: normal; text-align: center}
+	header {margin: -24px 0 5px 0; line-height: 24px}
+	button {font: 12px sans-serif; cursor: pointer}
+	p {margin: 5px 0 5px 0}
+	a {color: #0366d6}
+	#hl {position: absolute; display: none; overflow: hidden; white-space: nowrap; pointer-events: none; background-color: #ffffe0; outline: 1px solid #ffc000; height: 15px}
+	#hl span {padding: 0 3px 0 3px}
+	#status {overflow: hidden; white-space: nowrap}
+	#match {overflow: hidden; white-space: nowrap; display: none; float: right; text-align: right}
+	#reset {cursor: pointer}
+	#canvas {width: 100%; height: 976px}
+</style>
+</head>
+<body style='font: 12px Verdana, sans-serif'>
+<h1>CPU profile</h1>
+<header style='text-align: left'><button id='reverse' title='Reverse'>&#x1f53b;</button>&nbsp;&nbsp;<button id='search' title='Search'>&#x1f50d;</button></header>
+<header style='text-align: right'>Produced by <a href='https://github.com/jvm-profiling-tools/async-profiler'>async-profiler</a></header>
+<canvas id='canvas'></canvas>
+<div id='hl'><span></span></div>
+<p id='match'>Matched: <span id='matchval'></span> <span id='reset' title='Clear'>&#x274c;</span></p>
+<p id='status'>&nbsp;</p>
+<script>
+	// Copyright 2020 Andrei Pangin
+	// Licensed under the Apache License, Version 2.0.
+	'use strict';
+	var root, rootLevel, px, pattern;
+	var reverse = false;
+	const levels = Array(61);
+	for (let h = 0; h < levels.length; h++) {
+		levels[h] = [];
+	}
+
+	const canvas = document.getElementById('canvas');
+	const c = canvas.getContext('2d');
+	const hl = document.getElementById('hl');
+	const status = document.getElementById('status');
+
+	const canvasWidth = canvas.offsetWidth;
+	const canvasHeight = canvas.offsetHeight;
+	canvas.style.width = canvasWidth + 'px';
+	canvas.width = canvasWidth * (devicePixelRatio || 1);
+	canvas.height = canvasHeight * (devicePixelRatio || 1);
+	if (devicePixelRatio) c.scale(devicePixelRatio, devicePixelRatio);
+	c.font = document.body.style.font;
+
+	const palette = [
+		[0xb2e1b2, 20, 20, 20],
+		[0x50e150, 30, 30, 30],
+		[0x50cccc, 30, 30, 30],
+		[0xe15a5a, 30, 40, 40],
+		[0xc8c83c, 30, 30, 10],
+		[0xe17d00, 30, 30,  0],
+		[0xcce880, 20, 20, 20],
+	];
+
+	function getColor(p) {
+		const v = Math.random();
+		return '#' + (p[0] + ((p[1] * v) << 16 | (p[2] * v) << 8 | (p[3] * v))).toString(16);
+	}
+
+	function f(level, left, width, type, title, inln, c1, int) {
+		levels[level].push({left: left, width: width, color: getColor(palette[type]), title: title,
+			details: (int ? ', int=' + int : '') + (c1 ? ', c1=' + c1 : '') + (inln ? ', inln=' + inln : '')
+		});
+	}
+
+	function samples(n) {
+		return n === 1 ? '1 sample' : n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' samples';
+	}
+
+	function pct(a, b) {
+		return a >= b ? '100' : (100 * a / b).toFixed(2);
+	}
+
+	function findFrame(frames, x) {
+		let left = 0;
+		let right = frames.length - 1;
+
+		while (left <= right) {
+			const mid = (left + right) >>> 1;
+			const f = frames[mid];
+
+			if (f.left > x) {
+				right = mid - 1;
+			} else if (f.left + f.width <= x) {
+				left = mid + 1;
+			} else {
+				return f;
+			}
+		}
+
+		if (frames[left] && (frames[left].left - x) * px < 0.5) return frames[left];
+		if (frames[right] && (x - (frames[right].left + frames[right].width)) * px < 0.5) return frames[right];
+
+		return null;
+	}
+
+	function search(r) {
+		if (r === true && (r = prompt('Enter regexp to search:', '')) === null) {
+			return;
+		}
+
+		pattern = r ? RegExp(r) : undefined;
+		const matched = render(root, rootLevel);
+		document.getElementById('matchval').textContent = pct(matched, root.width) + '%';
+		document.getElementById('match').style.display = r ? 'inherit' : 'none';
+	}
+
+	function render(newRoot, newLevel) {
+		if (root) {
+			c.fillStyle = '#ffffff';
+			c.fillRect(0, 0, canvasWidth, canvasHeight);
+		}
+
+		root = newRoot || levels[0][0];
+		rootLevel = newLevel || 0;
+		px = canvasWidth / root.width;
+
+		const x0 = root.left;
+		const x1 = x0 + root.width;
+		const marked = [];
+
+		function mark(f) {
+			return marked[f.left] >= f.width || (marked[f.left] = f.width);
+		}
+
+		function totalMarked() {
+			let total = 0;
+			let left = 0;
+			Object.keys(marked).sort(function(a, b) { return a - b; }).forEach(function(x) {
+				if (+x >= left) {
+					total += marked[x];
+					left = +x + marked[x];
+				}
+			});
+			return total;
+		}
+
+		function drawFrame(f, y, alpha) {
+			if (f.left < x1 && f.left + f.width > x0) {
+				c.fillStyle = pattern && f.title.match(pattern) && mark(f) ? '#ee00ee' : f.color;
+				c.fillRect((f.left - x0) * px, y, f.width * px, 15);
+
+				if (f.width * px >= 21) {
+					const chars = Math.floor(f.width * px / 7);
+					const title = f.title.length <= chars ? f.title : f.title.substring(0, chars - 2) + '..';
+					c.fillStyle = '#000000';
+					c.fillText(title, Math.max(f.left - x0, 0) * px + 3, y + 12, f.width * px - 6);
+				}
+
+				if (alpha) {
+					c.fillStyle = 'rgba(255, 255, 255, 0.5)';
+					c.fillRect((f.left - x0) * px, y, f.width * px, 15);
+				}
+			}
+		}
+
+		for (let h = 0; h < levels.length; h++) {
+			const y = reverse ? h * 16 : canvasHeight - (h + 1) * 16;
+			const frames = levels[h];
+			for (let i = 0; i < frames.length; i++) {
+				drawFrame(frames[i], y, h < rootLevel);
+			}
+		}
+
+		return totalMarked();
+	}
+
+	canvas.onmousemove = function() {
+		const h = Math.floor((reverse ? event.offsetY : (canvasHeight - event.offsetY)) / 16);
+		if (h >= 0 && h < levels.length) {
+			const f = findFrame(levels[h], event.offsetX / px + root.left);
+			if (f) {
+				if (f != root) getSelection().removeAllRanges();
+				hl.style.left = (Math.max(f.left - root.left, 0) * px + canvas.offsetLeft) + 'px';
+				hl.style.width = (Math.min(f.width, root.width) * px) + 'px';
+				hl.style.top = ((reverse ? h * 16 : canvasHeight - (h + 1) * 16) + canvas.offsetTop) + 'px';
+				hl.firstChild.textContent = f.title;
+				hl.style.display = 'block';
+				canvas.title = f.title + '\n(' + samples(f.width) + f.details + ', ' + pct(f.width, levels[0][0].width) + '%)';
+				canvas.style.cursor = 'pointer';
+				canvas.onclick = function() {
+					if (f != root) {
+						render(f, h);
+						canvas.onmousemove();
+					}
+				};
+				status.textContent = 'Function: ' + canvas.title;
+				return;
+			}
+		}
+		canvas.onmouseout();
+	}
+
+	canvas.onmouseout = function() {
+		hl.style.display = 'none';
+		status.textContent = '\xa0';
+		canvas.title = '';
+		canvas.style.cursor = '';
+		canvas.onclick = '';
+	}
+
+	canvas.ondblclick = function() {
+		getSelection().selectAllChildren(hl);
+	}
+
+	document.getElementById('reverse').onclick = function() {
+		reverse = !reverse;
+		render();
+	}
+
+	document.getElementById('search').onclick = function() {
+		search(true);
+	}
+
+	document.getElementById('reset').onclick = function() {
+		search(false);
+	}
+
+	window.onkeydown = function() {
+		if (event.ctrlKey && event.keyCode === 70) {
+			event.preventDefault();
+			search(true);
+		} else if (event.keyCode === 27) {
+			search(false);
+		}
+	}
+
+f(0,0,461,3,'all')
+f(1,0,8,3,'[unknown_Java]')
+f(2,0,8,3,'zero_longs')
+f(1,8,47,1,'com/andyron/java/OOMTest.main',0,4,0)
+f(2,8,3,1,'com/andyron/java/Picture.<init>')
+f(3,8,1,1,'com/taobao/arthas/core/advisor/SpyImpl.atExit')
+f(3,9,2,2,'java/arthas/SpyAPI.atEnter',1,0,0)
+f(4,10,1,1,'com/taobao/arthas/core/advisor/SpyImpl.atEnter')
+f(5,10,1,1,'com/taobao/arthas/core/advisor/AdviceListenerManager.queryAdviceListeners')
+f(6,10,1,2,'com/taobao/arthas/core/advisor/AdviceListenerManager$ClassLoaderAdviceListenerManager.queryAdviceListeners',1,0,0)
+f(7,10,1,2,'java/util/concurrent/ConcurrentHashMap.get',1,0,0)
+f(2,11,40,1,'java/lang/Thread.sleep')
+f(3,11,39,3,'JVM_Sleep')
+f(4,11,39,4,'os::sleep(Thread*, long, bool)')
+f(5,11,1,4,'VM_Operation::~VM_Operation()')
+f(5,12,38,4,'os::PlatformEvent::park(long)')
+f(6,12,2,3,'__gettimeofday')
+f(6,14,35,3,'__psynch_cvwait')
+f(6,49,1,3,'pthread_dependency_wait_np.cold.3')
+f(3,50,1,4,'JavaThreadSleepState::~JavaThreadSleepState()')
+f(2,51,2,2,'java/util/ArrayList.add',2,0,0)
+f(3,51,2,2,'java/util/ArrayList.ensureCapacityInternal',2,0,0)
+f(4,51,2,2,'java/util/ArrayList.ensureExplicitCapacity',2,0,0)
+f(2,53,2,2,'java/util/Random.<init>',2,0,0)
+f(3,54,1,2,'java/util/Random.seedUniquifier',1,0,0)
+f(1,55,4,1,'java/lang/Thread.run')
+f(2,55,2,1,'com/alibaba/arthas/deps/io/netty/util/concurrent/FastThreadLocalRunnable.run')
+f(3,55,2,1,'com/alibaba/arthas/deps/io/netty/util/internal/ThreadExecutorMap$2.run')
+f(4,55,2,1,'com/alibaba/arthas/deps/io/netty/util/concurrent/SingleThreadEventExecutor$4.run')
+f(5,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/nio/NioEventLoop.run')
+f(6,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/nio/NioEventLoop.processSelectedKeys')
+f(7,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/nio/NioEventLoop.processSelectedKeysOptimized')
+f(8,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/nio/NioEventLoop.processSelectedKey')
+f(9,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/nio/AbstractNioByteChannel$NioByteUnsafe.read')
+f(10,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/DefaultChannelPipeline.fireChannelRead')
+f(11,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.invokeChannelRead')
+f(12,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.invokeChannelRead')
+f(13,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/DefaultChannelPipeline$HeadContext.channelRead')
+f(14,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.fireChannelRead')
+f(15,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.invokeChannelRead')
+f(16,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.invokeChannelRead')
+f(17,55,2,1,'io/termd/core/telnet/netty/TelnetChannelHandler.channelRead')
+f(18,55,2,1,'io/termd/core/telnet/TelnetConnection.receive')
+f(19,55,2,1,'io/termd/core/telnet/TelnetConnection.flushDataIfNecessary')
+f(20,55,2,1,'io/termd/core/telnet/TelnetConnection.flushData')
+f(21,55,2,1,'io/termd/core/telnet/TelnetTtyConnection.onData')
+f(22,55,2,1,'io/termd/core/io/BinaryDecoder.write')
+f(23,55,2,1,'io/termd/core/io/BinaryDecoder.write')
+f(24,55,2,1,'io/termd/core/tty/ReadBuffer.accept')
+f(25,55,2,1,'io/termd/core/tty/ReadBuffer.accept')
+f(26,55,2,1,'io/termd/core/tty/TtyEventDecoder.accept')
+f(27,55,2,1,'io/termd/core/tty/TtyEventDecoder.accept')
+f(28,55,2,1,'io/termd/core/readline/Readline$Interaction$2.accept')
+f(29,55,2,1,'io/termd/core/readline/Readline$Interaction$2.accept')
+f(30,55,2,1,'io/termd/core/readline/Readline.access$500')
+f(31,55,2,1,'io/termd/core/readline/Readline.deliver')
+f(32,55,2,1,'io/termd/core/readline/Readline$Interaction.access$200')
+f(33,55,2,1,'io/termd/core/readline/Readline$Interaction.handle')
+f(34,55,2,1,'io/termd/core/readline/Readline$Interaction.refresh')
+f(35,55,2,1,'io/termd/core/readline/Readline$Interaction.refresh')
+f(36,55,2,1,'io/termd/core/tty/TtyOutputMode.accept')
+f(37,55,2,1,'io/termd/core/tty/TtyOutputMode.accept')
+f(38,55,2,1,'io/termd/core/tty/TtyOutputMode.sendChunk')
+f(39,55,2,1,'io/termd/core/io/BinaryEncoder.accept')
+f(40,55,2,1,'io/termd/core/io/BinaryEncoder.accept')
+f(41,55,2,1,'io/termd/core/telnet/TelnetTtyConnection$2.accept')
+f(42,55,2,1,'io/termd/core/telnet/TelnetTtyConnection$2.accept')
+f(43,55,2,1,'io/termd/core/telnet/TelnetConnection.write')
+f(44,55,2,1,'io/termd/core/telnet/netty/NettyTelnetConnection.send')
+f(45,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.writeAndFlush')
+f(46,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.writeAndFlush')
+f(47,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.write')
+f(48,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.invokeWriteAndFlush')
+f(49,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannelHandlerContext.invokeFlush0')
+f(50,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/DefaultChannelPipeline$HeadContext.flush')
+f(51,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannel$AbstractUnsafe.flush')
+f(52,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/nio/AbstractNioChannel$AbstractNioUnsafe.flush0')
+f(53,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/AbstractChannel$AbstractUnsafe.flush0')
+f(54,55,2,1,'com/alibaba/arthas/deps/io/netty/channel/socket/nio/NioSocketChannel.doWrite')
+f(55,55,2,1,'sun/nio/ch/SocketChannelImpl.write')
+f(56,55,1,2,'java/nio/channels/spi/AbstractInterruptibleChannel.end',1,0,0)
+f(57,55,1,2,'java/nio/channels/spi/AbstractInterruptibleChannel.blockedOn',1,0,0)
+f(58,55,1,2,'java/lang/System$2.blockedOn',1,0,0)
+f(59,55,1,2,'java/lang/Thread.blockedOn',1,0,0)
+f(56,56,1,1,'sun/nio/ch/IOUtil.write')
+f(57,56,1,1,'sun/nio/ch/IOUtil.writeFromNativeBuffer')
+f(58,56,1,1,'sun/nio/ch/SocketDispatcher.write')
+f(59,56,1,1,'sun/nio/ch/FileDispatcherImpl.write0')
+f(60,56,1,3,'write')
+f(2,57,2,1,'java/util/concurrent/ThreadPoolExecutor$Worker.run')
+f(3,57,2,1,'java/util/concurrent/ThreadPoolExecutor.runWorker')
+f(4,57,2,1,'java/util/concurrent/ScheduledThreadPoolExecutor$ScheduledFutureTask.run')
+f(5,57,2,1,'java/util/concurrent/ScheduledThreadPoolExecutor$ScheduledFutureTask.access$201')
+f(6,57,2,1,'java/util/concurrent/FutureTask.run')
+f(7,57,2,1,'java/util/concurrent/Executors$RunnableAdapter.call')
+f(8,57,2,1,'com/taobao/arthas/core/shell/system/impl/ProcessImpl$CommandProcessTask.run')
+f(9,57,2,1,'com/taobao/arthas/core/shell/command/impl/AnnotatedCommandImpl$ProcessHandler.handle')
+f(10,57,2,1,'com/taobao/arthas/core/shell/command/impl/AnnotatedCommandImpl$ProcessHandler.handle')
+f(11,57,2,1,'com/taobao/arthas/core/shell/command/impl/AnnotatedCommandImpl.access$100')
+f(12,57,2,1,'com/taobao/arthas/core/shell/command/impl/AnnotatedCommandImpl.process')
+f(13,57,1,1,'com/taobao/arthas/core/command/monitor200/ProfilerCommand.process')
+f(14,57,1,0,'com/taobao/arthas/core/command/monitor200/ProfilerCommand.createProfilerModel',0,0,1)
+f(15,57,1,4,'InterpreterRuntime::_new(JavaThread*, ConstantPool*, int)')
+f(16,57,1,4,'InstanceKlass::initialize(Thread*)')
+f(17,57,1,4,'InstanceKlass::initialize_impl(instanceKlassHandle, Thread*)')
+f(18,57,1,4,'InstanceKlass::link_class(Thread*)')
+f(19,57,1,4,'InstanceKlass::link_class_impl(instanceKlassHandle, bool, Thread*)')
+f(20,57,1,4,'Verifier::verify(instanceKlassHandle, Verifier::Mode, bool, Thread*)')
+f(21,57,1,4,'ClassVerifier::verify_class(Thread*)')
+f(22,57,1,4,'ClassVerifier::verify_method(methodHandle, Thread*)')
+f(23,57,1,4,'StackMapFrame::set_locals_from_arg(methodHandle, VerificationType, Thread*)')
+f(24,57,1,4,'SignatureStream::as_symbol(Thread*)')
+f(25,57,1,4,'SymbolTable::lookup(Symbol const*, int, int, Thread*)')
+f(26,57,1,4,'SymbolTable::lookup(int, char const*, int, unsigned int)')
+f(13,58,1,1,'com/taobao/middleware/cli/annotations/CLIConfigurator.inject')
+f(14,58,1,1,'java/lang/reflect/Method.invoke')
+f(15,58,1,1,'sun/reflect/DelegatingMethodAccessorImpl.invoke')
+f(16,58,1,1,'sun/reflect/NativeMethodAccessorImpl.invoke')
+f(17,58,1,0,'sun/reflect/NativeMethodAccessorImpl.invoke0',0,0,1)
+f(18,58,1,3,'JVM_InvokeMethod')
+f(19,58,1,4,'Reflection::invoke_method(oopDesc*, Handle, objArrayHandle, Thread*)')
+f(20,58,1,4,'Reflection::invoke(instanceKlassHandle, methodHandle, Handle, bool, objArrayHandle, BasicType, objArrayHandle, bool, Thread*)')
+f(21,58,1,4,'JavaCalls::call_helper(JavaValue*, methodHandle*, JavaCallArguments*, Thread*)')
+f(22,58,1,4,'CompilationPolicy::must_be_compiled(methodHandle, int)')
+f(23,58,1,4,'CompilationPolicy::can_be_compiled(methodHandle, int)')
+f(24,58,1,4,'AbstractInterpreter::can_be_compiled(methodHandle)')
+f(1,59,402,3,'thread_start')
+f(2,59,402,3,'_pthread_start')
+f(3,59,402,3,'java_start(Thread*)')
+f(4,59,383,4,'GCTaskThread::run()')
+f(5,59,130,4,'OldToYoungRootsTask::do_it(GCTaskManager*, unsigned int)')
+f(6,59,129,4,'CardTableExtension::scavenge_contents_parallel(ObjectStartArray*, MutableSpace*, HeapWord*, PSPromotionManager*, unsigned int, unsigned int)')
+f(7,122,2,4,'InstanceKlass::oop_push_contents(PSPromotionManager*, oopDesc*)')
+f(7,124,23,4,'ObjArrayKlass::oop_push_contents(PSPromotionManager*, oopDesc*)')
+f(8,127,20,4,'void PSPromotionManager::claim_or_forward_internal_depth<unsigned int>(unsigned int*)')
+f(7,147,34,4,'ObjectStartArray::object_start(HeapWord*) const')
+f(7,181,7,4,'PSPromotionManager::drain_stacks_depth(bool)')
+f(8,181,6,4,'PSPromotionManager::process_popped_location_depth(StarTask)')
+f(9,181,3,3,'fwd_copy_again')
+f(9,184,3,3,'unal_fwd_copy_again')
+f(8,187,1,4,'Stack<StarTask, (MemoryType)1>::pop_segment()')
+f(9,187,1,3,'free_small')
+f(10,187,1,3,'small_free_list_remove_ptr_no_clear')
+f(6,188,1,4,'VM_Operation::~VM_Operation()')
+f(5,189,1,4,'ScavengeRootsTask::do_it(GCTaskManager*, unsigned int)')
+f(6,189,1,4,'ClassLoaderDataGraph::oops_do(OopClosure*, KlassClosure*, bool)')
+f(7,189,1,4,'ClassLoaderData::oops_do(OopClosure*, KlassClosure*, bool)')
+f(8,189,1,4,'PSScavengeKlassClosure::do_klass(Klass*)')
+f(9,189,1,4,'PSScavengeFromKlassClosure::do_oop(oopDesc**)')
+f(10,189,1,4,'oopDesc* PSPromotionManager::copy_to_survivor_space<false>(oopDesc*)')
+f(5,190,64,4,'StealMarkingTask::do_it(GCTaskManager*, unsigned int)')
+f(6,192,4,4,'GenericTaskQueue<oopDesc*, (MemoryType)5, 131072u>::pop_global(oopDesc* volatile&)')
+f(6,196,17,4,'GenericTaskQueueSet<GenericTaskQueue<oopDesc*, (MemoryType)5, 131072u>, (MemoryType)5>::steal(unsigned int, int*, oopDesc*&)')
+f(7,196,16,4,'GenericTaskQueueSet<GenericTaskQueue<oopDesc*, (MemoryType)5, 131072u>, (MemoryType)5>::steal_best_of_2(unsigned int, int*, oopDesc*&)')
+f(7,212,1,4,'TaskQueueSetSuper::randomParkAndMiller(int*)')
+f(6,213,5,4,'GenericTaskQueueSet<OverflowTaskQueue<ObjArrayTask, (MemoryType)5, 8192u>, (MemoryType)5>::steal(unsigned int, int*, ObjArrayTask&)')
+f(7,213,4,4,'GenericTaskQueueSet<OverflowTaskQueue<ObjArrayTask, (MemoryType)5, 8192u>, (MemoryType)5>::steal_best_of_2(unsigned int, int*, ObjArrayTask&)')
+f(7,217,1,4,'TaskQueueSetSuper::randomParkAndMiller(int*)')
+f(6,218,9,4,'InstanceKlass::oop_follow_contents(ParCompactionManager*, oopDesc*)')
+f(7,218,1,4,'ParMarkBitMap::mark_obj(HeapWord*, unsigned long)')
+f(7,219,1,4,'ParallelCompactData::add_obj(HeapWord*, unsigned long)')
+f(7,220,7,4,'void PSParallelCompact::mark_and_push<unsigned int>(ParCompactionManager*, unsigned int*)')
+f(6,227,4,4,'ParCompactionManager::follow_marking_stacks()')
+f(7,228,3,4,'void PSParallelCompact::mark_and_push<unsigned int>(ParCompactionManager*, unsigned int*)')
+f(6,231,1,4,'ParMarkBitMap::mark_obj(HeapWord*, unsigned long)')
+f(6,232,1,4,'ParallelCompactData::add_obj(HeapWord*, unsigned long)')
+f(6,233,14,4,'ParallelTaskTerminator::offer_termination(TerminatorTerminator*)')
+f(7,239,8,3,'swtch_pri')
+f(6,247,3,3,'SpinPause')
+f(6,250,4,4,'void PSParallelCompact::mark_and_push<unsigned int>(ParCompactionManager*, unsigned int*)')
+f(5,254,63,4,'StealRegionCompactionTask::do_it(GCTaskManager*, unsigned int)')
+f(6,254,3,4,'PSParallelCompact::fill_region(ParCompactionManager*, unsigned long)')
+f(7,254,3,4,'ParMarkBitMap::iterate(ParMarkBitMapClosure*, unsigned long, unsigned long) const')
+f(8,254,3,3,'unal_fwd_copy_again')
+f(6,257,15,4,'ParCompactionManager::drain_region_stacks()')
+f(7,257,15,4,'PSParallelCompact::fill_region(ParCompactionManager*, unsigned long)')
+f(8,257,14,4,'ParMarkBitMap::iterate(ParMarkBitMapClosure*, unsigned long, unsigned long) const')
+f(9,258,6,4,'MoveAndUpdateClosure::do_addr(HeapWord*, unsigned long)')
+f(10,258,4,4,'InstanceKlass::oop_update_pointers(ParCompactionManager*, oopDesc*)')
+f(11,259,3,4,'ParMarkBitMap::live_words_in_range(HeapWord*, oopDesc*) const')
+f(10,262,2,4,'ObjArrayKlass::oop_update_pointers(ParCompactionManager*, oopDesc*)')
+f(11,262,1,4,'PSParallelCompact::fill_blocks(unsigned long)')
+f(11,263,1,4,'ParMarkBitMap::live_words_in_range(HeapWord*, oopDesc*) const')
+f(9,264,2,3,'fwd_copy_again')
+f(9,266,1,3,'fwd_copy_drain')
+f(9,267,4,3,'unal_fwd_copy_again')
+f(8,271,1,3,'_Copy_disjoint_words')
+f(6,272,41,4,'ParallelTaskTerminator::offer_termination(TerminatorTerminator*)')
+f(7,289,24,3,'swtch_pri')
+f(6,313,4,3,'SpinPause')
+f(5,317,124,4,'StealTask::do_it(GCTaskManager*, unsigned int)')
+f(6,317,77,4,'PSPromotionManager::drain_stacks_depth(bool)')
+f(7,317,77,4,'PSPromotionManager::process_popped_location_depth(StarTask)')
+f(8,317,2,4,'Copy::pd_disjoint_words(HeapWord*, HeapWord*, unsigned long)')
+f(8,319,1,4,'PSPromotionLAB::flush()')
+f(8,320,1,4,'YoungGCTracer::should_report_promotion_in_new_plab_event() const')
+f(8,321,13,3,'_Copy_disjoint_words')
+f(8,334,17,3,'fwd_copy_again')
+f(8,351,1,3,'fwd_copy_aligned')
+f(8,352,1,3,'fwd_copy_drain')
+f(8,353,24,4,'oopDesc* PSPromotionManager::copy_to_survivor_space<false>(oopDesc*)')
+f(9,374,1,4,'InstanceKlass::oop_push_contents(PSPromotionManager*, oopDesc*)')
+f(10,374,1,4,'void PSPromotionManager::claim_or_forward_internal_depth<unsigned int>(unsigned int*)')
+f(9,375,2,4,'PSOldGen::cas_allocate(unsigned long)')
+f(8,377,17,3,'unal_fwd_copy_again')
+f(6,394,3,4,'PSPromotionManager::process_popped_location_depth(StarTask)')
+f(7,394,3,4,'oopDesc* PSPromotionManager::copy_to_survivor_space<false>(oopDesc*)')
+f(6,397,7,4,'ParallelTaskTerminator::offer_termination(TerminatorTerminator*)')
+f(7,398,6,3,'swtch_pri')
+f(6,404,1,4,'void PSPromotionManager::claim_or_forward_internal_depth<unsigned int>(unsigned int*)')
+f(6,405,36,4,'void PSPromotionManager::process_array_chunk_work<unsigned int>(oopDesc*, int, int)')
+f(7,405,36,4,'void PSPromotionManager::claim_or_forward_internal_depth<unsigned int>(unsigned int*)')
+f(5,441,1,4,'ThreadRootsTask::do_it(GCTaskManager*, unsigned int)')
+f(6,441,1,4,'JavaThread::oops_do(OopClosure*, CLDClosure*, CodeBlobClosure*)')
+f(7,441,1,4,'frame::oops_interpreted_do(OopClosure*, CLDClosure*, RegisterMap const*, bool)')
+f(4,442,1,4,'JavaThread::run()')
+f(5,442,1,4,'JavaThread::thread_main_inner()')
+f(6,442,1,4,'CompileBroker::compiler_thread_loop()')
+f(7,442,1,4,'CompileBroker::invoke_compiler_on_method(CompileTask*)')
+f(8,442,1,4,'C2Compiler::compile_method(ciEnv*, ciMethod*, int)')
+f(9,442,1,4,'Compile::Compile(ciEnv*, C2Compiler*, ciMethod*, int, bool, bool, bool)')
+f(10,442,1,4,'Compile::Optimize()')
+f(11,442,1,4,'PhaseIdealLoop::PhaseIdealLoop(PhaseIterGVN&, bool, bool)')
+f(12,442,1,4,'PhaseIdealLoop::build_and_optimize(bool, bool)')
+f(13,442,1,4,'PhaseIdealLoop::build_loop_late(VectorSet&, Node_List&, Node_Stack&)')
+f(14,442,1,4,'PhaseIdealLoop::build_loop_late_post(Node*)')
+f(15,442,1,4,'PhaseIdealLoop::get_late_ctrl(Node*, Node*)')
+f(4,443,5,4,'VMThread::run()')
+f(5,443,5,4,'VMThread::loop()')
+f(6,443,1,4,'SafepointSynchronize::begin()')
+f(7,443,1,3,'mprotect')
+f(6,444,4,4,'VMThread::evaluate_operation(VM_Operation*)')
+f(7,444,4,4,'VM_Operation::evaluate()')
+f(8,444,4,4,'VM_ParallelGCFailedAllocation::doit()')
+f(9,444,4,4,'ParallelScavengeHeap::failed_mem_allocate(unsigned long)')
+f(10,444,4,4,'PSScavenge::invoke()')
+f(11,444,4,4,'PSParallelCompact::invoke_no_policy(bool)')
+f(12,444,1,4,'PSParallelCompact::compact()')
+f(13,444,1,4,'PSParallelCompact::update_deferred_objects(ParCompactionManager*, PSParallelCompact::SpaceId)')
+f(14,444,1,4,'ObjArrayKlass::oop_update_pointers(ParCompactionManager*, oopDesc*)')
+f(15,444,1,4,'ParMarkBitMap::live_words_in_range(HeapWord*, oopDesc*) const')
+f(12,445,3,4,'PSParallelCompact::marking_phase(ParCompactionManager*, bool, ParallelOldTracer*)')
+f(13,445,1,4,'CodeCache::do_unloading(BoolObjectClosure*, bool)')
+f(14,445,1,4,'nmethod::do_unloading(BoolObjectClosure*, bool)')
+f(15,445,1,4,'RelocIterator::next()')
+f(13,446,1,4,'SymbolTable::unlink(int*, int*)')
+f(14,446,1,4,'SymbolTable::buckets_unlink(int, int, BasicHashtable<(MemoryType)9>::BucketUnlinkContext*, unsigned long*)')
+f(13,447,1,4,'SystemDictionary::do_unloading(BoolObjectClosure*, bool)')
+f(14,447,1,4,'ClassLoaderDataGraph::do_unloading(BoolObjectClosure*, bool)')
+f(15,447,1,4,'ClassLoaderDataGraph::clean_metaspaces()')
+f(16,447,1,4,'MetadataOnStackMark::MetadataOnStackMark(bool)')
+f(17,447,1,4,'CodeCache::alive_nmethods_do(void (*)(nmethod*))')
+f(18,447,1,4,'RelocIterator::next()')
+f(4,448,13,4,'WatcherThread::run()')
+f(5,448,3,4,'PeriodicTask::real_time_tick(int)')
+f(6,449,1,4,'PerfLongVariant::sample()')
+f(6,450,1,4,'StatSampler::collect_sample()')
+f(7,450,1,4,'PerfLongVariant::sample()')
+f(5,451,10,4,'WatcherThread::sleep() const')
+f(6,451,10,4,'Monitor::wait(bool, long, bool)')
+f(7,451,10,4,'Monitor::IWait(Thread*, long)')
+f(8,451,1,4,'Thread::muxAcquire(long volatile*, char const*)')
+f(8,452,9,4,'os::PlatformEvent::park(long)')
+f(9,452,9,3,'__psynch_cvwait')
+
+search();
+</script></body></html>
