@@ -35,6 +35,29 @@ public class NewTest {
         Order.name = "ORDER";
         System.out.println(Order.name);
     }
+
+    // 3 数组操作指令
+    public void setArray() {
+        int[] intArray = new int[10];
+        intArray[3] = 20;
+        System.out.println(intArray[1]);
+
+        boolean[] arr = new boolean[10];
+        arr[1] = true;
+    }
+    public void arrLength() {
+        double[] arr = new double[10];
+        System.out.println(arr.length);
+    }
+
+    // 4 类型检查指令
+    public String checkCast(Object obj) {
+        if (obj instanceof String) {
+            return (String) obj;
+        } else {
+            return null;
+        }
+    }
 }
 
 class Order {
