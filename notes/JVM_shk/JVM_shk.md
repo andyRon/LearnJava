@@ -17,6 +17,8 @@ Java11 LTS
 >
 > JVMDemo2 第二、三部分示列代码
 
+对应书籍[《剑指JVM：虚拟机实践与性能调优》](https://book.douban.com/subject/36411436/)
+
 # 一、内存与垃圾回收篇
 
 ## 1 JVM与Java体系结构
