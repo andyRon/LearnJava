@@ -7,13 +7,15 @@ import java.util.Random;
 public class HashMapTest {
     public static void main(String[] args) {
 //        ex01();
-        Map<String, Integer> countMap = new HashMap<>();
-        countMap.put("hello", 1);
-        countMap.put("world", 3);
-        countMap.put("position", 4);
-        System.out.println("hello".hashCode());
-        System.out.println(hash7("hello"));
-        System.out.println(hash("hello"));
+//        Map<String, Integer> countMap = new HashMap<>();
+//        countMap.put("hello", 1);
+//        countMap.put("world", 3);
+//        countMap.put("position", 4);
+//        System.out.println("hello".hashCode());
+//        System.out.println(hash7("hello"));
+//        System.out.println(hash("hello"));
+
+
     }
 
     static final int hash(Object key) {
