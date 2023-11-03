@@ -5016,36 +5016,58 @@ JVM的JIT编译模式相关的选项：
 
 #### OutOfMemory相关的选项🔖
 
-`-XX:+HeapDumpOnOutMemoryError`
-  表示在内存出现OOM的时候，生成Heap转储文件，以便后续分析，-XX:+HeapDumpBeforeFullGC和-XX:+HeapDumpOnOutMemoryError只能设置1个
-`-XX:+HeapDumpBeforeFullGC`
-  表示在出现FullGC之前，生成Heap转储文件，以便后续分析，-XX:+HeapDumpBeforeFullGC和-XX:+HeapDumpOnOutMemoryError只能设置1个，请注意FullGC可能出现多次，那么dump文件也会生成多个
-`-XX:HeapDumpPath=<path>`
-  指定heap转存文件的存储路径，如果不指定，就会将dump文件放在当前目录中
-`-XX:OnOutOfMemoryError`
-  指定一个可行性程序或者脚本的路径，当发生OOM的时候，去执行这个脚本
+- `-XX:+HeapDumpOnOutMemoryError`，表示在内存出现OOM的时候，生成Heap转储文件，以便后续分析，-XX:+HeapDumpBeforeFullGC和-XX:+HeapDumpOnOutMemoryError只能设置1个
+- `-XX:+HeapDumpBeforeFullGC`，表示在出现FullGC之前，生成Heap转储文件，以便后续分析，-XX:+HeapDumpBeforeFullGC和-XX:+HeapDumpOnOutMemoryError只能设置1个，请注意FullGC可能出现多次，那么dump文件也会生成多个
+- `-XX:HeapDumpPath=<path>`，指定heap转存文件的存储路径，如果不指定，就会将dump文件放在当前目录中
+- `-XX:OnOutOfMemoryError`，指定一个可行性程序或者脚本的路径，当发生OOM的时候，去执行这个脚本
+
+
 
 #### 垃圾收集器相关选项
 
-- 查看默认的垃圾回收器
+##### 查看默认的垃圾回收器
 
--xx:+PrintCommandLineFlags：查看命令行相关参数《包含使用的垃圾收集器）
+- `-XX:+PrintCommandLineFlags`：查看命令行相关参数（包含使用的垃圾收集器）
 
-使用命令行指令：jinfo - f1ag 相关垃圾回收器参数 进程ID
+- 使用命令行指令：`jinfo - flag 相关垃圾回收器参数 进程ID`
 
-- Serial回收器
+以上两种方式都可以查看默认使用的垃圾回收器，第一种方式更加准备，但是需要程序的支持；第二种方式需要去尝试，如果使用了，返回的值中有+号，否则就是-号
 
-
-
-- Parnew回收器
+##### Serial回收器
 
 
 
-- Parallel回收器
+##### Parnew回收器
 
-![](images/image-20230430222538892.png)
 
-- CMS回收器
+
+##### Parallel回收器
+
+- ﻿`-XX:+UseParallelGC` 手动指定年轻代使用Parallel并行收集器执行内存回收任务。
+
+- ﻿﻿`-XX:+UseParallelOldGC` 手动指定老年代都是使用并行回收收集器。
+  - ﻿分别适用于新生代和老年代。默认jdk8是开启的。
+  - ﻿上面两个参数，默认开启一个，另一个也会被开启。（**互相激活**）
+
+- ﻿`-XX:ParallelGCThreads` 设置年轻代并行收集器的线程数。一般地，最好与CPU数量相等，以避免过多的线程数影响垃圾收集性能。
+
+  - ﻿在默认情况下，当CPU 数量小于8个， ParallelGCThreads 的值等于CPU 数量。
+
+  - ﻿当CPU数量大于8个，ParallelGCThreads 的值等于`3+[5*CPU_Count]/8]`。
+
+- ﻿﻿`-XX:MaxGcpauseMillis` 设置垃圾收集器最大停顿时间(即STW的时间）。单位是亳秒。
+  - ﻿为了尽可能地把停顿时间控制在MaxGCPausemills 以内，收集器在工作时公调整Java堆大小或者其他一些参数。
+  - ﻿对于用户来讲，停顿时问越短体验越好。但是在服务器端，我们注重高并发，整体的吞吐量。所以服务器端适合Parallel，进行控制。
+  - ﻿<u>该参数使用需谨慎。</u>
+- ﻿﻿`-XX:GCTimeRatio` 垃圾收集时间占总时间的比例（= 1/(N +1））。用于衡量吞吐量的大小。
+  - ﻿取值范围（0,100）。默认值99，也就是垃圾回收时间不超过1%。
+  - ﻿与前一个`-XX:MaxGCPauseMillis`参数有一定矛盾性。暂停时间越长，Radio参数就容易超过设定的比例。
+
+- ﻿`-XX:+UseAdaptivesizePolicy` 设置Parallel Scavenge收集器具有**自适应调节策略**
+
+
+
+##### CMS回收器
 
 ![image-20230430222647041](images/image-20230430222647041.png)
 
@@ -5057,7 +5079,7 @@ JVM的JIT编译模式相关的选项：
 
 
 
-- G1回收器
+##### G1回收器
 
 ![](images/image-20230430222824454.png)
 
@@ -5153,7 +5175,7 @@ Mixed GC调优参数
 
 ### 4.4 通过java代码获取JVM参数
 
-Java提供了 java.1ang.management包用于监视和管理Java虚拟机和Java运行时中的其他组件，它允许本地和远程监控和管理运行的Java虛拟机。其中ManagementFactory这个类还是挺常用的。另外还有Runtime 类也可以获取一些内存、CPU核数等相关的数据。
+Java提供了 java.lang.management包用于监视和管理Java虚拟机和Java运行时中的其他组件，它允许本地和远程监控和管理运行的Java虛拟机。其中ManagementFactory这个类还是挺常用的。另外还有Runtime 类也可以获取一些内存、CPU核数等相关的数据。
 
 通过这些api可以监控我们的应用服务器的堆内存使用情况，设置一些阈值进行报警等处理。
 
@@ -5164,6 +5186,14 @@ Java提供了 java.1ang.management包用于监视和管理Java虚拟机和Java�
 ## 5 分析GC日志
 
 P375
+
+GC日志是JVM产生的一种描述性的文本日志。就像开发Java程序需要输出日志一样，JVM通过GC日志来描述垃圾收集的情况。通过GC日志能直观地看到内存清理的工作过程，了解垃圾收集的行为，比如何时在新生代执行垃圾收集，何时在老年代执行垃圾收集。
+
+```
+-Xms100m -Xmx100m -XX:+PrintGCDetails -XX:+UseSerialGC
+```
+
+
 
 ### 5.1 GC日志参数
 
@@ -5201,15 +5231,75 @@ P375
 
 
 
+#### 不同GC分类的GC细节
+
+##### 老年代使用CMS GC
+
+
+
+##### 新生代使用Serial GC
+
+
+
+#### GC日志分类
+
+##### MinorGC
+
+
+
+##### FullGC
+
+
+
+#### GC日志结构剖析
+
+##### 垃圾收集器
+
+
+
+##### GC前后情况
+
+
+
+##### GC时间
+
+
+
+#### Minor GC 日志解析
+
+​		
+
+#### Full GC 日志解析
+
+​		
+
 ### 5.3 特殊问题：新生代与老年代的比例
 
 
 
 ### 5.4 GC日志分析工具
 
-GCeasy
+#### GCeasy
 
-GCViewer
+
+
+#### GCViewer
+
+
+
+#### 其他工具
+
+##### GChisto
+
+官网上没有下载的地方，需要自己从SVN上拉下来编译
+
+不过这个工具似乎没怎么维护了，存在不少bug
+
+##### HPjmeter
+
+工具很强大，但是只能打开由以下参数生成的GC log，-verbose:gc -Xloggc:gc.log。添加其他参数生成的gc.log无法打开
+
+HPjmeter集成了以前的HPjtune功能，可以分析在HP机器上产生的垃圾回收日志文件
 
 
 
