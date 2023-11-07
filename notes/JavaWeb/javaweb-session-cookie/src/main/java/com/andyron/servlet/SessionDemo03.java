@@ -1,23 +1,24 @@
 package com.andyron.servlet;
 
+import com.andyron.pojo.Person;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 /**
- * @author Andy Ron
- */
-public class ErrorServlet extends HttpServlet {
+ * @author andyron
+ **/
+public class SessionDemo03 extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html");
-        resp.setCharacterEncoding("utf-8");
+        HttpSession session = req.getSession();
+        // 手动注销Session
+        session.invalidate();
 
-        PrintWriter writer = resp.getWriter();
-        writer.print("<h1>404</h1> 测试error");
     }
 
     @Override

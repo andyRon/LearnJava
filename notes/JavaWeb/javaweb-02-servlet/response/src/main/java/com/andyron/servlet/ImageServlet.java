@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Random;
 
 /**
+ * HttpServletResponse 验证码
  * @author Andy Ron
  */
 public class ImageServlet extends HttpServlet {
