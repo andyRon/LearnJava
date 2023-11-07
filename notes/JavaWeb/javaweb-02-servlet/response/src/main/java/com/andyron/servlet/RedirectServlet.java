@@ -5,8 +5,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
+ * 重定向
  * @author Andy Ron
  */
 public class RedirectServlet extends HttpServlet {
@@ -19,6 +21,7 @@ public class RedirectServlet extends HttpServlet {
         // 等价于
 //        resp.setHeader("Location", "/response_war/img");
 //        resp.setStatus(302);
+
 
     }
 

@@ -6,11 +6,7 @@
          version="4.0"
          metadata-complete="true">
 
-    <!-- 配置一些web应用初始化参数 -->
-    <context-param>
-        <param-name>url</param-name>
-        <param-value>jdbc:mysql://localhost:3306/mybatis</param-value>
-    </context-param>
+
 
 
     <servlet>
@@ -23,22 +19,28 @@
     </servlet-mapping>
 
     <servlet>
-        <servlet-name>getc</servlet-name>
+        <servlet-name>getName</servlet-name>
         <servlet-class>com.andyron.servlet.GetServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>getc</servlet-name>
-        <url-pattern>/getc</url-pattern>
+        <servlet-name>getName</servlet-name>
+        <url-pattern>/getName</url-pattern>
     </servlet-mapping>
 
+    <!-- 配置一些web应用初始化参数 -->
+    <context-param>
+        <param-name>url</param-name>
+        <param-value>jdbc:mysql://localhost:3306/mybatis</param-value>
+    </context-param>
     <servlet>
-        <servlet-name>demo3</servlet-name>
+        <servlet-name>getUrl</servlet-name>
         <servlet-class>com.andyron.servlet.ServletDemo3</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>demo3</servlet-name>
-        <url-pattern>/demo3</url-pattern>
+        <servlet-name>getUrl</servlet-name>
+        <url-pattern>/getUrl</url-pattern>
     </servlet-mapping>
+
 
     <servlet>
         <servlet-name>demo4</servlet-name>

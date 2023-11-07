@@ -5,6 +5,7 @@
                             http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
          version="4.0"
          metadata-complete="true">
+    <!--  web.xml是配置我们web的核心应用-->
 
     <!-- 注册Servlet -->
     <servlet>
@@ -20,10 +21,7 @@
     <!-- 可以自定义后缀实现请求映射
     注意点：*前面不能加项目映射的路径
     -->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>hello</servlet-name>-->
-<!--        <url-pattern>*.andy</url-pattern>-->
-<!--    </servlet-mapping>-->
+
 
     <!-- 404 -->
     <servlet>

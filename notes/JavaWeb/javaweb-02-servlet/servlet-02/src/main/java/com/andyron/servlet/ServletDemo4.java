@@ -15,10 +15,14 @@ public class ServletDemo4 extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         System.out.println("in demo4");
+        // 请求转发
         ServletContext context = this.getServletContext();
-//        RequestDispatcher requestDispatcher = context.getRequestDispatcher("/demo3"); // 转发的请求路径
+//        RequestDispatcher requestDispatcher = context.getRequestDispatcher("/getUrl"); // 转发的请求路径
 //        requestDispatcher.forward(req, resp);   // 调用forward实现请求转发
-        context.getRequestDispatcher("/demo3").forward(req, resp);
+        context.getRequestDispatcher("/getUrl").forward(req, resp);
+
+        // 重定向
+//        resp.sendRedirect("/s2/getUrl");
 
     }
 
