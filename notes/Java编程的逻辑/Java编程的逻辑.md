@@ -701,9 +701,9 @@ Math和Arrays也可以看作自定义数据类型，分别表示数学和数组�
 
 #### 自定义数据类型
 
-一个数据类型由其包含的<font color=#FF8C00>**属性**</font>以及该类型可以进行的<font color=#FF8C00>**操作**</font>组成，属性又可以分为是类型本身具有的属性（==**类变量**== 或叫 静态变量 或叫 静态成员变量），还是一个具体实例具有的属性（**实例变量**），同样，操作也可以分为是类型本身可以进行的操作（**类方法**/静态方法），还是一个具体实例可以进行的操作（**实例方法**）。
+一个数据类型由其包含的<font color=#FF8C00>**属性**</font>以及该类型可以进行的<font color=#FF8C00>**操作**</font>组成，属性又可以分为是类型本身具有的属性（**==类变量==** 或叫 静态变量 或叫 静态成员变量），还是一个具体实例具有的属性（**==实例变量==**），同样，操作也可以分为是类型本身可以进行的操作（**==类方法==**/静态方法），还是一个具体实例可以进行的操作（**==实例方法==**）。
 
-类变量和实例变量都叫**==成员变量==**；类方法和实例方法都叫==**成员方法**==。
+类变量和实例变量都叫**==成员变量==**；类方法和实例方法都叫==成员方法==。
 
 实例方法中，有一个隐含的参数，这个参数就是当前操作的实例自己，直接操作实例变量，实际也需要通过参数进行。
 
@@ -714,7 +714,7 @@ Math和Arrays也可以看作自定义数据类型，分别表示数学和数组�
 
 `final`在修饰变量的时候表示常量。
 
-==**引用类型**==的变量都有两块内存：一块存放**实际内容**，一块存放实际内容的**位置**。声明变量本身只会分配存放位置的内存空间，这块空间还没有指向任何实际内容。
+**==引用类型==**的变量都有两块内存：一块存放**实际内容**，一块存放实际内容的**位置**。声明变量本身只会分配存放位置的内存空间，这块空间还没有指向任何实际内容。
 
 **通过对象来访问和操作其内部的数据是一种基本的面向对象思维。**
 
@@ -752,8 +752,6 @@ this的两个用法：`this(0,0)`表示调用其它构造方法；`this.x`表示
 
 ##### **默认构造方法**
 
-
-
 ##### **私有构造方法**
 
 使用场景：
@@ -776,7 +774,7 @@ this的两个用法：`this(0,0)`表示调用其它构造方法；`this.x`表示
 
 <u>实例方法可以理解为一个静态方法，只是多了一个参数this。通过对象调用方法，可以理解为就是调用这个静态方法，并将对象作为参数传给this。</u>
 
-对象和数组一样，有两块内存，<u>保存地址的部分分配在栈中，而保存实际内容的部分分配在堆中</u>。栈中的内存是自动管理的，函数调用入栈就会分配，而出栈就会释放。
+对象和数组一样，有两块内存，**保存地址的部分分配在栈中，而保存实际内容的部分分配在堆中**。栈中的内存是自动管理的，函数调用入栈就会分配，而出栈就会释放。
 
 #### 总结
 
@@ -817,7 +815,11 @@ start、end、line三个引用型变量分配在栈中，保存的是实际内�
 
 电商系统中最基本的有产品、用户和订单。
 
-想想现实问题有哪些==概念==，这些概念有哪些==属性==、哪些==行为==，概念之间有什么关系，然后定义类、定义属性、定义方法、定义类之间的关系。概念的属性和行为可能是非常多的，但定义的类<u>只需要包括那些与现实问题相关的</u>就行了。
+- 产品：有产品唯一id、名称、描述、图片、价格等属性。
+- 用户：有用户名、密码等属性。
+- 订单：有订单号、下单用户、选购产品列表及数量、下单时间、收货人、收货地址、联系电话、订单状态等属性。
+
+想想现实问题有哪些==概念==，这些概念有哪些==属性==、哪些==行为==，概念之间有什么关系，然后定义类、定义属性、定义方法、定义类之间的关系。概念的属性和行为可能是非常多的，但**定义的类只需要包括那些与现实问题相关的**就行了。
 
 #### 用类描述人之间的血缘关系
 
@@ -831,7 +833,7 @@ start、end、line三个引用型变量分配在栈中，保存的是实际内�
 
 类中应该定义哪些变量和方法，这是与要解决的问题密切相关的。
 
-类之间的组合关系在Java中实现的都是==**引用**==，但在逻辑关系上，有两种明显不同的关系，一种是**==包含==**，另一种是**单纯引用**。比如，在订单类Order中，Order与User的关系就是单纯引用，User是独立存在的；而Order与OrderItem的关系就是包含，OrderItem总是从属于某一个Order。
+类之间的组合关系在Java中实现的都是**==引用==**，但在逻辑关系上，有两种明显不同的关系，一种是**==包含==**，另一种是**==单纯引用==**。比如，在订单类Order中，Order与User的关系就是单纯引用，User是独立存在的；而Order与OrderItem的关系就是包含，OrderItem总是从属于某一个Order。
 
 **<font color=#FF8C00>分解现实问题中涉及的概念以及概念间的关系，将概念表示为多个类，通过类之间的组合来表达更为复杂的概念以及概念间的关系，是计算机程序的一种基本思维方式。</font>**
 
@@ -855,17 +857,27 @@ Java API中所有的类和接口都位于包java或javax下，java是标准包�
 
 如果代码需要公开给其他人用，最好有一个域名以确保唯一性。
 
-包可以方便模块化开发，不同功能可以位于不同包内，不同开发人员负责不同的包。包也可以方便封装，<u>供外部使用的类可以放在包的上层，而内部的实现细节则可以放在比较底层的子包内。</u>🔖怎么理解？
+包可以方便模块化开发，不同功能可以位于不同包内，不同开发人员负责不同的包。包也可以方便封装，**供外部使用的类可以放在包的上层，而内部的实现细节则可以放在比较底层的子包内**。
 
 2. 通过包==使用==类
 
 同一个包下的类之间互相引用是不需要包名的。不同包，两种方式使用：**一种是通过类的完全限定名；另外一种是将用到的类引入当前类**。
 
-只有一个例外，**java.lang包下的类可以直接使用，不需要引入**，也不需要使用完全限定名，比如String类、System类，其他包内的类则不行。
+只有一个例外，**==java.lang包下的类可以直接使用，不需要引入==**，也不需要使用完全限定名，比如String类、System类，其他包内的类则不行。
 
 `import java.util.*`，引入不能递归，它只会引入java.util包下的直接类，而不会引入java.util下嵌套包内的类。
 
-**静态导入**：可以直接导入类的公开静态方法和成员。静态导入不应过度使用，否则难以区分访问的是哪个类的代码。
+**==静态导入==**：可以直接导入类的公开静态方法和成员。静态导入不应过度使用，否则难以区分访问的是哪个类的代码。
+
+```java
+import static java.util.Arrays.*;
+import static java.lang.System.out;
+
+sort(arr);
+out.println(...)
+```
+
+
 
 3. 包范围可见性
 
@@ -875,9 +887,9 @@ Java API中所有的类和接口都位于包java或javax下，java是标准包�
 
 #### jar包
 
-各种程序语言大多有打包的概念，打包的一般不是源代码，而是编译后的代码。
+各种程序语言大多有打包的概念，**打包的一般不是源代码，而是编译后的代码**。
 
-在Java中，编译后的一个或多个包的Java class文件可以打包为一个文件，Java中打包命令为jar，打包后的文件扩展名为`.jar`，一般称之为jar包。jar包其实就是一个压缩文件。
+在Java中，编译后的一个或多个包的Java class文件可以打包为一个文件，Java中打包命令为`jar`，打包后的文件扩展名为`.jar`，一般称之为jar包。jar包其实就是一个**压缩文件**。
 
 ```
 jar -cvf <包名>.jar <最上层包名>
@@ -887,9 +899,9 @@ Java类库、第三方类库都是以jar包形式提供的。如何使用jar包�
 
 #### 程序的编译与链接
 
-从Java源代码到运行的程序，有编译和链接两个步骤。编译是将源代码文件变成扩展名是.class的一种字节码，这个工作一般是由`javac`命令完成的。链接是在运行时动态执行的，.class文件不能直接运行，运行的是Java虚拟机，虚拟机听起来比较抽象，执行的就是`java`命令，这个命令解析.class文件，转换为机器能识别的二进制代码，然后运行。所谓链接就是**根据引用到的类加载相应的字节码并执行**。
+从Java源代码到运行的程序，有编译和链接两个步骤。编译是将源代码文件变成扩展名是.class的一种字节码，这个工作一般是由`javac`命令完成的。链接是在运行时动态执行的，.class文件不能直接运行，运行的是Java虚拟机，虚拟机听起来比较抽象，执行的就是`java`命令，这个命令解析.class文件，转换为机器能识别的二进制代码，然后运行。所谓链接就是**==根据引用到的类加载相应的字节码并执行==**。
 
-Java编译和运行时，都需要以参数指定一个classpath，即<font color=#FF8C00>类路径</font>。类路径可以有多个，对于直接的class文件，路径是class文件的根目录；对于jar包，路径是jar包的完整名称（包括路径和jar包名）。在Windows系统中，多个路径用分号“; ”分隔；在其他系统中，以冒号“:”分隔。
+Java编译和运行时，都需要以参数指定一个**classpath**，即<font color=#FF8C00>类路径</font>。类路径可以有多个，对于直接的class文件，路径是class文件的根目录；对于jar包，路径是jar包的完整名称（包括**路径和jar包名**）。在Windows系统中，多个路径用分号“; ”分隔；在其他系统中，以冒号“:”分隔。
 
 import是编译时概念，用于确定完全限定名，在运行时，只根据完全限定名寻找并加载类。
 
@@ -952,7 +964,7 @@ public class ShapeManager {
 
 参数`Shape shape`中的变量shape可以引用任何Shape子类类型的对象，这叫**多态**，**即一种类型的变量，可引用多种实际类型对象**。
 
-这样，对于变量shape，它就有两个类型：类型Shape，我们称之为shape的**静态类型**；类型Circle/Line/ArrowLine，我们称之为shape的**动态类型**。在ShapeManager的draw方法中，shapes[i].draw()调用的是其对应动态类型的draw方法，这称之为方法的**动态绑定**。
+这样，对于变量shape，它就有两个类型：类型Shape，我们称之为shape的**==静态类型==**；类型Circle/Line/ArrowLine，我们称之为shape的**==动态类型==**。在ShapeManager的draw方法中，shapes[i].draw()调用的是其对应动态类型的draw方法，这称之为方法的**==动态绑定==**。
 
 > 为什么要有多态和动态绑定呢？
 >
@@ -960,7 +972,7 @@ public class ShapeManager {
 
 <font color=#FF8C00>**多态和动态绑定是计算机程序的一种重要思维方式，使得操作对象的程序不需要关注对象的实际类型，从而可以统一处理不同对象，但又能实现每个对象的特有行为。**</font>
 
-总结：**子类对象可以赋值给父类引用变量，这叫多态；实际执行调用的是子类实现，这叫动态绑定。**
+总结：**子类对象可以赋值给父类引用变量，这叫==多态==；实际执行调用的是子类实现，这叫动态绑定。**
 
 ### 4.2 继承的细节
 
@@ -1019,11 +1031,11 @@ public class Child extends Base {
         child static: child_base
 ```
 
-当通过b（静态类型Base）访问时，访问的是Base的变量和方法，当通过c（静态类型Child）访问时，访问的是Child的变量和方法，这称之为**静态绑定**，即<u>访问绑定到变量的静态类型</u>🔖。静态绑定在程序编译阶段即可决定，而动态绑定则要等到程序运行时。**实例变量、静态变量、静态方法、private方法，都是静态绑定的**。
+当通过b（静态类型Base）访问时，访问的是Base的变量和方法，当通过c（静态类型Child）访问时，访问的是Child的变量和方法，这称之为**==静态绑定==**，即<u>访问绑定到变量的静态类型</u>。静态绑定在程序编译阶段即可决定，而动态绑定则要等到程序运行时。**实例变量、静态变量、静态方法、private方法，都是静态绑定的**。🔖
 
 #### 重载和重写
 
-重载是指方法名称相同但参数签名不同（参数个数、类型或顺序不同），重写是指子类重写与父类相同参数签名的方法。
+重载是指方法名称相同但==参数签名==不同（参数==个数、类型或顺序==不同），重写是指子类重写与父类相同参数签名的方法。
 
 当有多个重名函数的时候，在决定要调用哪个函数的过程中，首先是按照参数类型进行匹配的，换句话说，寻找在所有重载版本中最匹配的，然后才看变量的动态类型，进行动态绑定。
 
@@ -1048,7 +1060,42 @@ public boolean canCast(Base b) {
 
 #### 继承访问权限protected
 
-模板方法在很多框架中有广泛的应用，这是使用protected的一种常见场景。🔖
+protected表示虽然不能被外部任意访问，但可被子类访问。
+
+```java
+public class Base {
+    protected int currentStep;
+    protected void step1() {}
+    protected void step2() {}
+
+    public void action() {
+        this.currentStep = 1;
+        step1();
+        this.currentStep = 2;
+        step2();
+    }
+}
+```
+
+```java
+public class Child extends Base {
+    protected void step1() {
+        System.out.println("child step " + this.currentStep);
+    }
+    protected void step2() {
+        System.out.println("child step " + this.currentStep);
+    }
+
+    public static void main(String[] args) {
+        Child c = new Child();
+        c.action();
+    }
+}
+```
+
+基类定义了表示对外行为的方法action，并定义了可以被子类重写的两个步骤step1()和step2()，以及被子类查看的变量currentStep，子类通过重写protected方法step1()和step2()来修改对外的行为。
+
+这种思路和设计是一种设计模式，称之为==模板方法==。action方法就是一个模板方法，它定义了实现的模板，而具体实现则由子类提供。模板方法在很多框架中有广泛的应用，这是使用protected的一种常见场景。
 
 #### 可见性重写
 
@@ -1056,7 +1103,7 @@ public boolean canCast(Base b) {
 
 > 为什么要这样规定呢？
 >
-> 继承反映的是“is-a”的关系，即子类对象也属于父类，子类必须支持父类所有对外的行为，将可见性降低就会减少子类对外的行为，从而破坏“is-a”的关系，但子类可以增加父类的行为，所以提升可见性是没有问题的。
+> 继承反映的是“is-a”的关系，即子类对象也属于父类，**子类必须支持父类所有对外的行为**，将可见性降低就会减少子类对外的行为，从而破坏“is-a”的关系，但子类可以增加父类的行为，所以提升可见性是没有问题的。
 
 #### 防止继承final
 
@@ -1162,9 +1209,9 @@ end
 
 
 
-#### 类加载过程
+#### 类加载过程❤️
 
-Java中，所谓类的加载是指将类的相关信息加载到内存。在Java中，类是动态加载的，当第一次使用这个类的时候才会加载，加载一个类时，会查看其父类是否已加载，如果没有，则会加载其父类。
+Java中，所谓类的加载是指**将类的相关信息加载到内存**。在Java中，类是**动态加载**的，当**第一次使用这个类的时候才会加载，加载一个类时，会查看其父类是否已加载，如果没有，则会加载其父类**。
 
 1. 一个类的信息主要包括以下部分：
    - 类变量（静态变量）；
@@ -1188,11 +1235,13 @@ Java中，所谓类的加载是指将类的相关信息加载到内存。在Java
    - 设置父子关系；
    - 执行类初始化代码。
 
-栈存放函数的局部变量；而堆存放动态分配的对象；存放类的信息，这个区在Java中称为**方法区**。
+栈存放函数的局部变量；而堆存放动态分配的对象，存放类的信息，这个区在Java中称为**方法区**。
 
 上面的示例，加载后，Java方法区有3份类信息，分别是Child、Base、Object。
 
 ![](images/image-20220313100828456.png)
+
+用`class_init()`来表示类初始化代码；用`instance_init()`表示实例初始化代码（实例初始化代码块和构造方法），例子中只有一个构造方法，实际情况则可能有多个实例初始化方法。
 
 #### 对象创建的过程
 
@@ -1228,13 +1277,15 @@ Java中，所谓类的加载是指将类的相关信息加载到内存。在Java
 
 如果继承的层次比较深，要调用的方法位于比较上层的父类，则调用的效率是比较低的，因为每次调用都要进行很多次查找。大多数系统使用一种称为虚方法表的方法来优化调用的效率。
 
-**虚方法表**，就是在类加载的时候为每个类创建一个表，记录该类的对象所有动态绑定的方法（包括父类的方法）及其地址，但一个方法只有一条记录，子类重写了父类方法后只会保留子类的。
+**==虚方法表==**，就是在类加载的时候为每个类创建一个表，记录该类的对象所有动态绑定的方法（包括父类的方法）及其地址，但一个方法只有一条记录，子类重写了父类方法后只会保留子类的。
 
 ![](images/image-20220313104421843.png)
 
 #### 变量访问的过程
 
 **对变量的访问是静态绑定的，无论是类变量还是实例变量。**代码中演示的是类变量：b.s和c.s，通过对象访问类变量，系统会转换为直接访问类变量Base.s和Child.s。
+
+
 
 ### 4.4 为什么说继承是把双刃剑
 
@@ -1248,7 +1299,7 @@ Java中，所谓类的加载是指将类的相关信息加载到内存。在Java
 >
 > 函数是封装，类也是封装。
 >
-> 通过封装，才能在更高的层次上考虑和解决问题。
+> 通过封装，才能**在更高的层次上考虑和解决问题**。
 >
 > 没有封装，代码之间会到处存在着实现细节的依赖，则构建和维护复杂的程序是难以想象的。
 
@@ -1276,8 +1327,6 @@ public class Base {
 }
 ```
 
-
-
 ```java
 public class Child extends Base {
   private long sum;
@@ -1301,17 +1350,54 @@ public class Child extends Base {
 }
 ```
 
+```java
+    public static void main(String[] args) {
+        Child c = new Child();
+        c.addAll(new int[]{1,2,3});
+        System.out.println(c.getSum());
+    }
+```
 
+使用addAll添加1、2、3，期望的输出是1+2+3=6，实际输出为12！
 
-子类和父类之间是细节依赖，子类扩展父类，仅仅知道父类能做什么是不够的，还需要知道父类是怎么做的，而父类的实现细节也不能随意修改，否则可能影响子类。
+因为同一个数字被汇总了两次。子类的addAll方法首先调用了父类的addAll方法，而父类的addAll方法通过add方法添加，<u>由于动态绑定，子类的add方法会执行，子类的add也会做汇总操作</u>。
+
+可以看出，**如果子类不知道基类方法的实现细节，它就不能正确地进行扩展**。知道了错误，现在我们修改子类实现，修改addAll方法为：
+
+```java
+    @Override
+    public void addAll(int[] numbers) {
+        super.addAll(numbers);
+    }
+```
+
+也就是说，addAll方法不再进行重复汇总。这次，程序就可以输出正确结果6了。
+
+但是，基类Base决定修改addAll方法的实现，改为下面代码：
+
+```java
+    public void addAll(int[] numbers) {
+        for (int num : numbers) {
+          if (count < MAX_NUM) {
+            arr[count++] = num;
+          }
+        }
+    }
+```
+
+也就是说，它不再通过调用add方法添加，这是Base类的实现细节。但是，修改了基类的内部细节后，上面使用子类的程序却错了，输出由正确值6变为了0。
+
+上面的例子看出，**子类和父类之间是细节依赖，子类扩展父类，仅仅知道父类能做什么是不够的，还需要知道父类是怎么做的，而父类的实现细节也不能随意修改，否则可能影响子类**。
 
 父类不能随意增加公开方法，因为给父类增加就是给所有子类增加，而子类可能必须要重写该方法才能确保方法的正确性。
 
-小结：<u>对于子类而言，通过继承实现是没有安全保障的，因为父类修改内部实现细节，它的功能就可能会被破坏；而对于基类而言，让子类继承和重写方法，就可能丧失随意修改内部实现的自由。</u>
+小结：**对于子类而言，通过继承实现是没有安全保障的，因为父类修改内部实现细节，它的功能就可能会被破坏；而对于基类而言，让子类继承和重写方法，就可能丧失随意修改内部实现的自由。**
 
-#### 继承没有反映is-a关系
+#### 继承没有反映is-a关系🔖
 
-现实中，设计完全符合is-a关系的继承关系是困难的。
+现实中，**设计完全符合is-a关系的继承关系是困难的**。
+
+==预期的行为==
 
 但对于通过父类引用操作子类对象的程序而言，它是把对象当作父类对象来看待的，期望对象符合父类中声明的属性和行为。如果不符合，结果是什么呢？混乱。
 
@@ -1325,43 +1411,91 @@ public class Child extends Base {
 2. 优先使用组合而非继承；
 3. 使用接口
 
+##### 使用final避免继承
+
+**给方法加final修饰符，父类就保留了随意修改这个方法内部实现的自由**，使用这个方法的程序也可以确保其行为是符合父类声明的。
+
+**给类加final修饰符，父类就保留了随意修改这个类实现的自由**，使用者也可以放心地使用它，而不用担心一个父类引用的变量，实际指向的却是一个完全不符合预期行为的子类对象。
+
+##### 优先使用组合而非继承
+
+使用组合可以抵挡父类变化对子类的影响，从而保护子类，应该优先使用组合。
+
+```java
+public class Child {
+    private Base base;
+    private long sum;
+    public Child() {
+        base = new Base();
+    }
+    public void add(int number) {
+        base.add(number);
+        sum += number;
+    }
+    public void addAll(int[] numbers) {
+        base.addAll(numbers);
+        for (int i = 0; i < numbers.length; i++) {
+            sum += numbers[i];
+        }
+    }
+
+    public long getSum() {
+        return sum;
+    }
+}
+```
+
+这样，子类就不需要关注基类是如何实现的了，基类修改实现细节，增加公开方法，也不会影响到子类了。但组合的问题是，**子类对象不能当作基类对象来统一处理了**。解决方法是**使用接口**。
+
+##### 正确使用继承
+
 使用继承的三种主要场景：
 
 1. 基类是别人写的，我们写子类。主要是Java API、其他框架或类库中的类。注意
    - 重写方法不要改变预期的行为；
    - 阅读文档说明，理解可重写方法的实现机制，尤其是方法之间的依赖关系；
    - 在基类修改的情况下，阅读其修改说明，相应修改子类。
-2. 我们写基类，别人可能写子类
+2. 我们写基类，别人可能写子类.注意：
    - 使用继承反映真正的is-a关系，只将真正公共的部分放到基类；
    - 对不希望被重写的公开方法添加final修饰符；
    - 写文档，说明可重写方法的实现机制，为子类提供指导，告诉子类应该如何重写；
    - 在基类修改可能影响子类时，写修改说明。
-3. 基类、子类都是我们写的。
+3. 基类、子类都是我们写的。关于基类，注意事项和第2种场景类似，关于子类，注意事项和第1种场景类似，不过程序都由我们控制，要求可以适当放松一些。
 
 
 
 ## 5 类的扩展
 
-类相当于是<u>自定义数据类型</u>，通过类的组合和继承可以表示和操作各种事物或者说对象。
+**程序主要就是数据以及对数据的操作**，而为了方便操作数据，高级语言引入了数据类型的概念。Java定义了8种基本数据类型，而类相当于是**自定义数据类型**，通过类的组合和继承可以表示和操作各种事物或者说对象。
 
 ### 5.1 接口的本质
 
 只是将对象看作属于某种数据类型，并按该类型进行操作，在一些情况下，并不能反映对象以及对对象操作的本质。
 
-对象的类型
+很多时候，我们实际上关心的，并==不是对象的类型，而是对象的能力==，只要能提供这个能力，类型并不重要。
 
-对象的**能力**
+> 比如要拍照，很多时候，只要能拍出符合需求的照片就行，至于是用手机拍，还是用Pad拍，或者是用单反相机拍，并不重要，即关心的是对象是否有拍出照片的能力，而并不关心对象到底是什么类型，手机、Pad或单反相机都可以。
+>
+> 又如要计算一组数字，只要能计算出正确结果即可，至于是由人心算，用算盘算，用计算器算，用计算机软件算，并不重要，即关心的是对象是否有计算的能力，而并不关心对象到底是算盘还是计算器。
+>
+> 再如要将冷水加热，只要能得到热水即可，至于是用电磁炉加热，用燃气灶加热，还是用电热水壶加热，并不重要，即重要的是对象是否有加热水的能力，而并不关心对象到底是什么类型。
+
+对象的**能力**通过接口表示。
 
 #### 接口的概念
 
 接口声明了一组能力，但它自己并没有实现这个能力，它只是一个约定。
 
-**双方对象并不直接互相依赖，它们只是通过接口间接交互**。
+接口涉及交互两方对象，一方需要实现这个接口，另一方使用这个接口，但**双方对象并不直接互相依赖，它们只是通过接口间接交互**。
+
+> 拿USB接口来说，USB协议约定了USB设备需要实现的能力，每个USB设备都需要实现这些能力，计算机使用USB协议与USB设备交互，计算机和USB设备互不依赖，但可以通过USB接口相互交互。
 
 ![](images/image-20220313105258399.png)
 
 #### 定义接口
 
+> Java中接口的概念举例：
+>
 > ”比较“，很多时候不关心对象的类型，而是关系对象有没有可比较的能力。
 >
 > Java API中提供了`Comparable接口`，以表示可比较的能力。
@@ -1372,7 +1506,9 @@ public interface MyComparable {
 }
 ```
 
-接口与类不同，它的方法没有实现代码。定义一个接口本身并没有做什么，也没有太大的用处，它还需要至少两个参与者：一个需要实现接口，另一个使用接口。
+
+
+接口与类不同，它的方法没有实现代码。定义一个接口本身并没有做什么，也没有太大的用处，它还需要至少两个参与者：**一个需要实现接口，另一个使用接口**。
 
 #### 实现接口
 
@@ -1399,7 +1535,7 @@ public class Point implements MyComparable{
 }
 ```
 
-
+一个类可以实现多个接口，表明类的对象具备多种能力，各个接口之间以逗号分隔。
 
 #### 使用接口
 
@@ -1440,6 +1576,10 @@ public class CompUtil {
 
 
 
+**==针对接口而非具体类型进行编程，是计算机程序的一种重要思维方式。==**
+
+接口更重要的是降低了耦合，提高了灵活性。
+
 #### 接口的细节
 
 1. 接口中的变量。修饰符自动是`public static final`，可以不写，通过`接口名.变量名`方式使用。
@@ -1447,7 +1587,7 @@ public class CompUtil {
 3. 类的继承与接口可以共存，关键字extends要放在implements之前。
 4. instanceof也可用来判断一个对象是否实现了某接口。
 
-#### 使用接口替代继承
+#### 使用接口替代继承❤️
 
 继承至少有两个好处：一个是复用代码；另一个是利用多态和动态绑定统一处理多种不同子类的对象。
 
@@ -1455,7 +1595,7 @@ public class CompUtil {
 
 使用接口替代继承，针对接口编程，可以实现统一处理不同类型的对象，但接口没有代码实现，无法复用代码。
 
-将组合和接口结合起来替代继承，就既可以统一处理，又可以复用代码了。
+**将组合和接口结合起来替代继承，就既可以统一处理，又可以复用代码了。**
 
 ```java
 public interface IAdd {
@@ -1464,22 +1604,57 @@ public interface IAdd {
 }
 
 public class Base implements IAdd {
-  ...
-  // 主体代码，与代码清单4-10一样
+    private static final int MAX_NUM = 1000;
+    private int[] arr = new int[MAX_NUM];
+    private int count;
+    @Override
+    public void add(int number) {
+        if (count < MAX_NUM) {
+            arr[count++] = number;
+        }
+    }
+    @Override
+    public void addAll(int[] numbers) {
+        for (int num : numbers) {
+            add(num);
+        }
+    }
 }
 
 public class Child implements IAdd {
-  // 主体代码，组合使用Base，与代码清单4-12一样
+    private Base base;
+    private long sum;
+    public Child() {
+        base = new Base();
+    }
+
+    @Override
+    public void add(int number) {
+        base.add(number);
+        sum += number;
+    }
+
+    @Override
+    public void addAll(int[] numbers) {
+        base.addAll(numbers);
+        for (int i = 0; i < numbers.length; i++) {
+            sum += numbers[i];
+        }
+    }
+
+    public long getSum() {
+        return sum;
+    }
 }
 ```
 
-🔖怎么组合使用Base？
+Child复用了Base的代码，又都实现了IAdd接口，这样，既复用代码，又可以统一处理，还不用担心破坏封装。
 
 
 
 #### Java 8和Java 9对接口的增强
 
-在Java 8之前，接口中的方法都是抽象方法，都没有实现体，Java 8允许在接口中定义两类新方法：**静态方法和默认方法**，它们有实现体。
+在Java 8之前，接口中的方法都是抽象方法，都没有实现体，Java 8允许在接口中定义两类新方法：**==静态方法和默认方法==**，它们有实现体。
 
 ```java
 public interface IDemo {
@@ -1493,37 +1668,39 @@ public interface IDemo {
 }
 ```
 
-在接口不能定义静态方法之前，相关的静态方法往往定义在单独的类中，比如，Java API中，Collection接口有一个对应的单独的类Collections，在Java 8中，就可以直接写在接口中了，比如Comparator接口就定义了多个静态方法。
+在接口不能定义静态方法之前，相关的静态方法往往定义在单独的类中，比如，Java API中，Collection接口有一个对应的单独的类`Collections`，在Java 8中，就可以直接写在接口中了，比如Comparator接口就定义了多个静态方法。
 
-默认方法有默认的实现，实现类可以改变它的实现，也可以不改变。**引入默认方法主要是函数式数据处理的需求，是为了便于给接口增加功能。**
+默认方法有默认的实现，实现类可以改变它的实现，也可以不改变。**引入默认方法主要是==函数式数据处理的需求，是为了便于给接口增加功能==。**
 
-在没有默认方法之前，Java是很难给接口增加功能的，比如List接口（第9章介绍），因为有太多非Java JDK控制的代码实现了该接口，如果给接口增加一个方法，则那些接口的实现就无法在新版Java上运行，必须改写代码，实现新的方法，这显然是无法接受的。
+在没有默认方法之前，Java是很难给接口增加功能的，比如List接口（第9章介绍），因为有太多非Java JDK控制的代码实现了该接口，**如果给接口增加一个方法，则那些接口的实现就无法在新版Java上运行，必须改写代码，实现新的方法，这显然是无法接受的**。
 
-函数式数据处理需要给一些接口增加一些新的方法，所以就有了默认方法的概念，**接口增加了新方法，而接口现有的实现类也不需要必须实现**。
+函数式数据处理需要给一些接口增加一些新的方法，所以就有了默认方法的概念，**==接口增加了新方法，而接口现有的实现类也不需要必须实现==**。
 
 在Java 8中，静态方法和默认方法都必须是public的，Java 9去除了这个限制，它们都可以是private的，引入private方法主要是为了方便多个静态或默认方法复用代码：
 
 ```java
-        public interface IDemoPrivate {
-              private void common() {
-                  System.out.println("common");
-              }
-              default void actionA() {
-                  common();
-              }
-              default void actionB() {
-                  common();
-              }
-          }
+public interface IDemoPrivate {
+  private void common() {
+    System.out.println("common");
+  }
+  default void actionA() {
+    common();
+  }
+  default void actionB() {
+    common();
+  }
+}
 ```
+
+这里，actionA和actionB两个默认方法共享了相同的common()方法的代码。
+
+
 
 >  <font color=#FF8C00>针对接口而非具体类型进行编程，是计算机程序的一种重要思维方式。这种方式不仅可以复用代码，还可以降低耦合，提高灵活性，是分解复杂问题的一种重要工具。</font>
 
 ### 5.2 抽象类
 
-抽象类就是抽象的类。**抽象是相对于具体而言的，一般而言，具体类有直接对应的对象，而抽象类没有，它表达的是抽象概念**，一般是具体类的比较上层的父类。比如，狗是具体对象，而动物则是抽象概念；樱桃是具体对象，而水果则是抽象概念；正方形是具体对象，而图形则是抽象概念。
-
-
+抽象类就是抽象的类。**抽象是相对于具体而言的，一般而言，具体类有==直接对应的对象==，而抽象类没有，它表达的是==抽象概念==**，一般是具体类的比较上层的父类。比如，狗是具体对象，而动物则是抽象概念；樱桃是具体对象，而水果则是抽象概念；正方形是具体对象，而图形则是抽象概念。
 
 #### 抽象方法和抽象类
 
@@ -1538,15 +1715,13 @@ Shape shape = new Circle();
 shape.draw();
 ```
 
-
-
 #### 为什么需要抽象类
 
-引入抽象方法和抽象类，是Java提供的一种语法工具，对于一些类和方法，引导使用者正确使用它们，减少误用。
+引入抽象方法和抽象类，是Java提供的一种语法工具，对于一些类和方法，引导使用者正确使用它们，**减少误用**。
 
-使用抽象方法而非空方法体，子类就知道它必须要实现该方法，而不可能忽略，若忽略Java编译器会提示错误。使用抽象类，类的使用者创建对象的时候，就知道必须要使用某个具体子类，而不可能误用不完整的父类。
+使用抽象方法而非空方法体，子类就知道它必须要实现该方法，而**不可能忽略**，若忽略Java编译器会提示错误。使用抽象类，类的使用者创建对象的时候，就知道必须要使用某个具体子类，而不可能误用不完整的父类。
 
-> 每个人都可能会犯错，减少错误不能只依赖人的优秀素质，还需要一些机制，使得一个普通人都容易把事情做对，而难以把事情做错。抽象类就是Java提供的这样一种机制。
+> **每个人都可能会犯错，减少错误不能只依赖人的优秀素质，还需要一些==机制==，使得一个普通人都容易把事情做对，而难以把事情做错。抽象类就是Java提供的这样一种机制**。
 
 #### 抽象类和接口
 
@@ -1554,10 +1729,10 @@ shape.draw();
 
 不同处：接口中不能定义实例变量，而抽象类可以；一个类可以实现多个接口，但只能继承一个类。
 
-抽象类和接口是配合而非替代关系，它们经常一起使用，**接口声明能力，抽象类提供默认实现**，实现全部或部分方法，一个接口经常有一个对应的抽象类。比如，在Java类库中，有：
+抽象类和接口是配合而非替代关系，它们经常一起使用，**接口声明能力，抽象类提供默认实现**，实现全部或部分方法，**一个接口经常有一个对应的抽象类**。比如，在Java类库中，有：
 
-- Collection接口和对应的AbstractCollection抽象类。
-- List接口和对应的AbstractList抽象类。
+- `Collection`接口和对应的`AbstractCollection`抽象类。
+- `List`接口和对应的`AbstractList`抽象类。
 - Map接口和对应的AbstractMap抽象类。
 
 对于需要实现接口的具体类而言，有两个选择：
@@ -1595,11 +1770,15 @@ public class Base extends AbstractAdder {
 
 
 
+> 抽象类和接口经常相互配合，接口定义能力，而抽象类提供默认实现，方便子类实现接口。
+
+
+
 ### 5.3 内部类的本质
 
 内部类与包含它的外部类有比较密切的关系，而与其他类关系不大，定义在类内部，可以实现对外部完全隐藏，可以有更好的封装性，代码实现上也往往更为简洁。
 
-内部类只是Java编译器的概念，对于Java虚拟机而言，它是不知道内部类这回事的，**==每个内部类最后都会被编译为一个独立的类==**，生成一个独立的字节码文件。
+内部类只是Java编译器的概念，对于Java虚拟机而言，它是不知道内部类这回事的，**==每个内部类最后都会被编译为一个独立的类==**，**生成一个独立的字节码文件**。
 
 内部类可以方便地访问外部类的私有变量，可以声明为private从而实现对外完全隐藏，相关代码写在一起，写法也更为简洁，这些都是内部类的好处。
 
@@ -1625,7 +1804,7 @@ public class Outer {
 
 <u>静态内部类可以访问外部类的静态变量和方法，但不可以访问实例变量和方法。</u>
 
-public静态内部类可以被外部使用，只是需要通过“外部类.静态内部类”的方式使用。
+public静态内部类可以被外部使用，只是需要通过“`外部类.静态内部类`”的方式使用。
 
 静态内部类是怎么实现的？上面的代码实际生成两个类：`Outer`，`Outer$StaticInner`，大概代码：
 
@@ -1642,11 +1821,11 @@ public class Outer {
   }
 }
 
-  public static class Outer$StaticInner {
-    public void innerMethod() {
-      System.out.println("inner " + Outer.access$0);
-    }
+public static class Outer$StaticInner {
+  public void innerMethod() {
+    System.out.println("inner " + Outer.access$0);
   }
+}
 ```
 
 私有变量是不能被类外部访问的，内部类能访问的解决方法就是，**自动为Outer生成一个非私有访问法access$0，它返回这个私有静态变量shared**。
@@ -1656,14 +1835,14 @@ public class Outer {
 Java API中使用静态内部类的例子：
 
 - Integer类内部有一个私有静态内部类`IntegerCache`，用于支持整数的自动装箱。
-- 表示链表的LinkedList类内部有一个私有静态内部类Node，表示链表中的每个节点。
-- Character类内部有一个public静态内部类UnicodeBlock，用于表示一个Unicode block。
+- 表示链表的LinkedList类内部有一个私有静态内部类`Node`，表示链表中的每个节点。
+- Character类内部有一个public静态内部类`UnicodeBlock`，用于表示一个Unicode block。
 
 #### 成员内部类
 
 ```java
 public class Outer {
-  private int shared = 100;
+  private int a = 100;
   public class Inner {
     public void innerMethod() {
       System.out.println("outer a " + a);
@@ -1671,7 +1850,6 @@ public class Outer {
     }
 
   }
-  
   private void action() {
     System.out.println("action");
   }
@@ -1730,11 +1908,13 @@ public class Outer$Inner {
 
 `Outer$Inner`类有个实例变量outer指向外部类的对象，它在构造方法中被初始化，Outer在新建`Outer$Inner`对象时给它传递当前对象，由于内部类访问了外部类的私有变量和方法，外部类Outer生成了两个非私有静态方法：`access$0`用于访问变量a, `access$1`用于访问方法action。
 
-应用场景：如果内部类与外部类关系密切，需要访问外部类的实例变量或方法，则可以考虑定义为成员内部类。外部类的一些方法的返回值可能是某个接口，为了返回这个接口，外部类方法可能使用内部类实现这个接口，这个内部类可以被设为private，对外完全隐藏。
+应用场景：**如果内部类与外部类关系密切，需要访问外部类的实例变量或方法，则可以考虑定义为成员内部类。外部类的一些方法的返回值可能是某个接口，为了返回这个接口，外部类方法可能==使用内部类实现这个接口==，这个内部类可以被设为private，对外完全隐藏。**
 
-比如，在Java API的类LinkedList中，它的两个方法listIterator和descendingIterator的返回值都是接口Iterator，调用者可以通过Iterator接口对链表遍历，listIterator和descendingIterator内部分别使用了成员内部类ListItr和DescendingIterator，这两个内部类都实现了接口Iterator。
+比如，在Java API的类LinkedList中，它的两个方法listIterator和descendingIterator的返回值都是接口`Iterator`，调用者可以通过Iterator接口对链表遍历，listIterator和descendingIterator内部分别使用了成员内部类ListItr和DescendingIterator，这两个内部类都实现了接口Iterator。
 
 #### 方法内部类
+
+内部类还可以定义在一个方法体中。
 
 ```java
 public class Outer {
@@ -1754,13 +1934,13 @@ public class Outer {
 }
 ```
 
-类Inner定义在外部类方法test中，方法内部类只能在定义的方法内被使用。
+类Inner定义在外部类方法test中，**方法内部类只能在定义的方法内被使用**。
 
 如果方法是实例方法，则除了静态变量和方法，内部类还可以直接访问外部类的实例变量和方法。
 
 如果方法是静态方法，则方法内部类只能访问外部类的静态变量和方法。
 
-方法内部类还可以直接访问方法的参数和方法中的局部变量，不过，这些变量必须被声明为final。
+方法内部类还可以直接访问**方法的参数和方法中的局部变量**，不过，这些变量必须被声明为`final`。
 
 方法内部类的内部实现：
 
@@ -1791,13 +1971,17 @@ public class OuterInner {
 }
 ```
 
+与成员内部类类似，OuterInner类也有一个实例变量outer指向外部对象，在构造方法中被初始化，对外部私有实例变量的访问也是通过Outer添加的方法access$0来进行的。
 
+方法内部类可以访问方法中的参数和局部变量，这是通过在构造方法中传递参数来实现的。
 
+这也解释了为什么方法内部类访问外部方法中的参数和局部变量时，这些变量必须被声明为final，因为实际上，**方法内部类操作的并不是外部的变量，而是它自己的实例变量**，只是这些变量的值和外部一样，对这些变量赋值，并不会改变外部的值，为避免混淆，所以干脆强制规定必须声明为final。
 
+如果的确需要修改外部的变量，那么可以将变量改为只含该变量的数组，修改数组中的值。
 
 #### 匿名内部类
 
-匿名内部类没有单独的类定义，它在创建对象的同时定义类，语法如下：
+匿名内部类没有单独的类定义，它**在创建对象的同时定义类**，语法如下：
 
 ```java
 new 父类(参数列表) {
@@ -1859,9 +2043,42 @@ public class Outer$1 extends Point {
 }
 ```
 
-> 内部类本质上都会被转换为独立的类，但一般而言，它们可以实现更好的封装，代码实现上也更为简洁。
+与方法内部类类似，外部实例this、方法参数x和y都作为参数传递给了内部类构造方法。此外，new时的参数2和3也传递给了构造方法，内部类构造方法又将它们传递给了父类构造方法。
+
+匿名内部类能做的，方法内部类都能做。但如果对象只会创建一次，且不需要构造方法来接受参数，则可以使用匿名内部类，这样代码书写上更为简洁。
+
+```java
+Arrays.sort(strs, new Comparator<String>() {
+  @Override
+  public int compare(String o1, String o2) {
+    return o1.compareToIgnoreCase(o2);
+  }
+});
+```
+
+```java
+Button bt = new Button();
+bt.addActionListener(new ActionListener() {
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    // 处理事件
+  }
+});
+```
+
+调用addActionListener将事件处理程序注册到了Button对象bt中，当事件发生时，会调用actionPerformed方法，并传递事件详情ActionEvent作为参数。
+
+以上Arrays.sort和Button都是针对接口编程的例子，另外，它们也都是一种回调的例子。所谓==回调==是相对于一般的==正向调==用而言的，平时一般都是正向调用，但Arrays.sort中传递的Comparator对象，它的compare方法并不是在写代码的时候被调用的，而是在Arrays. sort的内部某个地方回过头来调用的。Button的addActionListener中传递的ActionListener对象，它的actionPerformed方法也一样，是在事件发生的时候回过头来调用的。
+
+==将程序分为保持不变的主体框架，和针对具体情况的可变逻辑，通过回调的方式进行协作，是计算机程序的一种常用实践==。匿名内部类是实现回调接口的一种简便方式。
+
+> 内部类本质上都会被转换为**独立的类**，但一般而言，它们可以实现**更好的封装，代码实现上也更为简洁**。
+
+
 
 ### 5.4 枚举的本质
+
+枚举是一种特殊的数据，它的**取值是有限的**，是可以枚举出来的，比如一年有四季、一周有七天。虽然使用类也可以处理这种数据，但枚举类型更为简洁、安全和方便。
 
 ```java
 public enum Size {
@@ -1869,9 +2086,9 @@ public enum Size {
 }
 ```
 
-枚举类型可以定义为一个单独的文件，也可以定义在其他类内部。
+**枚举类型可以定义为一个单独的文件，也可以定义在其他类内部。**
 
-枚举变量的toString方法返回其字面值，所有枚举类型也都有一个name()方法，返回值与toString()一样:
+枚举变量的toString方法返回其字面值，所有枚举类型也都有一个`name()`方法，返回值与`toString()`一样:
 
 ```java
 Size size = Size.MEDIUM;
@@ -1880,13 +2097,13 @@ System.out.println(size.name());
 // MEDIUM
 ```
 
-枚举变量可以使用equals和==进行比较，结果是一样的。
+枚举变量可以使用`equals`和`==`进行比较，结果是一样的。
 
-枚举值是有顺序的，可以比较大小。枚举类型都有一个方法int ordinal()，表示枚举值在声明时的顺序，从0开始。枚举类型都实现了Java API中的Comparable接口，都可以通过方法compareTo与其他枚举值进行比较。比较其实就是比较ordinal的大小。
+**枚举值是有顺序的，可以比较大小**。枚举类型都有一个方法i`nt ordinal()`，表示枚举值在声明时的顺序，从0开始。枚举类型都实现了Java API中的Comparable接口，都可以通过方法compareTo与其他枚举值进行比较。比较其实就是比较ordinal的大小。
 
-枚举变量可以用于和其他类型变量一样的地方，如方法参数、类变量、实例变量等，还可以用于switch语句。
+枚举变量可以用于和其他类型变量一样的地方，如**方法参数、类变量、实例变量**等，还可以用于**switch语句**。
 
-枚举类型也都有一个静态的values方法，返回一个包括所有枚举值的数组，顺序与声明时的顺序一致。
+枚举类型也都有一个静态的`values`方法，返回一个包括所有枚举值的数组，顺序与声明时的顺序一致。
 
 ```java
 for (Size s : Size.values()) {
@@ -1896,39 +2113,60 @@ for (Size s : Size.values()) {
 
 
 
+枚举的好处体:
+
+- 定义枚举的语法更为简洁。
+- 枚举更为安全。一个枚举类型的变量，它的值要么为null，要么为枚举值之一，不可能为其他值，但使用整型变量，它的值就没有办法强制，值可能就是无效的。
+- 枚举类型自带很多便利方法（如values、valueOf、toString等），易于使用。
+
+枚举类型实际上会被Java编译器转换为一个对应的类，这个类继承了`java.lang.Enum`类。
+
+
+
 > 枚举类型本质上也是类，但由于编译器自动做了很多事情，因此它的使用更为简洁、安全和方便。
 
 #### 典型场景
 
 ```java
-        public enum Size {
-            SMALL("S", "小号"),
-            MEDIUM("M", "中号"),
-            LARGE("L", "大号");
-            private String abbr;
-            private String title;
-            private Size(String abbr, String title){
-                this.abbr = abbr;
-                this.title = title;
-            }
-            public String getAbbr() {
-                return abbr;
-            }
-            public String getTitle() {
-                return title;
-            }
-            public static Size fromAbbr(String abbr){
-                for(Size size : Size.values()){
-                    if(size.getAbbr().equals(abbr)){
-                        return size;
-                    }
-                }
-                return null;
-            }
-        }
+public enum Size {
+  SMALL("S", "小号"),
+  MEDIUM("M", "中号"),
+  LARGE("L", "大号");
+  private String abbr;
+  private String title;
+  private Size(String abbr, String title){
+    this.abbr = abbr;
+    this.title = title;
+  }
+  public String getAbbr() {
+    return abbr;
+  }
+  public String getTitle() {
+    return title;
+  }
+  public static Size fromAbbr(String abbr){
+    for(Size size : Size.values()){
+      if(size.getAbbr().equals(abbr)){
+        return size;
+      }
+    }
+    return null;
+  }
+}
 ```
 
-枚举值的定义需要放在最上面，枚举值写完之后，要以分号（; ）结尾，然后才能写其他代码。
+枚举值的定义需要放在最上面，枚举值写完之后，要以分号（`;` ）结尾，然后才能写其他代码。
+
+定义了两个实例变量abbr和title，以及对应的get方法，分别表示缩写和中文名称；定义了一个私有构造方法，接受缩写和中文名称，每个枚举值在定义的时候都传递了对应的值；同时定义了一个静态方法fromAbbr，根据缩写返回对应的枚举值。
+
+```java
+Size s = Size.MEDIUM;
+System.out.println(s.getAbbr());
+s = Size.fromAbbr("L");
+System.out.println(s.getTitle());
+```
+
+
 
 ## 6 异常
 
@@ -1936,9 +2174,87 @@ for (Size s : Size.values()) {
 
 ### 6.1 初识异常
 
+#### NullPointerException（空指针异常）
+
+```java
+public class ExceptionTest1 {
+    public static void main(String[] args) {
+        String s = null;
+        s.indexOf("a");
+        System.out.println("end");
+    }
+}
+```
+
+```java
+Exception in thread "main" java.lang.NullPointerException
+	at com.andyron.bcdlj.c06.c61.ExceptionTest1.main(ExceptionTest1.java:9)
+```
+
+当执行s.indexOf("a")的时候，Java虚拟机发现s的值为null，没有办法继续执行了，这时就启用异常处理机制，
+
+- 首先创建一个异常对象，这里是类`NullPointerException`的对象，
+- 然后查找看谁能处理这个异常，在示例代码中，没有代码能处理这个异常，
+- 因此Java启用**默认处理机制**，即**打印异常栈信息到屏幕，并退出程序**。
+
+==异常栈信息==就包括了**从异常发生点到最上层调用者的轨迹，还包括行号**，可以说，这个栈信息是分析异常最为重要的信息。
+
 Java的默认异常处理机制是退出程序，异常发生点后的代码都不会执行。
 
-`return`代表正常退出，`throw`代表异常退出；return的返回位置是确定的，就是上一级调用者，而`throw`后执行哪行代码则经常是不确定的，由异常处理机制动态确定。
+#### NumberFormatException（数字格式异常）
+
+```java
+public class ExceptionTest {
+  public static void main(String[] args) {
+    if(args.length<1){
+      System.out.println("请输入数字");
+      return;
+    }
+    int num = Integer.parseInt(args[0]);
+    System.out.println(num);
+  }
+}
+```
+
+
+
+```
+Exception in thread "main" java.lang.NumberFormatException: For input string: "abc"
+  at java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
+  at java.lang.Integer.parseInt(Integer.java:492)
+  at java.lang.Integer.parseInt(Integer.java:527)
+  at ExceptionTest.main(ExceptionTest.java:7)
+```
+
+NumberFormatException类65行:
+
+```java
+  64 static NumberFormatException forInputString(String s) {
+  65      return new NumberFormatException("For input string: \"" + s + "\"");
+  66 }
+```
+
+Integer类492行:
+
+```java
+        490 digit = Character.digit(s.charAt(i++), radix);
+        491 if (digit < 0) {
+        492      throw NumberFormatException.forInputString(s);
+        493 }
+        494 if (result < multmin) {
+        495      throw NumberFormatException.forInputString(s);
+        496 }
+```
+
+将这两处合为一行，主要代码就是：
+
+```java
+        throw new NumberFormatException(...)
+```
+
+`throw`就是抛出异常，它会触发Java的异常处理机制。在之前的空指针异常中，我们没有看到throw的代码，可以认为throw是由Java虚拟机自己实现的。
+
+`return`代表正常退出，`throw`代表异常退出；return的返回位置是确定的，就是上一级调用者，而`throw`后执行哪行代码则经常是**不确定的，由异常处理机制动态确定**。
 
 异常处理机制会从当前函数开始查找看谁“捕获”了这个异常，当前函数没有就查看上一层，直到主函数，如果主函数也没有，就使用默认机制，即输出异常栈信息并退出，这正是我们在屏幕输出中看到的。
 
@@ -1948,11 +2264,43 @@ Java的默认异常处理机制是退出程序，异常发生点后的代码都�
 
 ### 6.2 异常类
 
-Throwable类有两个主要参数：一个是message，表示异常消息；另一个是cause，表示触发该异常的其他异常。异常可以形成一个异常链，上层的异常由底层异常触发，cause表示底层异常。Throwable还有一个public方法用于设置cause：
+所有异常类都有一个共同的父类`Throwable`。
+
+```java
+public Throwable()
+public Throwable(String message)
+public Throwable(String message, Throwable cause)
+public Throwable(Throwable cause)
+```
+
+`Throwable`类有两个主要参数：一个是message，表示异常消息；另一个是cause，表示触发该异常的其他异常。异常可以形成一个==异常链==，上层的异常由底层异常触发，cause表示底层异常。Throwable还有一个public方法用于设置cause：
 
 ```java
 Throwable initCause(Throwable cause)
 ```
+
+在所有构造方法的内部，都有一句重要的函数调用：
+
+```java
+fillInStackTrace();
+```
+
+它会**将异常栈信息保存下来**，这是我们能看到异常栈的关键。
+
+Throwable有一些常用方法用于获取异常信息，比如：
+
+```java
+	void printStackTrace() //打印异常栈信息到标准错误输出流
+  //打印栈信息到指定的流，PrintStream和PrintWriter在第13章介绍
+  void printStackTrace(PrintStream s)
+  void printStackTrace(PrintWriter s)
+  String getMessage() //获取设置的异常message
+  Throwable getCause() //获取异常的cause
+  //获取异常栈每一层的信息， 每个StackTraceElement包括文件名、类名、函数名、行号等信息
+  StackTraceElement[] getStackTrace()
+```
+
+
 
 #### 异常类体系
 
@@ -1964,7 +2312,7 @@ Throwable initCause(Throwable cause)
 
 RuntimeException比较特殊，它的名字有点误导，因为其他异常也是运行时产生的，它表示的实际含义是**未受检异常**（unchecked exception），相对而言，Exception的其他子类和Exception自身则是**受检异常**（checked exception）,Error及其子类也是未受检异常。
 
-受检（checked）和未受检（unchecked）的区别在于Java如何处理这两种异常。<u>对于受检异常（必检异常），Java会强制要求程序员进行处理，否则会有编译错误，而对于未受检异常（免检异常）则没有这个要求。</u>
+受检（checked）和未受检（unchecked）的区别在于Java如何处理这两种异常。**对于受检异常（必检异常），Java会强制要求程序员进行处理，否则会有编译错误，而对于未受检异常（免检异常）则没有这个要求。**
 
 ![](images/image-20220313115828549.png)
 
@@ -1984,9 +2332,33 @@ catch可以有多条，每条对应一种异常类型。
 
 e.getMessage()获取异常消息，e.printStackTrace()打印异常栈到标准错误输出流。
 
+```java
+        try {
+              //可能抛出 ExceptionA和ExceptionB
+        } catch (ExceptionA | ExceptionB e) {
+              e.printStackTrace();
+        }
+```
+
+
+
 #### 重新抛出异常
 
-在catch块内处理完后，可以重新抛出异常，异常可以是原来的，也可以是新建的
+在catch块内处理完后，可以重新抛出异常，异常可以是原来的，也可以是新建的。
+
+```java
+        try{
+            //可能触发异常的代码
+        }catch(NumberFormatException e){
+            System.out.println("not valid number");
+            throw new AppException("输入格式不正确", e);
+        }catch(Exception e){
+            e.printStackTrace();
+            throw e;
+        }
+```
+
+
 
 > 为什么要重新抛出呢？
 >
@@ -1998,21 +2370,133 @@ e.getMessage()获取异常消息，e.printStackTrace()打印异常栈到标准�
 
 #### finally
 
+```java
+        try{
+            //可能抛出异常
+        }catch(Exception e){
+            //捕获异常
+        }finally{
+            //不管有无异常都执行
+        }
+```
 
+**finally内的代码不管有无异常发生，都会执行**，具体来说：
+
+- 如果没有异常发生，在try内的代码执行结束后执行。
+- 如果有异常发生且被catch捕获，在catch内的代码执行结束后执行。
+- 如果有异常发生但没被捕获，则在异常被抛给上层之前执行。
+
+由于finally的这个特点，它一般用于**释放资源，如数据库连接、文件流**等。
+
+try/catch/finally语法中，catch不是必需的，也就是可以只有try/finally，表示不捕获异常，异常自动向上传递，但finally中的代码在异常发生后也执行。
+
+finally语句有一个执行细节，如果在try或者catch语句内有return语句，则return语句在finally语句执行结束后才执行，但finally并不能改变返回值。
+
+```java
+        public static int test(){
+            int ret = 0;
+            try{
+                  return ret;
+              }finally{
+                  ret = 2;
+              }
+          }
+```
+
+返回值是0，而不是2。
+
+实际执行过程是：在执行到try内的return ret；语句前，会先将返回值ret保存在一个临时变量中，然后才执行finally语句，最后try再返回那个临时变量，finally中对ret的修改不会被返回。
+
+
+
+如果在finally中也有return语句，try和catch内的return会丢失，实际会返回finally中的返回值。finally中有return不仅会覆盖try和catch内的返回值，还会掩盖try和catch内的异常，就像异常没有发生一样，比如：
+
+```java
+   static int test2(){
+        int ret = 0;
+        try{
+            int a = 5/0;
+            return ret;
+        }finally{
+            return 2;
+        }
+    }
+```
+
+5/0会触发ArithmeticException，但是finally中有return语句，这个方法就会返回2，而不再向上传递异常了。
+
+
+
+如果finally中抛出了异常，则原异常也会被掩盖:
+
+```java
+    static void test3() {
+        try {
+            int a = 5/0;
+        } finally {
+            throw new RuntimeException("hello");
+        }
+    }
+```
+
+finally中抛出了RuntimeException，则原异常ArithmeticException就丢失了。
+
+一般而言，为避免混淆，**应该避免在finally中使用return语句或者抛出异常**，如果调用的其他代码可能抛出异常，则应该捕获异常并进行处理。
 
 #### try-with-resources
 
+对于一些使用资源的场景，比如文件和数据库连接，典型的使用流程是首先打开资源，最后在finally语句中调用资源的关闭方法，针对这种场景，Java 7开始支持一种新的语法，称之为try-with-resources，这种语法针对实现了`java.lang.AutoCloseable`接口的对象，该接口的定义为：
 
+```java
+public interface AutoCloseable {
+  void close() throws Exception;
+}
+```
+
+没有try-with-resources时:
+
+```java
+public static void useResource() throws Exception {
+  AutoCloseable r = new FileInputStream("hello"); //创建资源
+  try {
+    //使用资源
+  } finally {
+    r.close();
+  }
+}
+```
+
+使用try-with-resources语法:
+
+```java
+public static void useResource() throws Exception {
+  try(AutoCloseable r = new FileInputStream("hello")) { //创建资源
+    //使用资源
+  }
+}
+```
+
+资源r的声明和初始化放在try语句内，不用再调用finally，在语句执行完try语句后，会自动调用资源的close()方法。
+
+资源可以定义多个，以分号分隔。
 
 #### throws
+
+关键字`throws`，用于声明一个方法可能抛出的异常。
 
 
 
 #### 对比受检和未受检异常
 
+未受检异常和受检异常的区别如下：受检异常必须出现在throws语句中，调用者必须处理，Java编译器会强制这一点，而未受检异常则没有这个要求。
 
+为什么要有这个区分呢？我们自己定义异常的时候应该使用受检还是未受检异常呢？对于这个问题，业<u>界有各种各样的观点和争论，没有特别一致的结论。</u>
 
-无论是受检异常还是未受检异常，无论是否出现在throws声明中，都应该在合适的地方以适当的方式进行处理。
+一种普遍的说法是：未受检异常表示编程的逻辑错误，编程时应该检查以避免这些错误，比如空指针异常，如果真的出现了这些异常，程序退出也是正常的，程序员应该检查程序代码的bug而不是想办法处理这种异常。受检异常表示程序本身没问题，但由于I/O、网络、数据库等其他不可预测的错误导致的异常，调用者应该进行适当处理。
+
+但其实编程错误也是应该进行处理的，尤其是Java被广泛应用于服务器程序中，不能因为一个逻辑错误就使程序退出。所以，目前一种更被认同的观点是：Java中对受检异常和未受检异常的区分是没有太大意义的，可以统一使用未受检异常来代替。
+
+这种观点的基本理由是：**无论是受检异常还是未受检异常，无论是否出现在throws声明中，都应该在合适的地方以适当的方式进行处理**。
 
 ### 6.4 如何使用异常
 
@@ -2022,13 +2506,27 @@ e.getMessage()获取异常消息，e.printStackTrace()打印异常栈到标准�
 
 #### 异常处理的目标
 
-异常三种来源：**用户、程序员、第三方**。
+异常三种来源：**用户、程序员、第三方**。用户是指用户的输入有问题；程序员是指编程错误；第三方泛指其他情况，如I/O错误、网络、数据库、第三方服务等。每种异常都应该进行适当的处理。
 
-处理的目标可以分为**恢复和报告**。恢复是指通过程序自动解决问题。报告的最终对象可能是用户，即程序使用者，也可能是系统运维人员或程序员。报告的目的也是为了恢复，但这个恢复经常需要人的参与。
+处理的目标可以分为**恢复和报告**。恢复是指通过程序自动解决问题。**报告的最终对象**可能是用户，即**程序使用者**，也可能是系统运维人员或程序员。报告的目的也是为了恢复，但这个恢复经常需要人的参与。
 
-程序都不应该假定第三方是可靠的，应该有容错机制。
+对用户，如果用户输入不对，可以提示用户具体哪里输入不对，如果是编程错误，可以提示用户系统错误、建议联系客服，如果是第三方连接问题，可以提示用户稍后重试。
+
+对系统运维人员或程序员，他们一般不关心用户输入错误，而关注编程错误或第三方错误，对于这些错误，需要报告<u>尽量完整的细节，包括异常链、异常栈等，以便尽快定位和解决问题</u>。
+
+用户输入或编程错误一般都是难以通过程序自动解决的，第三方错误则可能可以，甚至很多时候，程序都**不应该假定第三方是可靠的，应该有==容错机制==**。比如，某个第三方服务连接不上（比如发短信），可能的容错机制是换另一个提供同样功能的第三方试试，还可能是间隔一段时间进行重试，在多次失败之后再报告错误。
+
+
 
 #### 异常处理的一般逻辑
+
+如果自己知道怎么处理异常，就进行处理；如果可以通过程序自动解决，就自动解决；如果异常可以被自己解决，就不需要再向上报告。
+
+如果自己不能完全解决，就应该向上报告。如果自己有额外信息可以提供，有助于分析和解决问题，就应该提供，可以以原异常为cause重新抛出一个异常。
+
+**总有一层代码需要为异常负责**，可能是知道如何处理该异常的代码，可能是面对用户的代码，也可能是主程序。如果异常不能自动解决，对于用户，应该根据异常信息提供用户能理解和对用户有帮助的信息；对运维和开发人员，则应该输出详细的异常链和异常栈到日志。
+
+这个逻辑与在公司中处理问题的逻辑是类似的，每个级别都有自己应该解决的问题，自己能处理的自己处理，不能处理的就应该报告上级，把下级告诉他的和他自己知道的一并告诉上级，最终，公司老板必须要为所有问题负责。每个级别既不应
 
 
 
@@ -2057,7 +2555,7 @@ Integer a = 100;
 int b = a;
 ```
 
-自动装箱/拆箱是Java编译器提供的能力，它会替换为调用对应的valueOf/xxx-Value方法，如：
+**自动装箱/拆箱是Java编译器提供的能力**，它会替换为调用对应的valueOf/xxxValue方法，如：
 
 ```java
 Integer a = Integer.valueOf(100);
@@ -2071,12 +2569,10 @@ int b = a.intValue();
 ##### 1 重写了Object的方法
 
 ```java
-        boolean equals(Object obj)
-        int hashCode()
-        String toString()
+	boolean equals(Object obj)
+  int hashCode()
+  String toString()
 ```
-
-
 
 - equals
 
@@ -2085,24 +2581,24 @@ Object类的默认实现是比较地址，对于两个变量，<u>只有这两�
 包装类比较直接比较地址是不适合的，所以所有包装类都重写了equals方法，如`Long`类的：
 
 ```java
-    public boolean equals(Object obj) {
-        if (obj instanceof Long) {
-            return value == ((Long)obj).longValue();
-        }
-        return false;
-    }
+public boolean equals(Object obj) {
+  if (obj instanceof Long) {
+    return value == ((Long)obj).longValue();
+  }
+  return false;
+}
 ```
 
 `Float`的：
 
 ```java
-    public boolean equals(Object obj) {
-        return (obj instanceof Float)
-               && (floatToIntBits(((Float)obj).value) == floatToIntBits(value));
-    }
+public boolean equals(Object obj) {
+  return (obj instanceof Float)
+    && (floatToIntBits(((Float)obj).value) == floatToIntBits(value));
+}
 ```
 
-🔖静态方法`floatToIntBits()`，将float的二进制表示看作int。**只有两个float的二进制表示完全一样的时候，equals才会返回true**。但小数计算，就算把浮点数看作整数，计算机运算结果可能不同的。
+🔖❤️ 静态方法`floatToIntBits()`，将float的二进制表示看作int。**只有两个float的二进制表示完全一样的时候，equals才会返回true**。但小数计算，就算把浮点数看作整数，计算机运算结果可能不同的。
 
 ```java
 Float f1 = 0.01f;
@@ -2272,9 +2768,11 @@ double doubleValue()
 
 
 
-#### 剖析Integer与二进制算法
+#### 剖析Integer与二进制算法❤️
 
-Long与Integer类似
+Long与Integer类似。
+
+二进制是计算机的基础，但代码往往晦涩难懂。
 
 ##### 1 位翻转
 
@@ -2294,7 +2792,7 @@ int rb = Integer.reverseBytes(a);
 System.out.println(Integer.toHexString(rb));
 ```
 
-输出：
+a是整数，用十六进制赋值，首先输出其二进制字符串，接着输出reverse后的二进制，最后输出reverseBytes后的十六进制：
 
 ```
 10010001101000101011001111000
@@ -2470,7 +2968,7 @@ System.out.println(Integer.toHexString(c));
 
 
 
-#### 剖析Character🔖
+#### 剖析Character🔖❤️
 
 Character有很多静态方法，封装了**Unicode字符级别的各种操作**，是**Java文本处理的基础**。
 
@@ -2651,7 +3149,7 @@ public static char reverseBytes(char ch)
 
 
 
-### 7.2 剖析String
+### 7.2 剖析String❤️
 
 #### 基本用法
 
@@ -3320,7 +3818,7 @@ DateFormat/SimpleDateFormat不是线程安全的。
 
 
 
-### 7.6 随机
+### 7.6 随机❤️
 
 #### Math.random
 
@@ -6862,11 +7360,19 @@ File类封装了操作系统和文件系统的差异，提供了统一的文件�
 1. 要么读、要么写，不能同时读和写。
 2. 不能随机读写，只能从头读到尾，且不能重复读，虽然通过缓冲可以实现部分重读，但是有限制。
 
+`RandomAccessFile`，它没有这两个限制，**既可以读，也可以写**，还可以**随机**读写，是一个更接近于操作系统API的封装类。
+
+访问文件还有一种方式：==内存映射文件==，它可以高效处理非常大的文件，而且可以被多个不同的应用程序共享，特别适合用于**不同应用程序之间的通信**。
+
+使用`DataOutputStream`、`DataInputStream`需要逐个处理对象中的每个字段，比较麻烦，一种更为简单的机制就是==序列化==。
+
+Java的标准序列化机制有一些重要的**限制**，而且**不能跨语言**，实践中经常使用一些替代方案，比如ⅩML/JSON/MessagePack。Java SDK中对这些格式的支持有限，有很多第三方的类库提供了更为方便的支持，Jackson是其中一种，它支持多种格式。
+
 ### 14.1 常见文件类型处理
 
 #### 属性文件
 
-属性文件是常见的配置文件，用于<u>在不改变代码的情况下改变程序的行为</u>。
+属性文件是常见的配置文件，用于**在不改变代码的情况下改变程序的行为**。
 
 `java.util.Properties`
 
@@ -6892,7 +7398,7 @@ System.out.println(host);
 - 可以自动忽略空行。
 - 可以添加注释，以字符#或！开头的行会被视为注释，进行忽略。
 
-使用Properties也有限制：**不能直接处理中文，在配置文件中，所有非ASCII字符需要使用Unicode编码**。
+使用Properties也有限制：**不能直接处理中文，在配置文件中，所有非ASCII字符需要使用Unicode编码**。比如：能在配置文件中直接这么写`name=老马`，要写成`name=\u8001\u9A6C`。
 
 > 在Java IDE（如Eclipse）中使用属性文件编辑器，会地总替换中文为Unicode编码；
 >
@@ -6910,11 +7416,27 @@ CSV是Comma-Separated Values的缩写，表示逗号分隔值。
 
 一般，一行表示一条**记录**，一条记录包含多个**字段**，字段之间用逗号（也可以是tab符`\t`、冒号`:`、分号`; `等）分隔。
 
-各种日志文件通常是CSV文件。
+各种日志文件通常是CSV文件。CSV也经常用于交换表格类型的数据。
+
+CSV看上去很简单，但处理的复杂性经常被低估。
+
+- 字段内容中包含分隔符怎么办？
+- 字段内容中包含换行符怎么办？
+
+两种处理方式：
+
+1. 使用引用符号比如"，在字段内容两边加上"，如果内容中包含"本身，则使用两个"
+2. 使用转义字符，常用的是\，如果内容中包含\，则使用两个\。
+
+其它问题：
+
+- 怎么表示null值
+- 空行和字段之间的空格怎么处理
+- 怎么表示注释
 
 
 
-[**Apache Commons CSV**](http://commons.apache.org/proper/commons-csv/index.html)，`CSVFormat`表示CSV的格式，它有很多方法以定义具体的CSV格式：
+这些问题使用简单的字符流就难以处理了，需要第三方库[Apache Commons CSV](http://commons.apache.org/proper/commons-csv/index.html)，`CSVFormat`表示CSV的格式，它有很多方法以定义具体的CSV格式：
 
 ```java
 //定义分隔符
@@ -6963,7 +7485,9 @@ public CSVParser parse(final Reader in) throws IOException
 
 #### Excel
 
-[POI类库](http://poi.apache.org/)，主要类：
+Excel主要有两种格式：`.xls`和`.xlsx`（Office 2007以后）。
+
+Java中处理Excel文件及其他微软文档广泛使用[POI类库](http://poi.apache.org/)，主要类：
 
 - `Workbook`：表示一个Excel文件对象，它是一个接口，有两个主要类`HSSFWorkbook`和`ⅩSSFWorkbook`，前者对应.xls格式，后者对应.xlsx格式。
 - `Sheet`：表示一个工作表。
@@ -7014,8 +7538,6 @@ RandomAccessFile
 public class RandomAccessFile implements DataOutput, DataInput, Closeable
 ```
 
-
-
 #### 用法
 
 ```java
@@ -7059,9 +7581,7 @@ RandomAccessFile内部有一个**文件指针**，指向当前读写的位置，
   public native void seek(long pos) throws IOException
 ```
 
-RandomAccessFile是通过本地方法，最终调用操作系统的API来实现文件指针调整的。
-
-
+RandomAccessFile是**通过本地方法，最终调用操作系统的API来实现文件指针调整的**。
 
 ```java
 // 跳过输入流中n个字节。类似InputStream的skip方法（通过实际读取n个字节实现的），但skipBytes通过更改文件指针实现
@@ -7081,11 +7601,11 @@ public final String readLine() throws IOException
 
 
 
-#### 设计一个键值数据库BasicDB
+#### 设计一个键值数据库BasicDB❤️
 
 在日常的一般文件读写中，使用流就可以了，但在一些系统程序中，流是不适合的， RandomAccessFile因为更接近操作系统，更为方便和高效。
 
-🔖🔖
+
 
 
 
@@ -7127,7 +7647,7 @@ public final String readLine() throws IOException
 
 内存映射文件在日常普通的文件读写中，用到得比较少，但在**一些系统程序中，它却是经常被用到的一把利器**，可以高效地读写大文件，且能实现不同程序间的共享和通信。
 
-### 14.4 标准序列化机制
+### 14.4 标准序列化机制🔖
 
 之前在将对象保存到文件时，使用的是DataOutputStream，从文件读入对象时，使用的是DataInputStream，使用它们，需要逐个处理对象中的每个字段，这种方式比较啰嗦，Java中有一种更为简单的机制，那就是序列化。
 
@@ -7164,7 +7684,7 @@ Java提供了多种定制序列化的机制，主要的有两种：
 1. transient关键字，
 2. 实现writeObject和readObject方法。
 
-🔖
+
 
 #### 序列化的基本原理
 
@@ -7176,15 +7696,31 @@ Java提供了多种定制序列化的机制，主要的有两种：
 
 #### 序列化特点分析
 
+序列化的主要用途有两个：
 
+- 对象持久化；
+- 跨网络的数据交换、远程过程调用。
 
+Java标准的序列化机制有很多优点：
 
+- 使用简单
+- 可自动处理对象引用和循环引用
+- 也可以方便地进行定制，处理版本问题
 
+局限性：
 
+- Java序列化格式是一种私有格式，是一种Java特有的技术，不能被其他语言识别，不能实现跨语言的数据交换。
+- Java在序列化字节中保存了很多描述信息，使得序列化格式比较大。
+- Java的默认序列化使用反射分析遍历对象结构，性能比较低。
+- Java的序列化格式是二进制的，不方便查看和修改。
 
-### 14.5 使用Jackson序列化为JSON/XML/MessagePack
+在跨语言的数据交换格式中，ⅩML/JSON是被广泛采用的文本格式，各种语言都有对它们的支持，文件格式清晰易读。有很多查看和编辑工具，它们的不足之处是**性能和序列化大小**，在性能和大小敏感的领域，往往会采用更为精简高效的二进制方式，如**ProtoBuf、Thrift、MessagePack**等。
+
+### 14.5 使用Jackson序列化为JSON/XML/MessagePack❤️
 
 Java的标准序列化机制有一些重要的限制，而且不能跨语言，实践中经常使用一些替代方案，比如ⅩML/JSON/MessagePack。Java SDK中对这些格式的支持有限，有很多第三方的类库提供了更为方便的支持，Jackson是其中一种，它支持多种格式。
+
+Jackson起初主要是用来支持JSON格式的，现在也支持很多其他格式，它的各种方式的使用方式是类似的。
 
 #### 基本用法
 
@@ -7200,6 +7736,10 @@ String str = mapper.writeValueAsString(student);
 System.out.println(str);
 ```
 
+
+
+反序列化：
+
 ```jav
 ObjectMapper mapper = new ObjectMapper();
 Student s = mapper.readValue(new File("student.json"), Student.class);
@@ -7210,11 +7750,59 @@ System.out.println(s.toString());
 
 只需要替换ObjectMapper为`ⅩmlMapper`🔖。`ⅩmlMapper`是ObjectMapepr的子类。
 
+```java
+Student student = new Student("张三", 18, 80.9d);
+ObjectMapper mapper = new XmlMapper();
+mapper.enable(SerializationFeature.INDENT_OUTPUT);
+String str = mapper.writeValueAsString(student);
+mapper.writeValue(new File("student.xml"), student);
+System.out.println(str);
+```
 
 
-##### 3.MessagePack🔖
+
+反序列化：
+
+```java
+ObjectMapper mapper = new XmlMapper();
+Student s = mapper.readValue(new File("student.xml"), Student.class);
+System.out.println(s.toString());
+```
 
 
+
+##### 3.MessagePack
+
+> MessagePack是一种计算机数据交换格式。它是一种二进制形式，用于表示简单的数据结构，如数组和关系数组。MessagePack 旨在尽可能紧凑和简单。
+
+https://msgpack.org/
+
+```xml
+<dependency>
+  <groupId>org.msgpack</groupId>
+  <artifactId>jackson-dataformat-msgpack</artifactId>
+  <version>0.8.11</version>
+</dependency>
+```
+
+```java
+    static void messagePack() throws IOException {
+        Student student = new Student("李三", 28, 81.9d);
+        ObjectMapper mapper = new ObjectMapper(new MessagePackFactory());
+        byte[] bytes = mapper.writeValueAsBytes(student);
+        mapper.writeValue(new File("student.bson"), student);
+    }
+
+    static void messagePack2() throws IOException {
+        ObjectMapper mapper = new ObjectMapper(new MessagePackFactory());
+        Student s = mapper.readValue(new File("student.bson"), Student.class);
+        System.out.println(s.toString());
+    }
+```
+
+
+
+![](images/image-20231109111642770.png)
 
 #### 容器对象
 
@@ -7235,9 +7823,11 @@ Jackson两种配置方法：
 1. 注解
 2. 配置ObjectMapper对象，ObjectMapper支持对序列化和反序列化过程做一些配置
 
-🔖
+
 
 #### Jackson对XML支持的局限性
+
+对于ⅩML格式，Jackson的支持不是太全面。比如，对于一个`Map<String, List<String>>`对象，Jackson可以序列化，但不能反序列化
 
 
 
