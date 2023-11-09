@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.msgpack.jackson.dataformat.MessagePackFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,14 +19,18 @@ import java.util.Map;
  **/
 public class JacksonTest {
     public static void main(String[] args) throws IOException {
-//        t2();
+//        json();
+//        json2();
 //        collection2();
 
-        complex();
+//        complex();
+
+//        messagePack();
+        messagePack2();
     }
 
 
-    static void t1() throws JsonProcessingException {
+    static void json() throws JsonProcessingException {
         Student student = new Student("张三", 21, 80.9d);
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -33,7 +38,7 @@ public class JacksonTest {
         System.out.println(str);
     }
 
-    static void t2() throws IOException {
+    static void json2() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         Student s = mapper.readValue(new File("student.json"), Student.class);
         System.out.println(s.toString());
@@ -43,8 +48,17 @@ public class JacksonTest {
 
     }
 
-    static void messagePack() {
+    static void messagePack() throws IOException {
+        Student student = new Student("李三", 28, 81.9d);
+        ObjectMapper mapper = new ObjectMapper(new MessagePackFactory());
+        byte[] bytes = mapper.writeValueAsBytes(student);
+        mapper.writeValue(new File("student.bson"), student);
+    }
 
+    static void messagePack2() throws IOException {
+        ObjectMapper mapper = new ObjectMapper(new MessagePackFactory());
+        Student s = mapper.readValue(new File("student.bson"), Student.class);
+        System.out.println(s.toString());
     }
 
     static void collection() throws IOException {
