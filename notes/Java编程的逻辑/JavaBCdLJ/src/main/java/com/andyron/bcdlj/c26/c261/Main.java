@@ -1,5 +1,7 @@
 package com.andyron.bcdlj.c26.c261;
 
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
@@ -13,10 +15,14 @@ public class Main {
     public static void main(String[] args) {
 //        ex1();
 //        ex2();
-        ex1_1();
     }
-    // 内部类写法
-    static void ex1() {
+
+    /**
+     * 内部类写法
+     */
+    @Test
+    void ex1() {
+        // 列出当前目录下所有扩展名为.txt的文件
         File f = new File(".");
         File[] files = f.listFiles(new FilenameFilter() {
             @Override
@@ -40,7 +46,8 @@ public class Main {
         }
     }
     // lambda表达式写法
-    static void ex1_1() {
+    @Test
+    void ex1_() {
         File f = new File(".");
         File[] files = f.listFiles((dir, name) -> name.endsWith(".txt"));
         Arrays.sort(files, (f1, f2) -> f1.getName().compareTo(f2.getName()));
@@ -50,7 +57,8 @@ public class Main {
         }
     }
 
-    static void ex2() {
+    @Test
+    void ex2() {
         ExecutorService executor = Executors.newFixedThreadPool(100);
         executor.submit(new Runnable() {
             @Override
@@ -59,13 +67,15 @@ public class Main {
             }
         });
     }
-    static void ex2_1() {
+    @Test
+    void ex2_() {
         Executors.newFixedThreadPool(100).submit(() -> System.out.println("Hello world!"));
     }
 
 
 
-    static void ex4() {
+    @Test
+    void ex4() {
         FileFilter filter = path -> path.getName().endsWith(".txt");
         FilenameFilter filenameFilter= ((dir, name) -> name.endsWith(".txt"));
         Comparator<File> comparator = (f1, f2) -> f1.getName().compareTo(f2.getName());
@@ -77,7 +87,8 @@ public class Main {
     /**
      * 方法引用的不同情况
      */
-    static void ex5() {
+    @Test
+    void ex5() {
         Supplier<String> s1 = Student::getCollegeName;
         Supplier<String> s2 = () -> Student.getCollegeName();
 

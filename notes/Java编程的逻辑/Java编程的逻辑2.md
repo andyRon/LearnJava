@@ -3595,6 +3595,19 @@ Java的动态特性：反射、注解、动态代理、类加载器等。
 
 
 
+在一般操作数据的时候，我们都是知道并且依赖于**数据类型**的，比如：
+
+1. 根据类型使用new创建对象。
+2. 根据类型定义变量，类型可能是基本类型、类、接口或数组。
+3. 将特定类型的对象传递给方法。
+4. 根据类型访问对象的属性，调用对象的方法。
+
+编译器也是根据类型进行代码的检查编译的。
+
+反射不一样，它是**在运行时，而非编译时**，动态获取类型的信息，比如**接口信息、成员信息、方法信息、构造方法信息**等，根据这些动态获取到的信息创建对象、访问/修改成员、调用方法等。
+
+
+
 ### 21.1 Class类
 
 每个已加载的类在内存都有一份**类信息**，每个对象都有指向它所属类信息的引用。
@@ -4498,7 +4511,7 @@ public class SimpleFormatter {
 
 ### 22.6 注解的应用：DI容器
 
-````
+
 
 **注解提升了Java语言的==表达能力==，有效地实现了==应用功能和底层功能的分离==，框架/库的程序员可以专注于底层实现，借助反射实现通用功能，提供注解给应用程序员使用，应用程序员可以专注于应用功能，通过简单的声明式注解与框架/库进行协作。**
 
@@ -5077,7 +5090,7 @@ Lambda表达式是一种紧凑的传递代码的方式。
 
 基于Lambda表达式，针对常见的集合数据处理，Java 8引入了一套新的类库，位于包java.util.stream下，称为**==Stream API==**。
 
-Stream API是对容器类的增强，它可以**将对集合数据的多个操作以流水线的方式组合在一起**。
+Stream API是对容器类的增强，它可以**将对集合数据的==多个操作以流水线的方式组合==在一起**。
 
 Java 8新增的`CompletableFuture`是对并发编程的增强，可以方便地**将多个有一定依赖关系的异步任务以流水线的方式组合在一起**，大大简化多异步任务的开发。
 
@@ -5107,7 +5120,7 @@ Java 8新增的`CompletableFuture`是对并发编程的增强，可以方便地*
 
    它们需要的也不是Comparator对象，而是需要它包含的方法`int compare(T o1, T o2);`
 
-3. 异步任务执行服务ExecutorService，提交任务的方法有：
+3. 异步任务执行服务`ExecutorService`，提交任务的方法有：
 
    ```java
    <T> Future<T> submit(Callable<T> task);
@@ -5130,6 +5143,7 @@ File[] files = f.listFiles(new FilenameFilter() {
     }
   }
 });
+
 // 将files按照文件名排序
 Arrays.sort(files, new Comparator<File>() {
   @Override
@@ -5140,6 +5154,18 @@ Arrays.sort(files, new Comparator<File>() {
 for (File file : files) {
   System.out.println(file.getName());
 }
+```
+
+
+
+```java
+ExecutorService executor = Executors.newFixedThreadPool(100);
+executor.submit(new Runnable() {
+  @Override
+  public void run() {
+    System.out.println("Hello world.");
+  }
+});
 ```
 
 
@@ -5199,15 +5225,21 @@ public interface FileFilter {
 File[] files = f.listFiles(path -> path.getName.endsWith(".txt"));
 ```
 
+异步任务执行服务ExecutorService的Lambda表达式为：
+
+```java
+Executors.newFixedThreadPool(100).submit(() -> System.out.println("Hello world!"));
+```
+
 
 
 **Java会为每个匿名内部类生成一个类，但Lambda表达式不会。**
 
-Lambda表达式内部实现上，利用了Java 7引入的为支持动态类型语言引入的invokedynamic指令、方法句柄（method handle）等具体实现查看[Translation of Lambda Expressions](http://cr.openjdk.java.net/~briangoetz/lambda/lambda-translation.html)。🔖
+Lambda表达式内部实现上，利用了Java 7引入的为支持动态类型语言引入的`invokedynamic`指令、方法句柄（method handle）等具体实现查看[Translation of Lambda Expressions](http://cr.openjdk.java.net/~briangoetz/lambda/lambda-translation.html)。🔖
 
-### 函数式接口
+#### 函数式接口
 
-**==函数式接口==也是接口，但==只能有一个抽象方法==**（java8引入）。还是运行有静态方法和默认方法的。
+**==函数式接口==也是接口，但==只能有一个抽象方法==**（java8引入）。还是允许有静态方法和默认方法的。
 
 Lambda表达式就是函数接口，可以赋值给函数接口：
 
@@ -5218,7 +5250,26 @@ FilenameFilter filenameFilter= ((dir, name) -> name.endsWith(".txt"));
 
 这些函数接口都有一个注解`@FunctionalInterface`，非必须。
 
-### 预定义的函数接口
+
+
+> 为什么Comparator接口有两个抽象方法compare和equals,却可以用作Lambda？
+>
+> 因为在调用用lambda表达式调用Comparator接口中都是实现了compare方法，并没有实现equals，而equals是Object中的方法，所用的类都继承Object类，所以equals继承了Object中是实现，所以函数式接口(Functional Interface)就是一个有且仅有一个(除和Object中方法有相同签名的外)抽象方法，但是可以有多个非抽象方法的接口。       
+>
+> 根据Java语言规范的定义，一个使用了该注释的接口类型声明将被视为一个函数式接口。从概念上讲，一个函数式接口有且只有一个抽象方法。由于默认方法已经有了实现，所以它们不是抽象方法。如果一个接口中声明的抽象方法是重写了超类Object类中任意一个public方法，那么这些抽象方法并不会算入接口的抽象方法数量中。因为任何接口的实现都会从其父类Object或其它地方获得这些方法的实现。
+> 注意：函数式接口的实现可以由Lambda表达式、方法引用、构造器引用等方式实现。
+>
+> 如果一个类型使用了该注释，那么编译器将会生成一个错误信息，除非这个类型是一个接口类型，而不是一个注释类型、枚举或类。同时使用该注释的接口满足函数式接口的要求，即一个函数式接口有且只有一个抽象方法。
+>
+> 但是编译器会将所有定义为函数式接口（满足函数式接口要求）的接口视为函数式接口，而不管这个接口声明中是否使用了函数式接口的注释（即@FunctionalInterface）。
+>
+> 也就是：
+>
+> 1. 一个函数式接口有且只有一个抽象方法。
+> 2. 默认方法不是抽象方法，因为它们已经实现了。
+> 3. 重写了超类Object类中任意一个public方法的方法并不算接口中的抽象方法
+
+#### 预定义的函数接口
 
 Java 8定义了大量的预定义函数式接口，用于常见类型的代码传递，在`java.util.function`包内。
 
@@ -5228,7 +5279,11 @@ Java 8定义了大量的预定义函数式接口，用于常见类型的代码�
 
 ![](images/image-20230501145201567.png)
 
-#### 1 Predicate示例
+这些函数被大量用于Java 8的函数式数据处理Stream相关的类中，即使不使用Stream，也可以在自己的代码中直接使用这些预定义的函数。
+
+
+
+##### 1 Predicate示例
 
 ```java
 public class Student {
@@ -5270,7 +5325,7 @@ public class PredicateTest {
 
 在日常开发中，列表处理的一个常见需求是**==过滤==**，**列表的类型**经常不一样，**过滤的条件**也经常变化，但主体逻辑都是类似的，可以借助Predicate写一个通用的方法。
 
-#### 2 Function示例
+##### 2 Function示例
 
 列表处理的另一个常见需求是==转换==。比如，给定一个学生列表，需要返回名称列表，或者将名称转换为大写返回，可以借助Function写一个通用的方法:
 
@@ -5301,7 +5356,7 @@ public class FunctionTest {
 }
 ```
 
-####  3 Consumer示例
+#####  3 Consumer示例
 
 直接修改原对象
 
@@ -5329,7 +5384,7 @@ public class ConsumerTest {
 
 > 以上这些示例主要用于演示函数式接口的基本概念，实际中可以直接使用流API。
 
-### 方法引用
+#### 方法引用
 
 官方文档：https://docs.oracle.com/javase/specs/jls/se8/html/jls-15.html#jls-15.13
 
@@ -5408,11 +5463,11 @@ BiFunction<String, Double, Student> s6 = (name, score) -> new Student(name, scor
 
 
 
-### 函数的复合
+#### 函数的复合
 
 函数式接口和Lambda表达式还可用作方法的返回值，传递代码回调用者，将这两种用法结合起来，可以构造复合的函数，使程序简洁易读。
 
-#### Comparator中的复合方法
+##### Comparator中的复合方法
 
 Comparator接口中的静态方法：
 
@@ -5443,7 +5498,29 @@ Arrays.sort(files, Comparator.comparing(File::getName));
 students.sort(Comparator.comparing(Student::getScore).reversed().thenComparing(Student::getName));
 ```
 
-#### function包中的复合方法
+##### function包中的复合方法
+
+在java.util.function包的很多函数式接口里，都定义了一些复合方法。
+
+Function接口：
+
+```java
+    default <V> Function<T, V> andThen(Function<? super R, ? extends V> after) {
+        Objects.requireNonNull(after);
+        return (T t) -> after.apply(apply(t));
+    }
+```
+
+先将T类型的参数转化为类型R，再调用after将R转换为V，最后返回类型V。
+
+```java
+    default <V> Function<V, R> compose(Function<? super V, ? extends T> before) {
+        Objects.requireNonNull(before);
+        return (V v) -> apply(before.apply(v));
+    }
+```
+
+对V类型的参数，先调用before将V转换为T类型，再调用当前的apply方法转换为R类型返回。
 
 
 
@@ -5744,13 +5821,86 @@ Unix有很多命令，大部分命令只是专注于完成一件事情，但可�
 
 分析nginx访问日志，统计出访问次数最多的前20个IP地址及其访问次数。cat命令输出nginx访问日志到流，一行为一个元素，awk输出行的第一列，这里为IP地址，sort按IP进行排序，"uniq -c"按IP统计计数，"sort -rnk 1"按计数从高到低排序，"head -n 20"输出前20行。
 
-### 26.3 函数式数据处理：强大方便的收集器🔖
+
+
+### 26.3 函数式数据处理：强大方便的收集器
 
 #### 理解collect
+
+```java
+List<Student> above90List = students.stream().filter(t->t.getScore()>90).collect(Collectors.toList());
+```
+
+
+
+`collect()`是怎么把Stream转换为List<Student>的呢？
+
+```java
+<R, A> R collect(Collector<? super T, A, R> collector)
+```
+
+它接受一个收集器`Collector`作为参数
+
+```java
+public interface Collector<T, A, R> {
+  Supplier<A> supplier();
+  BiConsumer<A, T> accumulator();
+  BinaryOperator<A> combiner();
+  Function<A, R> finisher();
+  Set<Characteristics> characteristics();
+}
+```
+
+在顺序流中，collect方法与这些接口方法的交互大概是这样的：
+
+```java
+//首先调用工厂方法supplier创建一个存放处理状态的容器container，类型为A
+A container = collector.supplier().get();
+//对流中的每一个元素t，调用累加器accumulator，参数为累计状态container和当前元素t
+for(T t : data)
+  collector.accumulator().accept(container, t);
+//最后调用finisher对累计状态container进行可能的调整，类型转换(A转换为R)，返回结果
+return collector.finisher().apply(container);
+```
+
+combiner只在并行流中有用，用于合并部分结果。
+
+characteristics用于标示收集器的特征，Collector接口的调用者可以利用这些特征进行一些优化。`Characteristics`是一个枚举，有三个值：CONCURRENT、UNORDERED和IDENTITY_FINISH。
+
+
+
+`Collectors.toList()`中的tolist:
+
+```java
+public static <T> Collector<T, ? , List<T>> toList() {
+  return new CollectorImpl<>((Supplier<List<T>>) ArrayList::new, List::add,
+                             (left, right) ->
+                             { left.addAll(right); return left; },
+                             CH_ID);
+}
+```
+
+CollectorImpl是`Collector`的实现类，是Collectors内部的一个私有类，实现很简单，主要就是定义了两个构造方法，接受函数式参数并赋值给内部变量。对toList来说：
+
+- supplier的实现是ArrayList::new，也就是创建一个ArrayList作为容器。
+- accumulator的实现是List::add，也就是将碰到的每一个元素加到列表中。
+- 第三个参数是combiner，表示合并结果。
+- 第四个参数CH_ID是一个静态变量，只有一个特征IDENTITY_FINISH，表示finisher没有什么事情可以做，就是把累计状态container直接返回。
+
+最终`collect(Collectors.toList())`可以用一段伪代码理解为：
+
+```java
+List<T> container = new ArrayList<>();
+for(T t : data)
+  container.add(t);
+return container;
+```
 
 
 
 #### 容器收集器
+
+`Collectors`中与toList类似的容器收集器还有toSet、toCollection、toMap等。
 
 ##### 1. toSet
 
@@ -5764,15 +5914,53 @@ Unix有很多命令，大部分命令只是专注于完成一件事情，但可�
 
 #### 字符串收集器
 
+除了将元素流收集到容器中，另一个常见的操作是收集为一个字符串。
+
+`Collectors.joining`
+
 
 
 #### 分组
+
+分组类似于数据库查询语言SQL中的group by语句，它将元素流中的每个元素分到一个组，可以针对分组再进行处理和收集。
+
+##### 1 基本用法
+
+
+
+##### 2 基本原理
+
+
+
+##### 3 分组计数、找最大/最小元素
+
+
+
+##### 4 分组数值统计
+
+
+
+##### 5 分组内的map
+
+
+
+##### 6 分组结果处理（filter/sort/skip/limit）
+
+
+
+
+
+##### 7 分区
+
+
+
+##### 8 多级分组
 
 
 
 ### 26.4 组合式异步编程 🔖
 
-java.time
+
 
 #### 异步任务管理
 
