@@ -137,7 +137,7 @@ synchronized
 
 Monitor（监视器），也就是我们平时所说的==锁==。
 
-Monitor其实是一种==同步机制==，他的义务是保证（同一时间）只有一个线程可以访问被保护的数据和代码。https://time.geekbang.org/
+Monitor其实是一种==同步机制==，他的义务是保证（同一时间）只有一个线程可以访问被保护的数据和代码。
 
 JVM中同步是基于进入和退出监视器对象(Monitor,==管程对象==)来实现的，每个对象实例都会有一个Monitor对象：
 
@@ -172,7 +172,9 @@ Java中线程分两种：用户线程和守护线程。
 
 ## 3 CompletableFuture
 
-### Future接口理论知识
+### 3.1 Future
+
+#### Future接口理论知识
 
 `Future`接口（俗称异步任务接口）(`FutureTask`实现类)定义了操作==异步任务==执行一些方法，如**获取异步任务的执行结果、取消任务的妆行、判断任务是否被取消、判断任务执行是否完毕**等。
 
@@ -194,9 +196,9 @@ public interface Future<V> {
 
 总结：Future接口可以为主线程开一个分支任务，专门为主线程处理耗时和费力的复杂业务。
 
-### Future接口常用实现类FutureTask异步任务
 
-#### Future接口能干什么
+
+Future接口能干什么？
 
 Future是Java5新加的一个接口，它提供了一种==异步并行计算==的功能。
 
@@ -244,6 +246,12 @@ Future是Java5新加的一个接口，它提供了一种==异步并行计算==�
 FutureTask(Callable<V> callable)
 ```
 
+
+
+#### FutureTask
+
+Future接口常用实现类FutureTask
+
 ![](images/image-20231029083118175.png)
 
 `FutureTask`就解决上面三个需求
@@ -281,7 +289,7 @@ hello Callable
 
 ##### 优点
 
-优点：future+线程池异步多线程任务配合，能显著提高程序的执行效率。
+future+线程池异步多线程任务配合，能显著提高程序的执行效率。
 
 P11 🔖
 
@@ -411,9 +419,9 @@ while (true) {
 
 
 
+### 3.2 CompletableFuture
 
-
-### CompletableFuture对Future的改进
+CompletableFuture是对Future的改进
 
 #### CompletableFuture为什么出现
 
@@ -508,4 +516,266 @@ CompletionStage
         threadPool.shutdown();
     }
 ```
+
+
+
+##### 通用演示
+
+
+
+从Java8开始引入了CompletableFuture，它是==Future的功能增强版，减少阻塞和轮询==，可以传入回调对象，当异步任务完成或者发生异常时，自动调用回调对象的回调方法。
+
+🌰：CompletableFutureUseDemo
+
+
+
+#### CompletableFuture的优点
+
+1. 异步任务结束时，会自动回调某个对象的方法
+2. 主线程设置好回调后，不再关心异步任务的执行，异步任务之间可以顺序执行
+3. 异步任务出错是，会自动回调某个对象的方法
+
+
+
+#### 案例-电商网站的比价需求
+
+##### 函数式编程已成主流
+
+Lambda表达式+Stream流式调用+Chain链式调用+Java8函数式编程
+
+1. `Runnable` 没有参数没有返回值
+
+
+
+2. `Function` 有一个参数有返回值
+
+
+
+3. `Consumer`
+
+`BiConsumer`
+
+
+
+4. `Supplier`  供给型函数结构，有参数有返回值
+
+![](images/image-20231124125153634.png)
+
+链式写法
+
+```java
+@Accessors(chain = true)  // 支持链式写法
+class Student {
+}
+```
+
+
+
+##### join和get
+
+区别是：join不会报检查异常
+
+```java
+public static void main(String[] args) {
+  CompletableFuture<String> completableFuture = CompletableFuture.supplyAsync(() -> {
+    return "hello 1";
+  });
+  //        completableFuture.get();
+  completableFuture.join();
+}
+```
+
+
+
+> 切记，功能 -> 性能  （先完成，后完美）
+
+
+
+##### 电商网站比价需求分析
+
+1需求说明
+
+- 1.1 同一款产品，同时搜索出同款产品在各大电商平台的售价；
+- 1.2 同一款产品，同时搜索出本产品在同一个电商平台下，各个入驻卖家售价是多少
+
+2 输出返回：
+ 出来结果希望是同款产品的在不同地方的价格清单列表，返回一个`List<String>`
+
+《mysql》 in jd price is 88.05
+
+《mysql》 in dangdang price is 86.11
+
+《mysql》 in taobao price is 90.43
+
+3 解决方案，比对同一个商品在各个平台上的价格，要求获得一个清单列表，
+
+​	1 step by step，按部就班，查完京东查淘宝，查完淘宝查天猫•
+
+​	2 all in ，万箭齐发，一口气多线程异步任务同时查询。。。。。
+
+
+
+#### CompletableFuture常用方法
+
+`CompletionStage`方法的实现
+
+
+
+##### 1 获得结果和触发计算
+
+获得结果：
+
+```java
+get()    不见不散
+get(long timeout, TimeUnit unit)   过时不候
+join()    不报检查异常
+getNow(T valueIfAbsent)     立即获取结果不阻塞，计算完就返回计算完结果，没计算完就返回设定的valueIfAbsent值
+```
+
+触发计算：
+
+```java
+public boolean complete(T value)     是否打断get/join方法立即返回value
+```
+
+
+
+```java
+// 返结果视情况出现两种情况：
+//      true    completValue
+//      false   abc
+System.out.println(completableFuture.complete("completValue") + "\t" + completableFuture.join());
+```
+
+
+
+
+
+##### 2 对计算结果进行处理
+
+🌰CompletableFutureAPI2Demo
+
+上一步的计算结果可以传递给下一步
+
+- `thenApply`  计算结果存储依赖关系，这连个线程串行化
+
+异常处理：由于存在依赖关系（当前步错，不走下一步），当前步骤有异常的话就叫停
+
+- `handle`
+
+与thenApply功能类似，但对异常处理不同：有异常也可以往下走，根据带的异常参数可以进一步处理
+
+> 总结：exceptionally有点类似try/catch，whenComplete和handle有点类似try/finally
+
+
+
+##### 3 对计算结果进行消费
+
+`thenAccept`   接受任务的处理结果，并消费处理，==无返回结果==
+
+
+
+> 对比：
+>
+> - `thenRun(Runnable runnable)`，任务A执行完执行B，并且B不需要A的结果
+> - `thenAccept(Consumer action)`，任务A执行完执行B，B需要A的结果，但任务B==无返回值==
+> - `thenApply(Function fn)`，任务A执行完执行B，B需要A的结果，同时任务B==有返回值==
+>
+> ```java
+> // 对比三种方式的不同
+> System.out.println(CompletableFuture.supplyAsync(() -> "resultA").thenRun(() -> {}).join()); // null
+> System.out.println(CompletableFuture.supplyAsync(() -> "resultA").thenAccept(r -> System.out.println(r)).join());
+> System.out.println(CompletableFuture.supplyAsync(() -> "resultA").thenApply(r -> r + "resultB").join());
+> 
+> ```
+>
+> 
+
+
+
+##### CompletableFuture和线程池说明
+
+P26 
+
+CompletableFutureWithThreadPollDemo
+
+
+
+以`thenRun`和`thenRunAsync`为例，有什么区别？
+
+1. ﻿没有传入自定义线程池，都用默认线程池ForkJoinPool；
+
+2. ﻿传入了一个自定义线程池，
+
+   如果你执行第一个任务的时候，传入了一个自定义线程池：
+
+   调用thenRun方法执行第二个任务时，则第二个任务和第一个任务是共用同一个线程池。
+
+   调用thenRunAsync执行第二个任务时，则第一个任务使用的是你自己传入的线程池，第二个任务使用的是ForkJoin线程池
+
+3. 备注：有可能处理太快，系统优化切换原则，直接使用main线程处理
+
+其它如：thenAccept和thenAcceptAsync,thenApply和thenApplyAsync等，它们之间的区别也是同理
+
+
+
+源码分析
+
+```java
+public CompletableFuture<Void> thenRun(Runnable action) {
+  return uniRunStage(null, action);
+}
+
+public CompletableFuture<Void> thenRunAsync(Runnable action) {
+  return uniRunStage(asyncPool, action);
+}
+
+private static final Executor asyncPool = useCommonPool ? ForkJoinPool.commonPool() : new ThreadPerTaskExecutor();
+```
+
+
+
+##### 4 对计算速度进行选用
+
+`applyToEither`  谁快用谁
+
+```java
+CompletableFuture<String> playA = CompletableFuture.supplyAsync(() -> {
+  System.out.println("A come in");
+  try {
+    TimeUnit.SECONDS.sleep(2);
+  } catch (InterruptedException e) {
+    e.printStackTrace();
+  }
+  return "playA";
+});
+CompletableFuture<String> playB = CompletableFuture.supplyAsync(() -> {
+  System.out.println("B come in");
+  try {
+    TimeUnit.SECONDS.sleep(10);
+  } catch (InterruptedException e) {
+    e.printStackTrace();
+  }
+  return "playB";
+});
+CompletableFuture<String> result = playA.applyToEither(playB, f -> {
+  return f + " is winner";
+});
+
+System.out.println(Thread.currentThread().getName() + "\t-----: " + result.join());
+```
+
+
+
+##### 5 对计算结果进行合并
+
+```java
+public <U,V> CompletableFuture<V> thenCombine(
+  CompletionStage<? extends U> other,
+  BiFunction<? super T,? super U,? extends V> fn)
+```
+
+
+
+
 
