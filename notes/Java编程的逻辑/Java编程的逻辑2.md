@@ -3013,6 +3013,8 @@ public class MyBlockingQueue<E> {
 
 显式条件与显式锁配合使用，与wait/notify相比，可以支持多个条件队列，代码更为易读，效率更高，使用时注意不要将signal/signalAll误写为notify/notifyAll。
 
+
+
 ## 17 并发容器
 
 ### 17.1 写时复制的List和Set
@@ -3056,6 +3058,8 @@ CopyOnWriteArrayList的内部也是一个数组，但这个数组是以原子方
 HashMap的并发版本，与HashMap相比，它有如下特点：
 
 #### 并发安全
+
+HashMap不是并发安全的，在并发更新的情况下，HashMap可能出现死循环，占满CPU。
 
 🔖
 
@@ -3513,7 +3517,7 @@ CyclicBarrier与CountDownLatch的区别。
 
 ### 19.5 理解ThreadLocal
 
-实现线程安全的特殊概念：线程本地变量
+实现线程安全的特殊概念：==线程本地变量==
 
 #### 基本概念和用法
 
@@ -3535,9 +3539,25 @@ CyclicBarrier与CountDownLatch的区别。
 
 
 
+### 小结
+
+- 在读多写少的场景中使用ReentrantReadWriteLock替代ReentrantLock，以提高性能。
+- 使用Semaphore限制对资源的并发访问数。
+- 使用CountDownLatch实现不同角色线程间的同步。
+- 使用CyclicBarrier实现同一角色线程间的协调一致。
+- ThreadLocal使得每个线程对同一个变量有自己的独立副本，是实现线程安全、减少竞争的一种方案。
+- ThreadLocal经常用于存储上下文信息，避免在不同代码间来回传递，简化代码。
+- 每个线程都有一个Map，调用ThreadLocal对象的get/set实际就是以ThreadLocal对象为键读写当前线程的该Map。
+
+
+
+
+
 ## 20 并发总结
 
 多线程开发有两个核心问题：一个是**==竞争==**，另一个是**==协作==**。
+
+竞争会出现线程安全问题。
 
 ### 20.1 线程安全的机制
 
