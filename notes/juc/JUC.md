@@ -777,5 +777,146 @@ public <U,V> CompletableFuture<V> thenCombine(
 
 
 
+## 4 说说Java“锁”事❤️
+
+> 大厂面试题
+> 一、Synchronized相关问题
+> 1.Synchronized 用过吗，其原理是什么?
+> 2.你刚才提到获取对象的锁，这个“锁”到底是什么?如何确定对象的领?
+> 3.什么是可重入性，为什么说Synchronized是可重入锁?
+> 4.JVM对Java的原生锁做了哪些优化?
+> 5.为什么说Synchronized是非公平锁?
+> 6.什么是锁消除和锁粗化?
+> 7.为什么说Synchronized是—个悲观领?乐观锁的实现原理又是什么?什么是CAS？
+> 8.乐观锁—定就是好的吗?
+> 9、synchronized实现原理，monitor对象什么时候生成的?知道monitor的monitorenter和monitorexit这两个是怎么保证同步的吗，或者说，这两个操作计算机底层是如何执行的
+> 10.刚刚你提到了synchronized的优化过程，详细说一下吧。偏向锁和轻量级锁有什么区别?
+>
+> 二、可重入锁ReentrantLock及其他显式锁相关问题
+> 1.跟Synchronized相比，可重入锁ReentrantLock 其续现原理有什么不同?
+> 2那么请谈谈AQS框架是怎么回事儿?
+> 3.请尽可能详尽地对比下Synchronized和 ReentrantLock的异同。
+> 4.ReentrantLock是如何实现可重入性的?
+>
+> 三、其他
+> 1.你怎么理解iava多线程的?怎么处理并发?线程池有那几个核心参数?你们项目中如何根据实际场景设置参数的?
+> 2.Java加锁有哪几种锁？
+> 3.简单说说lock ?
+> 4.hashmap的实现原理? hash冲突怎么解决?为什么使用红黑树?
+> 5.spring里面都使用了那些设计模式?循环依赖怎么解决?
+> 6.项目中那个地方用了countdownlanch，怎么使用的?
+> 7、从集合开始吧，介绍一下常用的集合类，哪些是有序的，哪些是无序的
+> 8、hashmap是如何寻址的，哈希碰撞后是如何存储数据的，1.8后什么时候变成红黑树,红黑树有什么好处
+> 9、concurrrenthashmap怎么实现线程安全，一个里面会有几个段 segment，jdk1.8后有优化concurrenthashmap吗?分段锁有什么坏处
+
+### 乐观锁和悲观锁
+
+- 悲观锁：
+  + 认为自己在使用数据的时候==一定有别的线程来修改数据==，因此在获取数据的时候会先加锁，确保数据不会被别的线程修改。
+  + `synchronized`关键字和`Lock`的实现类都是悲观锁。
+  + 适合==写操作==多的场景，先加锁可以保证写操作时数据正确。
+  + **显式的锁定**之后再操作同步资源
+  + “狼性锁”
+
+- 乐观锁：“佛系锁”
+
+  + 认为自己在使用数据时==不会有别的线程修改数据或资源==，所以不会添加锁
+
+  + 在Java中是通过使用**无锁编程**来实现，只是在更新数据的时候去判断，之前有没有别的线程更新了这个数据。
+
+    如果这个数据没有被更新，当前线程将自己修改的数据成功写入。
+
+    如果这个数据已经被其它线程更新，则根据不同的实现方式执行不同的操作，比如放弃修改、重试抢锁等等
+
+    如原子操作类那些底层是CAS算法，也就是乐观锁。
+
+乐观锁判断规则
+
+1. 版本号机制Version
+2. 最常采用的是==CAS算法==，Java原子类中的递增操作就通过CAS自旋实现的。🔖
+
+乐观锁使用场景：适合==读操作==多的场景，不加锁的特点能够使其读操作的性能大幅提升。
+
+乐观锁则直接去操作同步资源，是种无锁算法，得之我幸不得我命，再努力就是
+
+伪代码说明：
+
+```java
+//  ======悲观锁的调用方式========
+public synchronized void m1() {
+  // 加锁后的业务逻辑....
+}
+// 保证多个线程使用的事同一个lock对象的前提下
+ReentrantLock lock = new ReentrantLock();
+public void m2() {
+  lock.lock();
+  try {
+		// 操作同步资源
+  } finally {
+    lock.unlock();
+  }
+}
+
+
+// =======乐观锁的调用方式
+// 保证多个线程使用的是同一个AtomicInteger
+private AtomicInteger atomicInteger = new AtomicInteger();
+atomicInteger.incrementAndGet();
+```
+
+
+
+### 案例
+
+🔖p32
+
+
+
+## 5 LockSupport与线程中断
+
+
+
+
+
+## 6 Java内存模型之JMM
+
+
+
+## 7 volatile与JMM
+
+
+
+
+
+## 8 CAS
+
+
+
+
+
+## 9 原子操作类AtomicLong、LongAdder、LongAccumulator
+
+
+
+
+
+## 10 ThreadLocal
+
+
+
+## 11 Java对象内存布局和对象头
+
+
+
+## 12 synchronized与锁升级
+
+
+
+## 13 AbstractQueuedSynchronizer之AQS
+
+
+
+## 14 ReentrantLock、ReentrantReadWriteLock、StampedLock
+
 
 
