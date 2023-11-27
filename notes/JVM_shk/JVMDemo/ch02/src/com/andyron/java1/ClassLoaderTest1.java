@@ -19,9 +19,9 @@ public class ClassLoaderTest1 {
 
         System.out.println("=======扩展类加载器=====");
         String extDirs = System.getProperty("java.ext.dirs");
-        for (String path : extDirs.split(":")) {
-            System.out.println(path);
-        }
+//        for (String path : extDirs.split(":")) {
+//            System.out.println(path);
+//        }
         /* macos
         /Users/andyron/Library/Java/Extensions
         /Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/lib/ext
@@ -34,8 +34,8 @@ public class ClassLoaderTest1 {
 
         System.out.println("=======应用程序类加载器=====");
         String appDirs = System.getProperty("java.class.path");
-        for (String path : appDirs.split(":")) {
-            System.out.println(path);
-        }
+//        for (String path : appDirs.split(":")) {
+//            System.out.println(path);
+//        }
     }
 }
