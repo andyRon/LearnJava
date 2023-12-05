@@ -1,4 +1,4 @@
-package com.andyron.java;
+package com.andyron.mat;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;

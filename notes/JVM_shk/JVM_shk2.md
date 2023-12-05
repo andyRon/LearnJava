@@ -3005,13 +3005,13 @@ GC日志
 
 ### 性能优化的步骤
 
-#### 第1步（发现问题）：性能监控
+#### 第1步（发现问题）：==性能监控==
 
 一种以==非强行或者入侵方式==收集或查看应用运营性能数据的活动。
 
-监控通常是指一种在生产、质量评估或者开发环境下实施的带有预防或主动性的活动。
+监控通常是指一种在生产、质量评估或者开发环境下实施的带有**预防或主动性**的活动。
 
-当应用相关干系人提出性能问题却没有提供足够多的线索时，首先我们需要进行性能监控，随后是性能分析。
+当应用相关干系人提出性能问题却**没有提供足够多的线索**时，首先我们需要进行性能监控，随后是性能分析。
 
 - GC频繁
 
@@ -3027,7 +3027,7 @@ GC日志
 
 
 
-#### 第2步（排查问题）：性能分析
+#### 第2步（排查问题）：==性能分析==
 
 一种以==侵入方式==收集运行性能数据的活动，它会影响应用的吞吐量或响应性。
 
@@ -3043,7 +3043,7 @@ GC日志
 - 使用阿里Arthas，或jconsole、JVisualVM来实时查看JVM状态
 - jstack查看堆栈信息
 
-#### 第3步（解决问题）：性能调优
+#### 第3步（解决问题）：==性能调优==
 
 一种为改善应用响应性或吞吐量而更改参数、源代码、属性配置的活动，性能调优是在性能监控、性能分析之后的活动。   
 
@@ -3054,7 +3054,17 @@ GC日志
 - 使用中间件提高程序效率，比如缓存，消息队列等
 - ...
 
+性能调优的最终目的是，减少GC出现的频率以及full GC出现的次数，或者以较小的内存占用获得较高的响应性、吞吐量
+
+
+
+性能调优没有一招鲜的一套方案，需要具体问题具体分析。【艺术】
+
+
+
 ### 性能评价/测试指标
+
+上篇从gc角度看性能评价指标，这里是从web应用运行角度来看的。
 
 #### 1 停顿时间（或响应时间）
 
@@ -3066,17 +3076,19 @@ GC日志
 
 在垃圾回收环节中：
 
-**暂停时间**：执行垃圾收集时，程序的工作线程被暂停的时间。 `-XX:MaxGCPauseMillis`
+**暂停时间**：执行垃圾收集时，程序的工作线程被暂停的时间（STV）。 【`-XX:MaxGCPauseMillis`用来设置最大暂停时间】
 
 #### 2 吞吐量
 
 对单位时间内完成的工作量（请求）的量度。
 
-在GC中：运行用户代码的时间占总运行时间的比例（总运行时间：程序的运行时间 + 内存回收的时间）吞吐量为 1 - 1/(1+n)。 `-XX:GCTimeRatio=n`
+在GC中：运行用户代码的时间占总运行时间的比例（总运行时间：程序的运行时间 + 内存回收的时间）吞吐量为 `1 - 1/(1+n)`。🔖
+
+ `-XX:GCTimeRatio=n`
 
 #### 3 并发数
 
-同一时刻，对服务器有实际交互的诘求数
+同一时刻，对服务器有实际交互的请求数。
 
 1000个人同时在线，估计并发数在5%-15%之间，也就是同时井发量：50-150之间。
 
@@ -3094,7 +3106,7 @@ java堆区所占的内存大小
 
 响应时间：车速
 
-> Jvm调优最关心响应时间和吞吐量
+> Jvm调优最关心**响应时间和吞吐量**
 
 
 
@@ -3150,9 +3162,7 @@ jps (Java Process Status):
 
 补充：
 
-如果某 Java 进程关闭了默认开启的UsePerfData參数（即使用参数`-XX:-UsePerfData`），那么jps命令（以及下面介绍的jstat）将无法探知该Java 进程。
-
-
+如果某 Java 进程关闭了默认开启的UsePerfData參数（即使用参数`-XX:-UsePerfData`），那么jps命令（以及下面介绍的jstat）将无法探知该Java进程。
 
 #### hostid参教
 
@@ -3166,11 +3176,9 @@ RMI注册表中注册的主机名。
 
 如果安全问题无法使用一个定制的策略文件来处理，那么最安全的操作是不运行jstatd服务器，而是在本地使用jstat和jps工具。
 
-
-
 ### 2.3 jstat：查看JVM统计信息
 
-jstat (JVM Statistics Monitoring Tool)：用于监视虛拟机各种运行状态信息的命令行工具。它可以显示本地或者远程虚拟机进程中的类装载、内存、垃圾收集、JIT编译等远行数据。
+jstat (JVM Statistics Monitoring Tool)：用于监视虛拟机各种==运行状态信息==的命令行工具。它可以显示本地或者远程虚拟机进程中的**类装载、内存、垃圾收集、JIT编译等**运行数据。
 
 **在没有GUI图形界面，只提供了纯文本控制台环境的服务器上，它将是运行期定位虛拟机性能问题的首选工具。**常用于检测垃圾回收问题以及内存泄漏问题。
 
@@ -3191,8 +3199,6 @@ jstat (JVM Statistics Monitoring Tool)：用于监视虛拟机各种运行状态
 Loaded  Bytes  Unloaded  Bytes     Time
    676  1350.1        0     0.0       0.06
 ```
-
-
 
 ###### **垃圾回收相关的**：
 
@@ -3237,15 +3243,9 @@ Loaded  Bytes  Unloaded  Bytes     Time
 	GCT是从应用程序启动到采样时gc的总时间
 ```
 
-
-
-
-
-
-
 ###### **JIT相关的：**
 
-- ﻿`-compiler`：显示JIT编译器编译过的方法、耗时等信息
+- ﻿`-compiler`：显示JIT编译器**编译过的方法、耗时**等信息
 
 - ﻿`-printcompilation`：输出已经被JIT编译的方法
 
@@ -3259,10 +3259,6 @@ Compiled  Size  Type Method
       58     70    1 java/lang/String indexOf
 ```
 
-
-
-
-
 ##### interval参数
 
 用于指定输出统计数据的周期，单位为毫秒。即：查询间隔。
@@ -3273,14 +3269,12 @@ Compiled  Size  Type Method
 ➜ jstat -class 34889 1000
 ```
 
-
-
 ##### count参数
 
 用于指定查询的总次数。
 
 ```shell
-➜  Downloads jstat -class 34889 1000 10
+➜ jstat -class 34889 1000 10
 ```
 
 ##### -t参数
@@ -3295,7 +3289,7 @@ Timestamp       Loaded  Bytes  Unloaded  Bytes     Time
 
 **经验:**
 
-我们可以比较Java 进程的启动时间以及总 GC 时间（GCT 列），或者两次测量的间隔时间以及总GC时间的增量，来得出 GC 时间占运行时间的比例。
+我们可以比较Java进程的启动时间以及总 GC 时间（GCT 列），或者两次测量的间隔时间以及总GC时间的增量，来得出GC时间占运行时间的比例。
 
 如果该比例超过 20%，则说明目前堆的压力较大：如果该比例超过 90%，则说明堆里几乎没有可用空间，随时都可能抛出 OOM 异常。
 
@@ -3351,7 +3345,7 @@ jinfo(Configuration Info for Java)
 
 ![](images/image-20230430112606791.png)
 
-> 🐞macOS 上的jinfo失效？！
+> 🐞macOS 上的jinfo的一些参数没用
 
 ##### 查看
 
@@ -3371,15 +3365,13 @@ jinfo(Configuration Info for Java)
 jinfo -flag UseG1GC 2157
 ```
 
-
-
 ##### 修改（能修改的参数有限）
 
 jinfo不仅可以查看运行时某一个Java虛拟机参数的实际取值，甚至可以在运行时修改部分参数，并使之立即生效。
 
 但是，并非所有参数都支持动态修改。参数只有被标记为`manageable`的flag可以被实时修改。其实，这个修改能力是极其有限的。可以查看被标记为manageable的参数:
 
-```
+```shell
 java -XX:+PrintFlagsFinal -version | grep manageable
 ```
 
@@ -3438,8 +3430,6 @@ OpenJDK 64-Bit Server VM (Zulu 8.66.0.15-CA-macos-aarch64) (build 25.352-b08, mi
 -XX:MaxHeapFreeRatio=90
 ```
 
-
-
 #### 拓展
 
 - `java -XX:+PrintFlagsInitial`  查看所有JVM参数启动的初始值
@@ -3447,6 +3437,8 @@ OpenJDK 64-Bit Server VM (Zulu 8.66.0.15-CA-macos-aarch64) (build 25.352-b08, mi
 - `java -XX:+PrintFlagsFinal`  查看所有JVM参数的最终值
 
 - `java -参数名称:+PrintCommandLineFlags`  查看那些已经被用户或者JVM设置过的详细的XX参数的名称和值
+
+
 
 ### 2.5 jmap：导出内存映像文件&内存使用情况等
 
@@ -3529,7 +3521,7 @@ The call-stacks of threads at the moment of the snapshot, and per-frame informat
 
 说明：
 
-1. 通常在写Heap Dump文件前会触发一次Fu11 GC，所以heapdump文件里保存的都是Full GC后留下的对象信息。
+1. 通常在写Heap Dump文件前会触发一次Full GC，所以heapdump文件里保存的都是Full GC后留下的对象信息。
 
 2. 由于生成dump文件比较耗时，因此大家需要耐心等待，尤其是大内存镜像生成dump文件则需要耗费更长的时间来完成。
 
@@ -3554,7 +3546,7 @@ Dumping heap to /Users/andyron/Downloads/4.hprof ...
 Heap dump file created
 ```
 
-由于jmap将访问堆中的所有对象，为了保证在此过程中不被应用线程干扰，jmap需要借助安全点机制，让所有线程停留在不改变堆中数据的状态。也就是说，由jmap导出的堆快照==必定是安全点位置的==。这可能导致基于该堆快照的分析结果存在偏差。
+由于jmap将访问堆中的所有对象，为了保证在此过程中不被应用线程干扰，jmap需要借助==安全点机制==，让所有线程停留在不改变堆中数据的状态。也就是说，由jmap导出的堆快照==必定是安全点位置的==。这可能导致基于该堆快照的分析结果存在偏差。
 
 举个例子，假设在编译生成的机器码中，某些对象的生命周期在两个安全点之间，那么:live选项将无法探知到这些对象。
 
@@ -3579,7 +3571,7 @@ Heap dump file created
 
 - `jmap -heap 进程id`  时间点，执行命令那一刻的堆内存信息。比jstat差一点
 
-- `jmap -histo 进程id` 时间点
+- `jmap -histo 进程id`【❤️】 时间点 
 
 
 
@@ -3597,7 +3589,7 @@ jhat (JVM Heap Analysis Tool):
 
 sun JDK提供的jhat命令与jmap命令搭配使用，用于分析jmap生成的heap dump文件（堆转储快照）。jhat内罝了一个微型的HTTP/HTML服务器， 生成dump文件的分析结果后，用产可以在浏览器中查看分析结果(分析虛拟机转储快照信息）。
 
-使用了jhat命令，就启动了一个http服务，端口是7000，即http://1ocalhost:7000/，就可以在浏览器里分析。
+使用了jhat命令，就启动了一个http服务，端口是7000，即http://localhost:7000/，就可以在浏览器里分析。
 
 > jhat命令在jdk9及其之后就被移除了，官方建议使用jvisualvm代替jhat，所以该指令只需简单了解一下即可。
 
@@ -3932,7 +3924,7 @@ visual vm是单独下载的工具，然后将visual vm结合到jdk中就变成�
 #### 基本概述
 
 - ﻿Visual VM是一个功能强大的多合一故障诊断和性能监控的可视化工具。
-- ﻿它集成了多个JDK命令行工具，使用Visual VM可用于显示虚拟机进程及进程的配置和环境信息(jps,jinfo)p监视应用程序的CPU、GC、堆、万法区及线程的信恩(jstat、jstack)等，甚至代替JConsole。
+- ﻿它集成了多个JDK命令行工具，使用Visual VM可用于显示虚拟机进程及进程的配置和环境信息(jps,jinfo)p监视应用程序的CPU、GC、堆、方法区及线程的信息(jstat、jstack)等，甚至代替JConsole。
 
 - ﻿在JDK 6 Update 7以后，Visual VM便作为JDK的一部分发布(VisualvM 在JDK/bin目录下），即：它完全免费。
 - ﻿此外， Visual VM也可以作为独立的软件安装：https://visualvm.github.io/index.html
@@ -3967,7 +3959,7 @@ visual vm是单独下载的工具，然后将visual vm结合到jdk中就变成�
 
 #### 主要功能
 
-- 生成/读取堆内存快照
+1. 生成/读取堆内存快照【分析dump文件】
 
 ![](images/image-20230430164542126.png)
 
@@ -3977,18 +3969,26 @@ visual vm是单独下载的工具，然后将visual vm结合到jdk中就变成�
 
 
 
-- 查看JVM参数和系统属性
+2. 查看JVM参数和系统属性
 
-- 查看运行中的虚拟机进程
 
-- 生成/读取线程快照
 
-- 程序资源的实时监控
+3. 查看运行中的虚拟机进程
 
-- 其他功能
-      JMX代理连接
-      远程环境监控
-      CPU分析和内存分析
+
+
+4. 生成/读取线程快照
+
+
+
+5. 程序资源的实时监控
+
+
+
+6. 其他功能
+       JMX代理连接
+       远程环境监控
+       CPU分析和内存分析
 
 > park 驻留
 
@@ -4004,7 +4004,7 @@ visual vm是单独下载的工具，然后将visual vm结合到jdk中就变成�
 
 #### 基本概述
 
-MAT(Memory Analyzer Tool)工具是一款功能强大的Java堆内存分析器。可以用于查找内存泄漏以及查看内存消耗情況。
+MAT(Memory Analyzer Tool)工具是一款功能强大的==Java堆内存==分析器。可以用于**==查找内存泄漏以及查看内存消耗情況==**。【MAT主要就是用来**分析dump文件**的】
 
 MAT是基于Eclipse开发的，不仅可以单独使用，还可以作为插件的形式嵌入在Eclipse中使用。是一款免费的性能分析工具，使用起来非常方便。大家可以在https://www.eclipse.org/mat/downloads.php
 
@@ -4025,22 +4025,22 @@ MAT可以分析heap dump文件。在进行内存分析时，只要获得了反�
 
 说明1：缺点：
 
-MAT不是一个万能工具，它并不能处理所有类型的堆存储文件。但是比较主流的厂家和格式，例如sun，HP，SAP 所采用的 HPROF 二进制堆存储文件，以及IBM 的 PHD 堆存储文件等都能被很好的解析。
+MAT不是一个万能工具，它并不能处理所有类型的**堆存储文件**。但是比较主流的厂家和格式，例如sun，HP，SAP 所采用的 HPROF 二进制堆存储文件，以及IBM 的 PHD 堆存储文件等都能被很好的解析。
 
 说明2：
 
 最吸引人的还是能够快速为开发人员生成==内存泄漏报表==，方便定位问题和分析问题。虽然MAT有如此强大的功能，但是内存分析也没有简单到一键完成的程度，很多内存问题还是需要我们从MAT展现给我们的信息当中通过经验和直觉来判断才能发现。
 
-
+![](images/image-20231205171549767.png)
 
 ##### 获取dump文件
 
-方法一：通过前一章介绍的 jmap工具生成，可以生成任意一个java进程的dump文件；
+方法一：通过前一章介绍的`jmap`工具生成，可以生成任意一个java进程的dump文件；
 
 方法二：通过配置JVM参数生成。
 
-- ﻿选项“-xx:tHeapDumpOnoutOfMemoryError"或“-xx:tHeapDumpBeforeFu11GC"
-- ﻿选项"-xx:HeappumpPath"所代表的含义就是当程序出 现OutofMemory时，将会在相应的目录下生成一份dump文神。如果不指定选项“xx：HeapDumpPath”则在当前目录下生成dump文件。
+- ﻿选项“`-XX:+HeapDumpOnoutOfMemoryError`"或“`-XX:+HeapDumpBeforeFullGC`"
+- ﻿选项"`-XX:HeapDumpPath`"所代表的含义就是当程序出现OutofMemory时，将会在相应的目录下生成一份dump文件。如果不指定选项“`-XX:HeapDumpPath`”则在当前目录下生成dump文件。
 
 对比：考虑到生产环境中几乎不可能在线对其进行分析，大都是采用离线分析，因此使用==jmap+MAT工具==是最常见的组合。
 
@@ -4050,29 +4050,119 @@ MAT不是一个万能工具，它并不能处理所有类型的堆存储文件�
 
 使用MAT既可以打开一个已有的堆快照，也可以通过MAT==直接从活动Java程序中导出堆快照==。
 
-该功能将借助jps列出当前正在运行的Java 进程，以供选择并获取快照。
+该功能将借助jps列出当前正在运行的Java进程，以供选择并获取快照。
 
-
-
-🔖p328-p339
+![](images/image-20231205171916780.png)
 
 #### 分析堆dump文件
 
-##### histogram
+```java
+/**
+ * -Xms600m -Xmx600m -XX:SurvivorRatio=8
+ * @author andyron
+ **/
+public class OOMTest {
+    public static void main(String[] args) {
+        ArrayList<Picture> list = new ArrayList<>();
+        while (true) {
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            list.add(new Picture(new Random().nextInt(100 * 50)));
+        }
+    }
+}
 
-​    展示了各个类的实例数目以及这些实例的Shallow heap或者Retained heap的总和
+class Picture {
+    private byte[] pixels;
+
+    public Picture(int length) {
+        this.pixels = new byte[length];
+    }
+}
+```
+
+
+
+##### mat的界面说明
+
+```shell
+jps -l
+
+map -dump:format=b,file=/Users/andyron/Downloads/mat_log/a.hprof 46964
+```
+
+使用mat打开a.hprof文件，并点击**Leak Susects Report**
+
+再使用方法四，同样生成一个hprof文件并打开
+
+![](images/image-20231205173831942.png)
+
+> **Leak Susects Report**表示生成泄漏嫌疑报告，自动检查堆转储中是否存在泄漏嫌疑，报告哪些对象保持活动状态，但一直没有被垃圾回收的。
+
+![](images/iShot_2023-12-05_17.48.01.png)
+
+![](images/iShot_2023-12-05_17.54.14.png)
+
+**Top Consumers**：列举出最大对象
+
+![](images/image-20231205175855527.png)
+
+**Duplicate Classes**：被多个加载器重复加载的类
+
+
+
+##### histogram（直方图）
+
+类似`jmap -histo pid`。
+
+展示了各个类的实例数目以及这些实例的Shallow heap或者Retained heap的总和
+
+类特别多时，使用分组查看：
+
+![](images/image-20231205181228063.png)
+
+排序查看（右击）：
+
+![](images/image-20231205181505563.png)
+
+正则搜索：
+
+![](images/image-20231205181415278.png)
+
+查看怀疑对象的GC Roots：排除虚引用等等
+
+![](images/image-20231205182140007.png)
+
+查看两个hprof文件的区别，比如基于b.hprof查看与a.hprof的区别：
+
+![](images/image-20231205182729633.png)
+
+
+
+
 
 ##### thread overview
 
-​    查看系统中的Java线程
-​    查看局部变量的信息
+查看系统中的Java线程
+查看局部变量的信息
+
+![](images/image-20231205183433949.png)
 
 ##### 获得对象互相引用的关系
 
-​    with outgoing references
-​    with incoming references
+with outgoing references
+with incoming references
+
+谁引用的、引用的谁：
+
+![](images/image-20231205183603970.png)
 
 ##### 浅堆与深堆
+
+对应浅拷贝和深拷贝
 
 - shallow heap
 
@@ -4088,21 +4178,27 @@ MAT不是一个万能工具，它并不能处理所有类型的堆存储文件�
 
 ==保留集(Retained Set):==
 
-对象A的保留集指当对象A被垃圾回收后，可以被释放的所有的对象集合(包括对象A本身)，即对象A的保留集可以被认为是==只能通过==对象A被直接或问接访问到的所有对象的集合。通俗地说，就是指仅被对象A所持有的对象的集合。
+对象A的保留集指当对象A被垃圾回收后，可以被释放的所有的对象集合(包括对象A本身)，即对象A的保留集可以被认为是==只能通过==对象A被**直接或问接**访问到的所有对象的集合。通俗地说，就是指仅被对象A所持有的对象的集合。
 
 ==深堆(Retained Heap)：==
 
-深堆是指对象的保留集中所有的对象的浅堆大小之和。
+深堆是指对象的保留集中所有的对象的浅堆大小==之和==。
 
-注意：浅堆指对象本身占用的内存，不包括其内部引用对象的大小。一个对象的深堆指只能通过该对象
+注意：浅堆指对象本身占用的内存，不包括其内部引用对象的大小。一个对象的深堆指**==只能==**通过该对象访问到的(直接或间接)所有对象的浅堆之和，即对象被回收后，可以释放的真实空间。
 
-访问到的(直接或间接)所有对象的浅堆之和，即对象被回收后，可以释放的真实空间。
+例如，对象X被A、B两个对象同时引用，那么A被回收时，X就不是A的深堆。
 
 - 补充：对象实际大小
 
 另外一个常用的概念是对象的实际大小。这里，对象的实际大小定义为一个对象==所能触及的==所有对象的浅堆大小之和，也就是通常意义上我们说的对象大小。与深堆相比，似乎这个在日常开发中更为直观和被人按受，但==实际上，这个概念和垃圾回收无关==。
 
-下图显示了一个简单的对象引用关系图，对象A引用了C和D，对象B引用了C和E。那么对象A的浅堆大小只是A本身，不含C和D，而A的实际大小为A、C、D三者之和。而A的深堆大小为A与D之和，由于对象C还可以通过对象B访问到，因此不在对象A的深堆范围内。
+下图显示了一个简单的对象引用关系图，对象A引用了C和D，对象B引用了C和E。
+
+那么对象A的浅堆大小只是A本身，不含C和D；
+
+而A的实际大小为A、C、D三者之和；
+
+而A的深堆大小为A与D之和，由于对象C还可以通过对象B访问到，因此不在对象A的深堆范围内。
 
 ![image-20230430175616393](images/image-20230430175616393.png)
 
@@ -4114,32 +4210,150 @@ MAT不是一个万能工具，它并不能处理所有类型的堆存储文件�
 
   ![](images/image-20230430175916605.png)  
 
-上图中，GC Roots 直接引用了A和B两个对象。
+A的深堆和浅堆大小都是A自己；
 
-对象的Retained Size=A对象的Shal1ow Size
+B的浅堆是B，深堆是B、C。
 
-﻿对象的Retained Size=B对象的Shallow Size + C对象的Shallow Size
+如果RC Roots不引用D对象呢？那么B的深堆就是B、C、D。
 
-这里不包括D对象，因为D对象被GC Roots直接引用。
-
-如果GC Roots不引用D对象呢？
+![](images/image-20231205194329835.png)
 
 
 
 - 案例分析：StudentTrace
 
-🔖p332
+```java
+/**
+ * 学生流量网页的记录程序，记录每个学生访问过的网址
+ *
+ * -XX:+HeapDumpBeforeFullGC -XX:HeapDumpPath=/Users/andyron/Downloads/mat_log/student.hprof
+ *
+ * @author andyron
+ **/
+public class StudentTrace {
+    static List<WebPage> webPages = new ArrayList<>();
+    static void createWebPages() {
+        for (int i = 0; i < 100; i++) {
+            WebPage wp = new WebPage();
+            wp.setUrl("http://www." + Integer.toString(i) + ".com");
+            wp.setContent(Integer.toString(i));
+            webPages.add(wp);
+        }
+    }
+
+    public static void main(String[] args) {
+        createWebPages();
+        Student st3 = new Student(3, "Tom");
+        Student st5 = new Student(5, "Jerry");
+        Student st7 = new Student(7, "Lily");
+
+        for (int i = 0; i < webPages.size(); i++) {
+            if (i % st3.getId() == 0) {
+                st3.visit(webPages.get(i));
+            }
+            if (i % st5.getId() == 0) {
+                st5.visit(webPages.get(i));
+            }
+            if (i % st7.getId() == 0) {
+                st7.visit(webPages.get(i));
+            }
+        }
+        webPages.clear();
+        System.gc();
+    }
+
+}
+
+class Student {
+    private int id;
+    private String name;
+    private List<WebPage> history = new ArrayList<>();
+    public Student(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public List<WebPage> getHistory() {
+        return history;
+    }
+    public void setHistory(List<WebPage> history) {
+        this.history = history;
+    }
+    public void visit(WebPage wp) {
+        if (wp != null) {
+            history.add(wp);
+        }
+    }
+}
+
+class WebPage {
+    private String url;
+    private String content;
+    public String getUrl() {
+        return url;
+    }
+    public void setUrl(String url) {
+        this.url = url;
+    }
+    public String getContent() {
+        return content;
+    }
+    public void setContent(String content) {
+        this.content = content;
+    }
+}
+
+```
+
+![](images/image-20231205200205694.png)
+
+三个学生对象的浅堆都是24，id为int是4个字节，name和history的引用地址都是4个字节，还对象头部本身8个字节，4*3+8=20，然后需要补全，就是24了。
+
+三个学生对象的深堆逐渐减小，是因为history的大小不同。
 
 
 
-##### 支配树🔖
+![](images/image-20231205203234212.png)
 
-支配树 (Dominator Tree)，支配树的概念源自图论。
+![](images/image-20231205202629516.png)
 
-MAT提供了一个称为支配树 (Dominator Tree）的对象图。支配树体现了对象实例间的支配关系。在对象引用图中，所有指向对象B的路径都经过对象A，则认为==对象A支配对象B==。如果对象A是离对象B最近的一个支配对象，则认为对象A为对象B的==直接支配者==。支配树是基于对象间的引用图所建立的，它有以下基本性质：
 
-- ﻿对象A的子树《所有被对象A支配的对象集合）表示对象A的保留集 (retained set），即深堆。
-- ﻿•如果对象A支配对象B，那么对象A的直接支配者也支配对象B。
+
+> ArrayList的自动添加长度是每次加一半，刚开始默认是10，因此长度变化为：
+>
+> 10
+>
+> 10 + 5 = 15
+>
+> 15 + 15/2 = 22
+>
+> 22 + 11 = 33
+>
+> 33 + 16 = 49
+>
+> ...
+>
+> ![](images/image-20231205203305352.png)
+
+##### 支配树
+
+支配树 (Dominator Tree)，支配树的概念源自图论。【有向图】
+
+MAT提供了一个称为支配树 (Dominator Tree）的对象图。支配树体现了对象实例间的**支配关系**。在对象引用图中，所有指向对象B的路径都经过对象A，则认为==对象A支配对象B==。如果对象A是离对象B最近的一个支配对象，则认为对象A为对象B的==直接支配者==。支配树是基于对象间的引用图所建立的，它有以下基本性质：
+
+- ﻿对象A的子树（所有被对象A支配的对象集合）表示对象A的保留集 (retained set），即==深堆==。
+- ﻿如果对象A支配对象B，那么对象A的直接支配者也支配对象B。
 - ﻿支配树的边与对象引用图的边不直接对应。
 
 如下图所示：左图表示对象引用图，右图表示左图所对应的支配树。对象A和B由根对象直接支配，由于在到对象C的路径中，可以经过A，也可以经过B，因此对象C的直接支配者也是根对象。对象F与对象D相互引用，因为到对象F的所有路径必然经过对象D，因此，对象D是对象F的直接支配者。而到对象D的所有路径中，必然经过对象C，即使是从对象F到对象口的引用，从根节点出发，也是经过对象C的，所以，对象D的直接支配者为对象C。
@@ -4148,13 +4362,25 @@ MAT提供了一个称为支配树 (Dominator Tree）的对象图。支配树体�
 
 同理，对象E支配对象G。到达对象H的可以通过对象D，也可以通过对象E，因此对象口和E都不能支配对象H，而经过对象C既可以到达D世可以到达E，因此对象C为对象H的直接支配者。
 
+> 生成支配树的意义就在于，GC时一眼就能看出，回收某个对象时还需要会其它的什么对象。比如如果要回收C，那么D、E、H、G、F都需要回收。
+
 ![](images/image-20230430181059351.png)
 
-#### 案例：Tomcat堆溢出分析🔖
+查看支配树，Lily Student的history数组下就只有8个WebPage对象，这个8个就是只有Lily能访问的，去除了其它7个共同访问的。这就是支配树的功能。
+
+![](images/image-20231205205232559.png)
+
+
+
+
+
+#### 案例：Tomcat堆溢出分析
 
 ##### 说明
 
-Tomcat 是最常用的Java servlet容器之一，同时也可以当做单独的web服务器使用。Tomcat本身使用用Java实现，并运行于Java虚拟机之上。在大规模请求时，Tomcat有可能会因为无法承受压力而发生内存溢出错误。这里根据一个被压垮的Tomcat的堆快照文件，来分析Tomcat在朋溃时的内部情況。
+**Tomcat是最常用的Java servlet容器之一，同时也可以当做单独的web服务器使用**。【🔖怎么理解】
+
+Tomcat本身使用用Java实现，并运行于Java虚拟机之上。在大规模请求时，Tomcat有可能会因为无法承受压力而发生内存溢出错误。这里根据一个被压垮的Tomcat的堆快照文件，来分析Tomcat在朋溃时的内部情況。
 
 ##### 分析过程
 
@@ -4178,25 +4404,27 @@ Tomcat 是最常用的Java servlet容器之一，同时也可以当做单独的w
 
 
 
-### 补充1：再谈内存泄露🔖
+### 补充1：再谈内存泄露
 
 #### 内存泄露的理解与分析
 
-<u>**何为内存泄漏 (memory leak)**</u>
+**何为内存泄漏 (memory leak)**
 
 ![](images/image-20230430182706562.png)
 
-可达性分析算法来判断对象是否是不再使用的对象，本质都是判断一个对象是否还被引用。那么对于这种情况下，由于代码的实现不同就会出现很多种内存泄漏问题(让JVM误以为此对象还在引用中，无，法回收，造成内存泄漏）。
+可达性分析算法来判断对象是否是不再使用的对象，本质都是**判断一个对象是否还被引用**。那么对于这种情况下，由于代码的实现不同就会出现很多种内存泄漏问题(让JVM误以为此对象还在引用中，无法回收，造成内存泄漏）。
 
 > 是否还被使用？ 
 >
 > 是否还被需要？
 >
-> 是、否 -> 泄漏， 
+> 两个都是时不是内存泄漏
+>
+> 是、否 -> 泄漏
 
 **内存泄漏(memory leak ）的理解**
 
-严格来说，只有对象不会再被程序用到了，但是GC又不能回收他们的情況，才叫内存泄漏。
+**严格来说**，只有对象不会再被程序用到了，但是GC又不能回收他们的情況，才叫内存泄漏。
 
 但实际情况很多时候一些不太好的实践（或疏忽〉会导致对象的生命周期变得很长甚至导致OOM，也可以叫作==宽泛意义上的“内存泄漏”==。
 
@@ -4222,41 +4450,116 @@ Tomcat 是最常用的Java servlet容器之一，同时也可以当做单独的w
 
 通俗一点儿讲，一个厕所就三个坑，有两个站着茅坑不走的（内存泄漏），剩下最后一个坑，厕所表示接待压力很大，这时候一下子来了两个人，坑位（内存）就不够了，内存泄漏变成内存溢出了。
 
-可见，内存泄漏和内存溢出的关系：内存泄漏的增多，最终会导致内存溢出。
+可见，内存泄漏和内存溢出的关系：**内存泄漏的增多，最终会导致内存溢出。**
 
 
 
 **泄漏的分类**
 
-经常发生：发生内存泄露的代码会被多次执行，每次执行，泄露一块内存；
+- **经常发生**：发生内存泄露的代码会被多次执行，每次执行，泄露一块内存；
 
-偶然发生：在某些特定情况下才会发生；
+- **偶然发生**：在某些特定情况下才会发生；
 
-一次性：发生内存泄露的方法只会执行一次；
+- **一次性**：发生内存泄露的方法只会执行一次；
 
-隐式泄漏：一直占着内存不释放，直到执行结束：严格的说这个不算内存泄漏，因为最终释放掉了，但是如果执行时间特别长，也可能会导致内存耗尽。
-
-
-
-
+- **隐式泄漏**：一直占着内存不释放，直到执行结束：严格的说这个不算内存泄漏，因为最终释放掉了，但是如果执行时间特别长，也可能会导致内存耗尽。
 
 #### Java中内存泄露的8种情况
 
 ##### 1-静态集合类
 
+静态集合类，如HashMap、LinkedList等等。如果这些容器静态的，那么**它们的生命周期与JVM程序一致**，则容器中的对象在程序结束之前将不能被释放，从而造成内存泄漏。简单而言，**长生命周期的对象持有短生命周期对象的引用**，尽管短生命周期的对象不再使用，但是因为长生命周期对象持有它的引用而导致不能被回收。
+
+```java
+public class MemoryLeak {
+  static List list = new ArrayList();
+  public void oomTests() {
+    Object obj = new Object(); // 局部变量
+    list.add(obj);
+  }
+}
+```
+
 ##### 2-单例模式
+
+单例模式，和静态集合导致内存泄露的原因类似，因为单例的静态特性，它的生命周期和 JVM 的生命周期一样长，所以如果单例对象如果持有外部对象的引用，那么这个外部对象也不会被回收，那么就会造成内存泄漏。
 
 ##### 3-内部类持有外部类
 
+内部类持有外部类，如果一个外部类的实例对象的方法返回了一个内部类的实例对象。
+
+这个内部类对象被长期引用了，即使那个外部类实例对象不再被使用，但由于内部类持有外部类的实例对象，这个外部类对象将不会被垃圾回收，这也会造成内存泄漏。
+
 ##### 4-各种连接，如数据库连接、网络连接和IO连接等
+
+各种连接，如数据库连接、网络连接和IO连接等。
+
+在对数据库进行操作的过程中，首先需要建立与数据库的连接，当不再使用时，需要调用close方法来释放与数据库的连接。只有连接被关闭后，垃圾回收器才会回收对应的对象。
+
+否则，如果在访问数据库的过程中，对Connection、Statement或ResultSet不显性地关闭，将会造成大量的对象无法被回收，从而引起内存泄漏。
+
+```java
+public static void main (String[] args) {
+  try {
+    Connection conn = null;
+    Class.forName ("com.mysql.jdbc.Driver");
+    conn = DriverManager.getConnection("url",""，"");
+    Statement stmt = conn.createstatement();
+    Resultset rs = stmt.executeQuery("....");
+  } catch (Exception e)｛ //异常日志
+  } finally {
+  	// 1.关闭结果集 Statement
+  	// 2 关闭声明的独享 ResultSet
+  	// 3. KHi# Connection
+  ｝
+}
+```
 
 ##### 5-变量不合理的作用域
 
-##### 6-改变哈希值
+变量不合理的作用域。一般而言，一个变量的定义的作用范围大于其使用范围，很有可能会造成内存泄漏。另一方面，如果没有及时地把对象设置为null，很有可能导致内存泄漏的发生。
+
+```java
+public class UsingRandom {
+  private String msg;
+  public void receiveMsg() {
+    readFromNet(); // 从网络中接受数据保存到msg中
+    saveDB(); // 把msg保存到数据库中
+  }
+}
+```
+
+如上面这个伪代码，通过readFromNet方法把接受的消息保存在变量msg中，然后调用saveDB方法把msg的内容保存到数据库中，此时msg已经就没用了，由于msg的生命周期与对象的生命周期相同，此时msg还不能回收，因此造成了内存泄漏。
+
+实际上这个msg变量可以放在receiveMsg方法内部，当方法使用完，那么msg的生命周期也就结束，此时就可以回收了。还有一种方法，在使用完msg后，把msg设置为null，这样垃圾回收器也会回收msg的内存空间。
+
+##### 6-改变哈希值 
+
+改变哈希值，当一个对象被存储进HashSet集合中以后，就**不能修改这个对象中的那些参与计算哈希值的字段了**。
+
+否则，对象修改后的哈希值与最初存储进HashSet集合中时的哈希值就不同了，在这种情况下，即使在contains方法使用该对象的当前引用作为的参数去HashSet集合中检索对象，也将返回找不到对象的结果，这也会导致无法从HashSet集合中单独删除当前对象，造成内存泄漏。
+
+这也是 String 为什么被设置成了不可变类型，我们可以放心地把 String 存入 Hashset，或者把String 当做 HashMap 的 key 值；
+
+当我们想把自己定义的类保存到散列表的时候，需要保证对象的 hashCode 不可变。
+
+❤️🔖p336
 
 ##### 7-缓存泄露
 
+内存泄漏的另一个常见来源是缓存，一旦你把对像引用放入到缓存中，他就很容易遗忘。比如：之前项目在一次上线的时候，应用启动奇慢直到夯死，就是因为代码中会加载一个表中的数据到缓存（内存）中，测试环境只有几百条数据，但是生产环境有几百万的数据。
+
+对于这个问题，可以使用`WeakHashMap`代表缓存，此种Map的特点是，当除了自身有对key的引用外，此key没有其他引用那么此map会自动丢弃此值。
+
+🔖
+
 ##### 8-监听器和回调
+
+内存泄漏另一个常见来源是监听器和其他回调，如果客户端在你实现的API中注册回调，却没有显示的取消，那么就会积聚。
+
+
+
+需要确保回调立即被当作垃圾回收的最佳方法是只保存它的弱引用，例如将他们保存成为WeakHashMap中的键。
 
 
 
@@ -4266,29 +4569,129 @@ Tomcat 是最常用的Java servlet容器之一，同时也可以当做单独的w
 分析
 解决办法
 
-
+🔖
 
 
 
 ### 补充2：支持使用OQL语言查询对象信息
 
-MAT支持一种类似于SQL的查询语言OQL (Object Query Language）。 OQL使用类SQL语法，可以在堆中进行对象的查找和筛选。
+jhat、Visual VM、MAT支持一种类似于SQL的查询语言==OQL (Object Query Language）==。 OQL使用类SQL语法，可以在堆中进行对象的查找和筛选。
 
-SELECT子句
+F5运行
 
-![](images/image-20230430184659455.png)
+#### SELECT子句
 
-FROM子句
+在MAT中，Select子句的格式与SQL基本一致，用于指定要显示的列。Select子句中可以使用“*”，查看结果对象的引用实例（相当于outgoing references）。
 
-![](images/image-20230430184721627.png)
+```
+SELECT * FROM java.util.Vector v
+```
 
-WHERE子句
+使用“`OBJECTS`”关键字，可以将返回结果集中的项以对象的形式显示。
 
-![](images/image-20230430184800641.png)
+```
+SELECT objects v.elementData FROM java.util.Vector v
 
-内置对象与方法
+SELECT OBJECTS s.value FROM java.lang. String s
+```
 
-![](images/image-20230430184905139.png)
+在Select子句中，使用“`AS RETAINED SET`”关键字可以得到所得对象的保留集。
+
+```
+SELECT AS RETAINED SET * FROM com.andyron.mat.Student
+```
+
+“`DISTINCT`” 关键字用于在结果集中去除重复对象。
+
+```
+SELECT DISTINCT OBJECTS classof(s) FROM java.lang.String s
+```
+
+
+
+#### FROM子句
+
+From子句用于指定查询范围，它可以指定类名、正则表达式或者对象地址。
+
+```
+SELECT * FROM java. lang. String s
+```
+
+下例使用正则表达式，限定搜索范围，输出所有com.andyron包下所有类的实例
+
+```
+SELECT * FROM "com\.andyron\..*"
+```
+
+也可以直接使用类的地址进行搜索。使用类的地址的好处是可以区分被不同ClassLoader加载的同一种类型。
+
+```
+select * from 0x37a0b4d
+```
+
+#### WHERE子句
+
+Where子句用于指定OQL的查询条件。OQL查询将只返回满足where子句指定条件的对象。
+
+Where子句的格式与传统SQL极为相似。
+
+下例返回长度大于10的char数组。
+
+```
+SELECT * FROM char[] s WHERE s•@length>10
+```
+
+下例返回包含“java” 子字符串的所有字符串，使用“LIKE” 操作符，“LIKE”操作符的操作参数次正则表达式。
+
+```
+SELECT * FROM java.lang.String s WHERE toString(s) LIKE ".*java.*"
+```
+
+下例返回所有value域不为null的字符串，使用“=”操作符。
+
+```
+SELECT * FROM java.lang.String s where s.value!=null
+```
+
+where子句支持多个条件的AND、OR运算。下例返回数组长度大于15，并且深堆大于1008字节的所有Vector对象。
+
+```
+SELECT * FROM java.util.Vector v WHERE v.elementData. @length>15 AND v. @retainedHeapSize>1000
+```
+
+#### 内置对象与方法
+
+OQL中可以访问堆内对象的属性，也可以访问堆内代理对象的属性。访问堆内对象的属性时，格式如下：
+
+```
+［ <alias>.］ <field>•<field>. <field>
+```
+
+其中alias为对象名称。
+
+访问java.io.File对象的path属性，并进一步访问path的value属性：
+
+```
+SELECT toString(f.path. value) FROM java.io.File f
+```
+
+下例显示了String对象的内容、objectid和objectAddress。
+
+```
+SELECT s.toString(), s.@objectId, s.@objectAddress FROM java. lang. String s
+```
+
+下例显示java.util.Vector内部数组的长度。
+
+```
+SELECT v.elementData.@length FROM java.util. Vector v
+```
+
+下例显示了所有的java.util.Vector对象及其子类型
+
+```
+select * from INSTANCEOF java.util.Vector
+```
 
 
 
@@ -4899,6 +5302,10 @@ JVM的JIT编译模式相关的选项：
 ​		默认不包括Diagnostic和Experimental的参数
 
 ​		可以配合-XX:+UnlockDiagnosticVMOptions和-XX:UnlockExperimentalVMOptions使用
+
+```shell
+$ java -XX:+PrintFlagsFinal -version
+```
 
 
 
