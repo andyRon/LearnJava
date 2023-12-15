@@ -2,6 +2,7 @@ package com.andyron.bcdlj.c21.c212;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * 利用反射实现一个简单的通用序列化/反序列化类SimpleMapper
@@ -19,6 +20,11 @@ public class SimpleMapper {
                 }
                 sb.append(f.getName() + "=" + f.get(obj).toString() + "\n");
             }
+            for (Method m : cls.getDeclaredMethods()) {
+                m.setAccessible(true);
+                System.out.println(m.getName());
+            }
+
             return sb.toString();
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);

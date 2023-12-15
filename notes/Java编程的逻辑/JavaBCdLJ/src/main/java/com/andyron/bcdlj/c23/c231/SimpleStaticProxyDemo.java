@@ -1,4 +1,4 @@
-package com.andyron.bcdlj.c23;
+package com.andyron.bcdlj.c23.c231;
 
 /**
  * 静态代理示例
