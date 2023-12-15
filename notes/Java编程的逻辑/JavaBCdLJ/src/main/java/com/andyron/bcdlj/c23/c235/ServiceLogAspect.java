@@ -5,6 +5,8 @@ import java.util.Arrays;
 
 /**
  * 日志切面类
+ * 负责类ServiceA和ServiceB的日志切面，即为这两个类增加日志功能；
+ * 也就在是类ServiceA和ServiceB所有方法的执行前后加一些日志
  * @author andyron
  **/
 @Aspect({ServiceA.class, ServiceB.class})

@@ -12,7 +12,7 @@ import java.lang.reflect.Method;
 public class SimpleCGLibDemo {
     static class RealService {
         public void sayHello() {
-            System.out.println("hello");
+            System.out.println("hello cglib");
         }
     }
     static class SimpleInterceptor implements MethodInterceptor {
@@ -26,7 +26,9 @@ public class SimpleCGLibDemo {
     }
     private static <T> T getProxy(Class<T> cls) {
         Enhancer enhancer = new Enhancer();
+        // 设置被代理的类
         enhancer.setSuperclass(cls);
+        // 设置被代理类的public非final方法被调用时的处理类
         enhancer.setCallback(new SimpleInterceptor());
         return (T) enhancer.create();
     }

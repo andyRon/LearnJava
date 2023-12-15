@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 /**
  * 异常切面类
+ * 负责类ServiceB的异常切面；也就是在类ServiceB的方法执行出现异常时收到通知并输出一些信息
  * @author andyron
  **/
 @Aspect({ServiceB.class})

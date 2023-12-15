@@ -1,18 +1,18 @@
-package com.andyron.bcdlj.c21;
+package com.andyron.bcdlj.c21.c211;
+
+import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 public class ClassTest {
-    public static void main(String[] args) throws Exception {
-//        t5();
-//        t6();
-        t7();
-    }
-    static void t1() throws ClassNotFoundException {
+
+    @Test
+    void t1() throws ClassNotFoundException {
         System.out.println("=====不同类型的Class对象=======");
         Class<Date> dateClass = Date.class;
         Class<?> aClass = Class.forName("java.util.Date");
@@ -25,8 +25,8 @@ public class ClassTest {
         System.out.println(integerClass);
         System.out.println(eumClass);
     }
-
-    static void t2() {
+    @Test
+    void t2() {
         System.out.println("----数组类型的Class对象---");
         String[] strArr = new String[10];
         int[][] twoDimArr = new int[3][2];
@@ -47,7 +47,9 @@ public class ClassTest {
         System.out.println(pClass.getCanonicalName());
         System.out.println(pClass.getPackage());
     }
-    static void t3() throws NoSuchFieldException, IllegalAccessException {
+
+    @Test
+    void t3() throws NoSuchFieldException, IllegalAccessException {
         Programmer programmer = new Programmer("java", 10000);
         Class<Programmer> pClass = Programmer.class;
         System.out.println("====字段信息-所有public（包括从父类继承的）====");
@@ -66,7 +68,9 @@ public class ClassTest {
             System.out.println(Modifier.toString(declaredField.getModifiers()));
         }
     }
-    static void t4() throws IllegalAccessException {
+
+    @Test
+    void t4() throws IllegalAccessException {
         System.out.println("====private字段访问");
         List<String> strings = Arrays.asList(new String[]{"Andy", "编程"});
         Class<? extends List> stringsClass = strings.getClass();
@@ -77,7 +81,8 @@ public class ClassTest {
         }
     }
 
-    static void t5() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    @Test
+    void t5() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         System.out.println("====方法====");
         Programmer programmer = new Programmer("java", 10000);
         Class<Programmer> pClass = Programmer.class;
@@ -94,7 +99,8 @@ public class ClassTest {
 
     }
 
-    static void t6() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    @Test
+    void t6() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Programmer programmer = new Programmer("java", 10000);
         Class<Programmer> pClass = Programmer.class;
 
@@ -102,38 +108,47 @@ public class ClassTest {
         for (Constructor<?> constructor : pClass.getConstructors()) {
             System.out.println(constructor.getName());
         }
-
+        System.out.println("-----");
+        for (Constructor<?> declaredConstructor : pClass.getDeclaredConstructors()) {
+            System.out.println(declaredConstructor.getName());
+        }
+        System.out.println("-----");
         Constructor<StringBuilder> stringBuilderConstructor = StringBuilder.class.getConstructor(new Class[]{int.class});
         StringBuilder sb = stringBuilderConstructor.newInstance(100);
+
+
     }
 
-    static void t7() throws ClassNotFoundException {
+    @Test
+    void t7() throws ClassNotFoundException {
         // 类型检查和转换
         Class<?> cls = Class.forName("java.util.ArrayList");
 
-        System.out.println(Object.class.isAssignableFrom(String.class));
-        System.out.println(String.class.isAssignableFrom(String.class));
+        System.out.println(cls.isAssignableFrom(String.class));
+        System.out.println(cls.isAssignableFrom(ArrayList.class));
 
-        System.out.println("==========");
+        System.out.println("=====超类=====");
         System.out.println(cls.getSuperclass());
+        System.out.println("=====接口=====");
         for (Class<?> i : cls.getInterfaces()) {
             System.out.println(i.getName());
         }
 
+        System.out.println("=====注解=====");
         cls = Class.forName("java.util.function.DoubleBinaryOperator");
         System.out.println(cls.getAnnotations());
         for (Annotation a : cls.getAnnotations()) {
             System.out.println(a);
         }
 
-        System.out.println("==========");
+        System.out.println("=====数组元素类型=====");
         String[] arr = new String[]{};
-        System.out.println(arr.getClass().getComponentType().isLocalClass());
+        System.out.println(arr.getClass().getComponentType());
 
         Long[] larr = (Long[]) Array.newInstance(Long.class, 10);
 
 
-        System.out.println("=========");
+        System.out.println("====枚举=====");
         for (Sex enumConstant : Sex.class.getEnumConstants()) {
             System.out.println(enumConstant);
         }

@@ -6,6 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * 用于注解切面类，它有一个参数，可以指定要增强的类
  * @author andyron
  **/
 @Retention(RetentionPolicy.RUNTIME)

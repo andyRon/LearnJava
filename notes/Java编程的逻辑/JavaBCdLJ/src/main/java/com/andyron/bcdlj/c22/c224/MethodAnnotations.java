@@ -17,6 +17,7 @@ public class MethodAnnotations {
     static @interface DefaultValue {
         String value() default "";
     }
+
     public void hello(@QueryParam("action") String action, @QueryParam("sort") @DefaultValue("asc") String sort){
         //…
     }

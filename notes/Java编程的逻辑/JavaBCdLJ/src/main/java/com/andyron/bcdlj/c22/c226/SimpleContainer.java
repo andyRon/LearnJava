@@ -12,16 +12,26 @@ public class SimpleContainer {
      * 缓存创建过的单例对象
      */
     private static Map<Class<? >, Object> instances = new ConcurrentHashMap<>();
+
+    /**
+     * 创建需要的对象，并配置依赖关系
+     * @param cls
+     * @return
+     * @param <T>
+     */
     public static <T> T getInstance(Class<T> cls) {
         try {
+            // 如果非单列模式，直接常见实例
             boolean singleton = cls.isAnnotationPresent(SimpleSingleton.class);
             if (!singleton) {
                 return createInstance(cls);
             }
+            // 单列模式，从缓冲获取
             Object obj = instances.get(cls);
             if (obj != null) {
                 return (T) obj;
             }
+            // TODO
             synchronized (cls) {
                 obj = instances.get(cls);
                 if (obj == null) {
