@@ -5020,7 +5020,7 @@ ClassLoader一般是系统提供的，不需要自己实现，不过，通过创
 
 三个类加载器<u>不是父子继承关系，而是父子委派关系</u>（**==双亲委派==**）。子ClassLoader有一个变量parent指向父ClassLoader，在子ClassLoader加载类时，一般会首先通过父ClassLoader加载，过程：
 
-1. 判断是否已经加载过了，加载过了，直接返回Class对象，一个类只会被一个ClassLoader加载一次。
+1. 判断是否已经加载过了，加载过了，直接返回Class对象，**一个类只会被一个ClassLoader加载一次**。
 2. 如果没有被加载，先让父ClassLoader去加载，如果加载成功，返回得到的Class对象。
 3. 在父ClassLoader没有加载成功的前提下，自己尝试加载类。
 
@@ -5030,7 +5030,7 @@ ClassLoader一般是系统提供的，不需要自己实现，不过，通过创
 
 1. **自定义的加载顺序**：尽管不被建议，自定义的ClassLoader可以不遵从“双亲委派”这个约定，不过，即使不遵从，<u>以java开头的类也不能被自定义类加载器加载，这是由Java的安全机制保证的，以避免混乱</u>。
 2. **网状加载顺序**：在OSGI框架和Java 9模块化系统中，类加载器之间的关系是一个网，每个模块有一个类加载器，不同模块之间可能有依赖关系，在一个模块加载一个类时，可能是从自己模块加载，也可能是委派给其他模块的类加载器加载。
-3. **父加载器委派给子加载器加载**：典型的例子有JNDI服务（Java Naming and DirectoryInterface），它是Java企业级应用中的一项服务。
+3. **父加载器委派给子加载器加载**：典型的例子有==JNDI==服务（Java Naming and DirectoryInterface），它是Java企业级应用中的一项服务。
 
 
 
@@ -5088,7 +5088,7 @@ public static Class<?> forName(String name, boolean initialize, ClassLoader load
 
 > ClassLoader的loadClass方法与Class的forName方法都可以加载类，它们有什么不同呢？
 >
-> ClassLoader的loadClass不会执行类的初始化代码。
+> ClassLoader的**loadClass不会执行类的初始化代码**。❤️
 
 ```java
 public class CLInitDemo {
@@ -5113,9 +5113,13 @@ public class CLInitDemo {
 
 
 
-🔖ClassLoader的loadClass：
+ClassLoader的loadClass：
 
 ```java
+public Class<?> loadClass(String name) throws ClassNotFoundException {
+  return loadClass(name, false);
+}
+
 protected Class<? > loadClass(String name, boolean resolve) throws ClassNotFoundException {
   synchronized (getClassLoadingLock(name)) {
     //首先，检查类是否已经被加载了
@@ -5146,10 +5150,14 @@ protected Class<? > loadClass(String name, boolean resolve) throws ClassNotFound
 }
 ```
 
+参数resolve类似Class.forName中的参数initialize，其默认值为false。
+
 
 
 ### 24.3 类加载的应用：可配置的策略
 
+> 可以通过ClassLoader的loadClass或Class.forName自己加载类。
+>
 > 什么情况需要自己加载类呢？
 
 很多应用使用面向接口的编程，接口具体的实现类可能有很多，适用于不同的场合，具体使用哪个实现类在配置文件中配置，**通过更改配置，不用改变代码，就可以改变程序的行为**，在设计模式中，这是一种**==策略模式==**。
@@ -5198,13 +5206,13 @@ config.properties内容：
 service=com.andyron.bcdlj.c24.c243.ServiceB
 ```
 
-
+客户端通过接口`IService`访问其方法，具体使用哪个实例，自己通过配置文件配置。
 
 ### 24.4 自定义ClassLoader
 
 自定义ClassLoader是Tomcat实现应用隔离、支持JSP、OSGI实现动态模块化的基础。
 
-一般是继承类ClassLoader，重写`findClass`方法，使用自己的逻辑寻找class文件字节码的字节形式。再通过`defineClass`方法转换为Class对象：
+一般是继承类ClassLoader，重写`findClass`方法，使用自己的逻辑寻找Class文件字节码的字节形式。再通过`defineClass`方法转换为Class对象：
 
 ```java
 protected final Class<?> defineClass(String name, byte[] b, int off, int len) throws ClassFormatError
@@ -5237,7 +5245,7 @@ public class MyClassLoader extends ClassLoader {
 protected ClassLoader(ClassLoader parent)
 ```
 
-🔖  ？java.lang.NoClassDefFoundError: IllegalName:
+🔖🔖  ？java.lang.NoClassDefFoundError: IllegalName:
 
 
 
@@ -5258,13 +5266,16 @@ protected ClassLoader(ClassLoader parent)
 
 正则表达式是一串字符，它描述了一个文本模式，利用它可以方便地==处理文本==，包括文本的==查找、替换、验证、切分==等。
 
-正则表达式中的字符分两类：==普通字符==，==元字符==。
+正则表达式中的字符分两类：
+
+- ==普通字符==：匹配字符本身；
+- ==元字符==：有特殊含义。
 
 #### 1.单个字符
 
-大部分的单个字符就是用字符本身表示的，比如字符'0'、'3'、'a'、'马'等，但有一些单个字符使用多个字符表示，这些字符都以斜杠'`\`'开头，比如：
+大部分的单个字符就是用字符本身表示的，比如字符'0'、'3'、'a'、'马'等，但有**一些单个字符使用多个字符表示**，这些字符都以斜杠'`\`'开头，比如：
 
-- ==特殊字符==，比如tab字符'\t'、换行符'\n'、回车符'\r'等。
+- ==特殊字符==，比如tab字符'`\t`'、换行符'`\n`'、回车符'`\r`'等。
 - ==八进制表示的字符==，以`\0`开头，后跟1～3位数字，比如\0141，对应的是ASCII编码为97的字符，即字符'a'。
 - ==十六进制表示的字符==，以`\x`开头，后跟两位字符，比如\x6A，对应的是ASCII编码为106的字符，即字符'j'。
 - ==Unicode编号表示的字符==，以`\u`开头，后跟4位字符，比如\u9A6C，表示的是中文字符'马'，这只能表示编号在0xFFFF以下的字符，如果超出0ⅩFFFF，使用\x{...}形式，比如\x{1f48e}。
@@ -5275,43 +5286,100 @@ protected ClassLoader(ClassLoader parent)
 
 #### 2.字符组
 
+字符组有多种，包括==任意字符、多个指定字符之一、字符区间、排除型字符组、预定义的字符==组等，具体：
+
 - `.`
   - 默认模式下，它匹配==除了换行符以外的任意字符==。
-  - 单行匹配模式（或点号匹配模式）下，它匹配任意字符，包括换行符。有两种方式指定这种模式：1️⃣ 开头加上`(? s)`（s表示single line），如`(? s)a.f`；2️⃣ `Pattern.DOTALL`
+  - 单行匹配模式（或点号匹配模式）下，它匹配任意字符，包括换行符。有两种方式指定这种模式：1️⃣ 开头加上`(? s)`（s表示single line），如`(? s)a.f`；2️⃣ `Pattern.DOTALL`。
+- 在单个字符和任意字符之间，有一个字符组的概念，匹配组中的==任意一个字符==，用中括号`[]`表示。
+  - 如 `[abcd]`，`[0123456789]`。
+  - 为方便表示连续的多个字符，字符组中可以使用连字符'`-`'，比如：`[a-z]`，`[0-9]`。
+  - 可以有多个连续空间，可以有其他普通字符，比如`[0-9a-zA-Z_]`。
+  - 在字符组中，'-'是一个元字符，如果要匹配它自身，可以使用转义，即'`\-`'，或者把它放在字符组的最前面，比如：`[-0-9]`。
+  - 字符组支持排除的概念，在`[`后紧跟一个字符`^`，比如： `[^abcd]`表示匹配除了a, b, c, d以外的任意一个字符。
+  - `^`只有在字符组的开头才是元字符，如果不在开头，就是普通字符，匹配它自身。
+  - 在字符组中，除了^、-、[ ]、\外，其他在字符组外的元字符不再具备特殊含义，变成了普通字符，比如字符'.'和'＊', `[.*]`就是匹配'.'或者'*'本身。
 
-- `[]`
+- 有一些特殊的以\开头的字符，表示一些==预定义的字符组==，比如：
+  - `\d`:d表示digit，匹配一个数字字符，等同于`[0-9]`。
+  - `\w`:w表示word，匹配一个单词字符，等同于[a-zA-Z_0-9]。
+  - `\s`:s表示space，匹配一个空白字符，等同于`[\t\n\x0B\f\r]`。
+  - 它们都有对应的排除型字符组，用大写表示。
 
-🔖
+- 还有一类字符组，称为==POSIⅩ字符组==，它们是POSIⅩ标准定义的一些字符组，在Java中，这些字符组的形式是`\p{...}`。
 
 ![](images/image-20220424175322266.png)
 
 #### 3.量词：指定出现次数的元字符
 
-- `+`
-- `*`
-- `?`
+- `+`：一次或多次
+- `*`：零次或多次出现
+- `?`：零次或一次
 
+- 更为通用的表示出现次数的语法是`{m,n}`【逗号左右不能有空格】，出现次数从m到n，包括m和n，如果n没有限制，可以省略，如果m和n一样，可以写为`{m}`。
 
+- `?`、`*`、`+`、`{`是元字符，如果要匹配这些字符本身，需要使用'\'转义。
+- 这些量词出现在字符组中时，不是元字符，比如：`[? ＊+{]`就是匹配其中一个字符本身。
+- 量词的默认匹配是**==贪婪==**的；在量词的后面加一个符号'`?`'就表示==懒惰量词==，只匹配第一个能匹配的。
 
 ![](images/image-20220424175339837.png)
 
 #### 4.分组
 
+- 用括号`()`括起来，表示一个分组
+- 分组可以嵌套，比如`a(de(fg))`。
+- 分组默认都有一个==编号==，按照括号的出现顺序，从1开始，从左到右依次递增，比如表达式：`a(bc)((de)(fg))`，字符串abcdefg匹配这个表达式，第1个分组为bc，第2个为defg，第3个为de，第4个为fg。分组0是一个特殊分组，内容是整个匹配的字符串，这里是abcdefg。
+
+- 分组匹配的子字符串可以在后续访问，好像被捕获了一样，所以默认分组称为**捕获分组**。
+- 可以对分组使用量词，表示分组的出现次数，比如`a(bc)+d`，表示bc出现一次或多次。
+- 中括号[]表示匹配其中的一个字符，括号`()`和元字符'`|`'一起，可以表示匹配其中的一个子表达式，比如：`(http|ftp|file)`匹配http或ftp或file。
+
+- 需要注意区分|和[], |用于[]中不再有特殊含义。
+- 可以使用斜杠`\`加分组编号引用之前匹配的分组，这称为==回溯引用==，比如：`<(\w+)>(.＊)</\1>`，`\1`匹配之前的第一个分组`(\w+)`，这个表达式可以匹配类似如下字符串：`<title>bc</title>`这里，第一个分组是"title"。
+- 使用数字引用分组，可能容易出现混乱，可以==对分组进行命名==，通过名字引用之前的分组，对分组命名的语法是`(? <name>Ⅹ)`，引用分组的语法是`\k<name>`，比如，上面的例子可以写为：`<(? <tag>\w+)>(.＊)</\k<tag>>`。
+- 默认分组都称为捕获分组，即分组匹配的内容被捕获了，可以在后续被引用。实现捕获分组有一定的成本，为了提高性能，如果分组后续不需要被引用，可以改为==非捕获分组==，语法是`(? :...)`，比如：`(? :abc|def)`。
+
 ![](images/image-20220424175351966.png)
 
 #### 5.特殊边界匹配
 
+常用的表示特殊边界的元字符有
+
+- `^`，`^abc`表示整个字符串必须以abc开始。在字符组中它表示排除，但在字符组外，它匹配开始，比如表达式`^[^abc]`，表示以一个不是a、b、c的字符开始。
+- `$`。如果整个字符串以换行符结束，`$`匹配的是换行符之前的边界，比如表达式`abc$`，表示整个表达式以abc结束，或者以`abc\r\n`或`abc\n`结束。
+
+> 以上`^`和`$`的含义是默认模式下的，可以指定另外一种匹配模式：==多行匹配模式==，在此模式下，会以行为单位进行匹配，`^`匹配的是行开始，$匹配的是行结束，比如表达式是`^abc$`，字符串是"`abc\nabc\r\n`"，就会有两个匹配。
+>
+> 可以有两种方式指定匹配模式。
+>
+> - 一种是在正则表达式中，以`(? m)`开头，m表示multi-line，即多行匹配模式，上面的正则表达式可以写为：`(? m)^abc$`。
+> - 另外一种是在程序中指定，在Java中，对应的模式常量是`Pattern.MULTILINE`。
+>
+> 需要说明的是，多行模式和之前介绍的单行模式容易混淆，其实，它们之间没有关系。**单行模式影响的是字符'.'的匹配规则**，使得'.'可以匹配换行符；**多行模式影响的是^和$的匹配规则**，使得它们可以匹配行的开始和结束，两个模式可以一起使用。
+
+- ``\A`与`^`类似，但不管什么模式，它匹配的总是整个字符串的开始边界。
+- `\Z`、`\z`与`$`类似，但不管什么模式，它们匹配的总是整个字符串的结束边界。\Z与\z的区别是：如果字符串以换行符结束，\Z与`$`一样，匹配的是换行符之前的边界，而\z匹配的总是结束边界。在进行输入验证的时候，为了确保输入最后没有多余的换行符，可以使用\z进行匹配。
+- `\b`匹配的是单词边界，比如\bcat\b，匹配的是完整的单词cat，它不能匹配category。\b匹配的不是一个具体的字符，而是一种边界，这种边界满足一个要求，即一边是单词字符，另一边不是单词字符。在Java中，\b识别的单词字符除了\w，还包括中文字符。
+
+
+
+边界匹配不同于字符匹配，可以认为，在一个字符串中，每个字符的两边都是边界，而上面介绍的这些特殊字符，匹配的都不是字符，而是特定的边界，例子：
+
+![](images/image-20231216141539035.png)
+
+上面的字符串是"a cat\n"，我们用粗线显示出了每个字符两边的边界，并且显示出了每个边界与哪些边界元字符匹配。
+
+#### 6.环视边界匹配 🔖
+
+
+
 ![](images/image-20220424175402964.png)
 
-#### 6.环视边界匹配
+#### 7.转义与匹配模式🔖
+
+
 
 ![](images/image-20220424175436526.png)
-
-#### 7.转义与匹配模式
-
-
-
-
 
 ### 25.2 Java API
 
@@ -5319,6 +5387,95 @@ protected ClassLoader(ClassLoader parent)
 
 - `Pattern`：表示正则表达式对象，它与要处理的具体字符串无关。
 - `Matcher`：表示一个匹配，它将正则表达式应用于一个具体字符串，通过它对字符串进行处理。
+
+字符串类String中很多方法都用到正则。
+
+正则表达式在Java中是需要先以字符串形式表示的。
+
+先来介绍如何**表示正则表达式**，然后探讨如何利用它实现一些常见的**文本处理任务**，包括切分、验证、查找和替换。
+
+#### 1 表示正则表达式🔖
+
+
+
+#### 2 切分
+
+文本处理的一个常见需求是根据分隔符切分字符串，比如在处理CSV文件时，按逗号分隔每个字段
+
+
+
+#### 3 验证
+
+验证就是检验输入文本是否完整匹配预定义的正则表达式，经常用于检验用户的输入是否合法。
+
+```java
+String regex = "\\d{8}";
+String str = "12345678";
+System.out.println(str.matches(regex));
+```
+
+
+
+#### 4 查找
+
+查找就是在文本中寻找匹配正则表达式的子字符串。
+
+```java
+    @Test
+    void find(){
+        String regex = "\\d{4}-\\d{2}-\\d{2}";
+        Pattern pattern = Pattern.compile(regex);
+        String str = "today is 2017-06-02, yesterday is 2017-06-01";
+        Matcher matcher = pattern.matcher(str);
+        while(matcher.find()){
+            System.out.println("find " + matcher.group()
+                    + " position: " + matcher.start() + "-" + matcher.end());
+        }
+    }
+```
+
+```
+find 2017-06-02 position: 9-19
+find 2017-06-01 position: 34-44
+```
+
+
+
+```java
+    @Test
+    void findGroup() {
+        String regex = "(\\d{4})-(\\d{2})-(\\d{2})";
+        Pattern pattern = Pattern.compile(regex);
+        String str = "today is 2017-06-02, yesterday is 2017-06-01";
+        Matcher matcher = pattern.matcher(str);
+        while (matcher.find()) {
+            System.out.println("year:" + matcher.group(1)
+                    + ", month:" + matcher.group(2) + ", day:" + matcher.group(3));
+        }
+    }
+```
+
+```
+year:2017, month:06, day:02
+year:2017, month:06, day:01
+```
+
+
+
+#### 5 替换 🔖
+
+String有多个替换方法：
+
+```java
+	public String replace(char oldChar, char newChar)
+  public String replace(CharSequence target, CharSequence replacement)
+  public String replaceAll(String regex, String replacement)
+  public String replaceFirst(String regex, String replacement)
+```
+
+第一个replace方法操作的是单个字符，第二个是CharSequence，它们都是将参数看作普通字符。而replaceAll和replaceFirst则将参数regex看作正则表达式，它们的区别是， replaceAll替换所有找到的子字符串，而replaceFirst则只替换第一个找到的。
+
+
 
 ### 25.3 模板引擎
 
@@ -5379,6 +5536,10 @@ protected ClassLoader(ClassLoader parent)
 #### 9.Email地址
 
 #### 10.中文字符
+
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-package com.andyron.bcdlj.c24;
+package com.andyron.bcdlj.c24.c242;
 
 /**
     ClassLoader的loadClass不会执行类的初始化代码，而Class的forName方法是执行的。

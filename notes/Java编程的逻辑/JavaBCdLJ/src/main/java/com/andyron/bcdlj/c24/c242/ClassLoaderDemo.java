@@ -1,4 +1,4 @@
-package com.andyron.bcdlj.c24;
+package com.andyron.bcdlj.c24.c242;
 
 public class ClassLoaderDemo {
 
