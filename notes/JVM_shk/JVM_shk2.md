@@ -4798,7 +4798,7 @@ Visual VM和JProfiler这两款工具在业界知名度也比较高，他们的==
 
 那么有没有一款工具不需要远程连接，也不需要配置监控参数，同时也提供了丰富的性能监控数据呢?
 
-今天跟大家介绍一款阿里巴巴开源的性能分析神器Arthas（阿尔萨斯）  
+今天跟大家介绍一款阿里巴巴开源的性能分析神器[Arthas（阿尔萨斯）](https://arthas.aliyun.com/)。  
 
 项目上线后之前的工具都不太方便实用了，这时需要Arthas。
 
@@ -4806,14 +4806,14 @@ Visual VM和JProfiler这两款工具在业界知名度也比较高，他们的==
 
 Arthas（阿尔萨斯）是Alibaba开源的Java诊断工具，深受开发者喜爱。在线排查问题，无需重启；动态跟踪Java代码；实时监控JVM状态。
 
-Arthas 支持JDK 6+，支持Linux/Mac/Windows，采用命令行交互模式来同时提供丰富的 Tab 自动补全功能，进一步方便进行问题的定位和诊断。
+Arthas支持JDK 6+，支持Linux/Mac/Windows，采用命令行交互模式来同时提供丰富的Tab自动补全功能，进一步方便进行问题的定位和诊断。
 
 当你遇到以下类似问题而束手无策时，Arthas可以帮助你解决：
 
-- ﻿这个类从哪个jar 包加载的？为什么会报各种类相关的 Exception?
+- ﻿这个类从哪个jar包加载的？为什么会报各种类相关的Exception?
 - ﻿我改的代码为什么没有执行到？难道是我没commit？分支搞错了？
 - ﻿遇到问题无法在线上debug，难道只能通过加日志再重新发布吗？
-- ﻿线上遇到某个用户的数据处理有问题，但线上同样无法 debug，线下无法重现！
+- ﻿线上遇到某个用户的数据处理有问题，但线上同样无法debug，线下无法重现！
 - ﻿是否有一个全局视角来杳看系统的运行状况？
 - ﻿有什么办決可以监控到JVM的实时运行状杰？
 - ﻿怎么快速定位应用的热点，生成火焰图？
@@ -4827,7 +4827,7 @@ Arthas 支持JDK 6+，支持Linux/Mac/Windows，采用命令行交互模式来�
 - ﻿compiler Arthas里的内行编绎器代码来源
 - ﻿﻿Apache Commons Net Arthas里的Telnet Client代码来源
 - ﻿JavaAgent：运行在 main方法之前的**拦截器**，它内定的方法名叫 **premain**，也就是说先执行premain 方法然后再执行 main 方法
-- ﻿ASM： 一个通用的Java宇节码操作和分析框架。它可以用于修改现有的类或直接以二进制形式动态生成类。ASM提供了一些常见的字节码转换和分析算法，可以从它们构建定制的复尜转换和代码分析工具。ASM提供了与其他Java字节码框架类似的功能，但是主要关注性能。因为它被设计和实现得尽可能小和快，所以非常适合在动态系统中使用(当然也可以以静态方式使用，例如在编译器中）
+- ﻿ASM： 一个通用的Java宇节码操作和分析框架。它可以用于修改现有的类或直接以二进制形式动态生成类。ASM提供了一些常见的字节码转换和分析算法，可以从它们构建定制的复杂转换和代码分析工具。ASM提供了与其他Java字节码框架类似的功能，但是主要关注性能。因为它被设计和实现得尽可能小和快，所以非常适合在动态系统中使用(当然也可以以静态方式使用，例如在编译器中）
 
 官方使用文档  https://arthas.aliyun.com/doc/quick-start.html
 
@@ -4835,19 +4835,70 @@ Arthas 支持JDK 6+，支持Linux/Mac/Windows，采用命令行交互模式来�
 
 ##### 安装
 
+两种下载方式：
+
+1. 命令行下载
+
+```shell
+wget https://alibaba.github.io/arthas/arthas-boot.jar
+wget https://arthas.gitee.io/arthas-boot.jar
+curl -o https://arthas.aliyun.com/arthas-boot.jar
+```
+
+
+
+2. 浏览器浏览 https://alibaba.github.io/arthas/arthas-boot.jar 下载
+
+使用：
+
+```shell
+java -jar arthas-boot.jar
+```
+
+##### 卸载
+
+```shell
+rm -rf ～/.arthas/
+rm -rf ～/logs/arthas
+```
+
 
 
 ##### 工程目录
 
 https://github.com/alibaba/arthas
 
-![](images/image-20230517182500683.png)
+arthas-agent：基于JavaAgent技术的代理
+
+bin： 一些启动脚本
+
+arthas-boot:Java版本的一键安装启动脚本
+
+arthas-client: telnet clientiti
+
+arthas-common：一些共用的工具类和枚举类
+
+arthas-core：核心库，各种arthas命令的交互和实现
+
+arthas-demo： 示例代码
+
+arthas-memorycompiler：内存编绎器代码，Fork from https://github.com/skalogs/SkaETL/tree/master/compiler
+
+arthas-packaging: maven打包相关的
+
+arthas-site: arthas站点
+
+arthas-spy：编织到日标类中的各个切面
+
+static： 静态资源
+
+arthas-testcase：测试
 
 
 
 ##### 启动
 
-Arthas 只是一个java程序，所以可以直接用 java -jar 运行。
+Arthas 只是一个java程序，所以可以直接用`java -jar`运行。
 
 执行成功后，arthas提供了一种命令行方式的交互方式，arthas会检测当前服务器上的Java进程，并将进程列表展示出来，用户输入对应的编号（1、2、3、4⋯）进行选择，然后回车。
 
@@ -4890,17 +4941,93 @@ https://arthas.aliyun.com/doc/commands.html
 
 ##### 基础指令
 
-
+- [base64](https://arthas.aliyun.com/doc/base64.html) - base64 编码转换，和 linux 里的 base64 命令类似
+- [cat](https://arthas.aliyun.com/doc/cat.html) - 打印文件内容，和 linux 里的 cat 命令类似
+- [cls](https://arthas.aliyun.com/doc/cls.html) - 清空当前屏幕区域
+- [echo](https://arthas.aliyun.com/doc/echo.html) - 打印参数，和 linux 里的 echo 命令类似
+- [grep](https://arthas.aliyun.com/doc/grep.html) - 匹配查找，和 linux 里的 grep 命令类似
+- [help](https://arthas.aliyun.com/doc/help.html) - 查看命令帮助信息
+- [history](https://arthas.aliyun.com/doc/history.html) - 打印命令历史
+- [keymap](https://arthas.aliyun.com/doc/keymap.html) - Arthas 快捷键列表及自定义快捷键
+- [pwd](https://arthas.aliyun.com/doc/pwd.html) - 返回当前的工作目录，和 linux 命令类似
+- [quit](https://arthas.aliyun.com/doc/quit.html) - 退出当前 Arthas 客户端，其他 Arthas 客户端不受影响
+- [reset](https://arthas.aliyun.com/doc/reset.html) - 重置增强类，将被 Arthas 增强过的类全部还原，Arthas 服务端关闭时会重置所有增强过的类
+- [session](https://arthas.aliyun.com/doc/session.html) - 查看当前会话的信息
+- [stop](https://arthas.aliyun.com/doc/stop.html) - 关闭 Arthas 服务端，所有 Arthas 客户端全部退出
+- [tee](https://arthas.aliyun.com/doc/tee.html) - 复制标准输入到标准输出和指定的文件，和 linux 里的 tee 命令类似
+- [version](https://arthas.aliyun.com/doc/version.html) - 输出当前目标 Java 进程所加载的 Arthas 版本号
 
 ##### jvm相关
 
-dashboard
-thread
-jvm
+###### [dashboard](https://arthas.aliyun.com/doc/dashboard.html)
 
-heapdump
+当前系统的实时数据面板。展示当前应用的多线程状态、JVM各区域、GC情况等信息。
 
-其他    
+`dashboard -i 1000 -n 2` 表示每隔1s输出一次信息，总共输出两次。
+
+![](images/image-20231227171334622.png)
+
+- GROUP: 线程组名
+- CPU%: 线程的 cpu 使用率。比如采样间隔 1000ms，某个线程的增量 cpu 时间为 100ms，则 cpu 使用率=100/1000=10%
+- DELTA_TIME: 上次采样之后线程运行增量 CPU 时间，数据格式为`秒`
+- TIME: 线程运行总 CPU 时间，数据格式为`分:秒`
+- INTERRUPTED: 线程当前的中断位状态
+- DAEMON: 是否是 daemon 线程
+
+> **JVM内部线程**
+>
+> Java 8 之后支持获取 JVM 内部线程 CPU 时间，这些线程只有名称和 CPU 时间，没有 ID 及状态等信息（显示 ID 为-1）。 通过内部线程可以观测到 JVM 活动，如 GC、JIT 编译等占用 CPU 情况，方便了解 JVM 整体运行状况。
+>
+> - 当 JVM 堆(heap)/元数据(metaspace)空间不足或 OOM 时，可以看到 GC 线程的 CPU 占用率明显高于其他的线程。
+> - 当执行`trace/watch/tt/redefine`等命令后，可以看到 JIT 线程活动变得更频繁。因为 JVM 热更新 class 字节码时清除了此 class 相关的 JIT 编译结果，需要重新编译。
+>
+> JVM 内部线程包括下面几种：
+>
+> - JIT 编译线程: 如 `C1 CompilerThread0`, `C2 CompilerThread0`
+> - GC 线程: 如`GC Thread0`, `G1 Young RemSet Sampling`
+> - 其它内部线程: 如`VM Periodic Task Thread`, `VM Thread`, `Service Thread`
+
+###### [thread](https://arthas.aliyun.com/doc/thread.html)
+
+查看当前 JVM 的线程堆栈信息
+
+- 展示当前最忙的前 N 个线程并打印堆栈：`thread -n 3`
+
+- `thread`  没有参数时，显示第一页线程的信息。默认按照 CPU 增量时间降序排列
+
+- `thread --all` 显示所有匹配的线程。
+
+- `thread -b`  找出当前阻塞其他线程的线程
+
+- `thread -i`, 指定采样时间间隔
+
+  `thread -i 1000` : 统计最近 1000ms 内的线程 CPU 时间
+
+  `thread -n 3 -i 1000` : 列出 1000ms 内最忙的 3 个线程栈
+
+- `thread --state WAITING`  查看指定状态的线程
+
+
+
+###### jvm
+
+查看当前 JVM 的信息
+
+
+
+###### 其他    
+
+- [getstatic](https://arthas.aliyun.com/doc/getstatic.html) - 查看类的静态属性
+- [heapdump](https://arthas.aliyun.com/doc/heapdump.html) - dump java heap, 类似 jmap 命令的 heap dump 功能
+- [logger](https://arthas.aliyun.com/doc/logger.html) - 查看和修改 logger
+- [mbean](https://arthas.aliyun.com/doc/mbean.html) - 查看 Mbean 的信息
+- [memory](https://arthas.aliyun.com/doc/memory.html) - 查看 JVM 的内存信息
+- [ognl](https://arthas.aliyun.com/doc/ognl.html) - 执行 ognl 表达式
+- [perfcounter](https://arthas.aliyun.com/doc/perfcounter.html) - 查看当前 JVM 的 Perf Counter 信息
+- [sysenv](https://arthas.aliyun.com/doc/sysenv.html) - 查看 JVM 的环境变量
+- [sysprop](https://arthas.aliyun.com/doc/sysprop.html) - 查看和修改 JVM 的系统属性
+- [vmoption](https://arthas.aliyun.com/doc/vmoption.html) - 查看和修改 JVM 里诊断相关的 option
+- [vmtool](https://arthas.aliyun.com/doc/vmtool.html) - 从 jvm 里查询对象，执行 forceGc
 
 
 
@@ -4908,7 +5035,12 @@ heapdump
 
 进程中具体类的情况
 
-sc
+###### [sc](https://arthas.aliyun.com/doc/sc.html)
+
+查看JVM已加载的类信息
+
+- `sc top.andyron`  模糊查询类信息
+- `sc -d com.andyron.java.*` 打印已加载类的详细信息
 
 ```shell
 [arthas@20815]$ sc -d com.andyron.java.*
@@ -4922,16 +5054,22 @@ sc
  ...
 ```
 
+- `sc -d -f top.andyron.model.wemedia.pojos.WmNews`  打印出类的 Field 信息
 
+###### [sm](https://arthas.aliyun.com/doc/sm.html)
 
-sm
+“Search-Method”的简写，查看已加载类的方法信息。只能看到由当前类所声明的方法，父类则无法看到。
 
 ```shell
 sm  java.lang.String
 sm -d java.lang.String
 ```
 
-jad
+
+
+###### [jad](https://arthas.aliyun.com/doc/jad.html)
+
+反编译指定已加载类的源码
 
 ```shell
 jad java.lang.String toString
@@ -4939,11 +5077,38 @@ jad java.lang.String toString
 
 
 
-mc、redefine
+###### [mc](https://arthas.aliyun.com/doc/mc.html) 
+
+内存编译器(Memory Compiler)，内存编译`.java`文件为`.class`文件
 
 
 
-classloader
+###### [redefine](https://arthas.aliyun.com/doc/redefine.html)
+
+加载外部的`.class`文件，redefine 到 JVM 里。推荐使用retransform命令代替redefine命令。
+
+###### [classloader](https://arthas.aliyun.com/doc/classloader.html) 
+
+查看classloader的继承树，urls，类加载信息。
+
+了解当前系统中有多少类加载器，以及每个加载器加载的类数量，帮助判断是否有类加载器泄漏。
+
+可以让指定的ClassLoader去getResources，打印出所有查找到的resources的url，对于ResourceNotFoundException比较有用。
+
+```shell
+[arthas@58048]$ classloader
+ name                                                numberOfInstances  loadedCountTotal
+ sun.misc.Launcher$AppClassLoader                    1                  10869
+ BootstrapClassLoader                                1                  4404
+ com.taobao.arthas.agent.ArthasClassloader           2                  3663
+ sun.reflect.DelegatingClassLoader                   253                253
+ sun.misc.Launcher$ExtClassLoader                    1                  58
+ javax.management.remote.rmi.NoCallStackClassLoader  2                  2
+ sun.reflect.misc.MethodUtil                         1                  1
+Affect(row-cnt:7) cost in 39 ms.
+```
+
+
 
 ```shell
 [arthas@20815]$ classloader  -l
@@ -4973,47 +5138,142 @@ Affect(row-cnt:24) cost in 2 ms.
 
 ##### monitor/watch/trace相关
 
-monitor
+> 注意
+>
+> 请注意，这些命令，都通过字节码增强技术来实现的，会在指定类的方法中插入一些切面来实现数据统计和观测，因此在线上、预发使用时，请尽量明确需要观测的类、方法以及条件，诊断结束要执行 `stop` 或将增强过的类执行 `reset` 命令。
+
+###### [monitor](https://arthas.aliyun.com/doc/monitor.html) 
+
+方法执行监控。
+
+对匹配class-pattern/method-pattern的类、方法的调用进行监控，涉及方法的调用次数、执行时间、失败率等。
+
+monitor命令是一个非实时返回命令。实时返回命令是输入之后立即返回，而非实时返回的命令，则是不断地等待目标Java进程返回信息，直到用户输入Ctrl+C为止。
+
+服务端是以任务的形式在后台跑任务，植入的代码随着任务的中止而不会被执行，所以任务关闭后，不会对原有性能产生太大影响，而且原则上，任何Arthas命令不会引起原有业务逻辑的改变。
+
+![](images/image-20231227182400299.png)
 
 ```shell
-[arthas@20815]$ monitor -c 5 com.andyron.java.Picture <init>
+[arthas@64665]$ monitor -c 5 com.andyron.java.Picture <init>
+```
+
+![](images/image-20231227183021481.png)
+
+###### [watch](https://arthas.aliyun.com/doc/watch.html) 🔖
+
+方法执行数据观测，可以方便地观察到指定方法的调用情况。
+
+能观察到的范围为返回值、抛出异常、入参，通过编写OGNL表达式进行对应变量的查看。
+
+能在 4 个不同的场景观察对象：
+
+![](images/image-20231227183813011.png)
+
+```shell
+[arthas@64665]$ watch com.andyron.java.Picture <init> "{params,returnObj}" -x 2
 Press Q or Ctrl+C to abort.
-Affect(class count: 1 , method count: 1) cost in 128 ms, listenerId: 1
- timestamp                   class                                     method                                    total         success       fail          avg-rt(ms)    fail-rate
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- 2023-05-17 19:19:23         com.andyron.java.Picture                  <init>                                    790           790           0             0.02          0.00%
+Affect(class count: 1 , method count: 1) cost in 42 ms, listenerId: 2
+method=com.andyron.java.Picture.<init> location=AtExit
+ts=2023-12-27 18:34:54; [cost=0.241542ms] result=@ArrayList[
+    @Object[][
+        @Integer[2656],
+    ],
+    null,
+]
+method=com.andyron.java.Picture.<init> location=AtExit
+ts=2023-12-27 18:34:54; [cost=0.018083ms] result=@ArrayList[
+    @Object[][
+        @Integer[2735],
+    ],
+    null,
+]
+...
 ```
 
-watch
 
+
+###### [trace](https://arthas.aliyun.com/doc/trace.html) 
+
+方法内部调用路径，并输出方法路径上的每个节点上耗时。
+
+trace命令能主动搜索class-pattern/method-pattern对应的方法调用路径，渲染和统计整个调用链路上的所有性能开销和追踪调用链路，便于帮助定位和发现因RT高而导致的性能问题缺陷，但其每次只能跟踪一级方法的调用链路。
+
+trace在执行的过程中本身是会有一定的性能开销，在统计的报告中并未像JProfiler一样预先减去其自身的统计开销，所以统计出来有些不准，渲染路径上调用的类、方法越多，性能偏差越大，但还是能让各位读者看清一些事情的。
+
+```shell
+[arthas@64665]$ trace com.andyron.java.Picture <init>
+Press Q or Ctrl+C to abort.
+Affect(class count: 1 , method count: 1) cost in 74 ms, listenerId: 3
+`---ts=2023-12-27 18:40:25;thread_name=main;id=1;is_daemon=false;priority=5;TCCL=sun.misc.Launcher$AppClassLoader@18b4aac2
+    `---[0.065959ms] com.andyron.java.Picture:<init>()
+
+`---ts=2023-12-27 18:40:25;thread_name=main;id=1;is_daemon=false;priority=5;TCCL=sun.misc.Launcher$AppClassLoader@18b4aac2
+    `---[0.01175ms] com.andyron.java.Picture:<init>()
+
+`---ts=2023-12-27 18:40:25;thread_name=main;id=1;is_daemon=false;priority=5;TCCL=sun.misc.Launcher$AppClassLoader@18b4aac2
+    `---[0.020917ms] com.andyron.java.Picture:<init>()
+
+`---ts=2023-12-27 18:40:25;thread_name=main;id=1;is_daemon=false;priority=5;TCCL=sun.misc.Launcher$AppClassLoader@18b4aac2
+    `---[0.006333ms] com.andyron.java.Picture:<init>()
+    
+...
 ```
-watch com.andyron.java.Picture <init> "{params,returnObj}" -x 2
-```
 
 
 
-trace
+###### [stack](https://arthas.aliyun.com/doc/stack.html)
 
-```
-trace com.andyron.java.Picture <init>
-```
+输出当前方法被调用的调用路径。
 
 
 
-stack
+###### [tt](https://arthas.aliyun.com/doc/tt.html)🔖
 
-tt TimeTunnel，方法执行数据的时空隧道，记录下指定方法每次调用的入参和返回信息，并能对这些不同的时间下调用进行观测
+TimeTunnel的缩写，方法执行数据的时空隧道，记录下指定方法每次调用的入参和返回信息，并能对这些不同的时间下调用进行观测。
+
+watch虽然方便灵活，但需要提前想清楚观察表达式的拼写，这对排查问题而言要求太高，因为很多时候我们并不清楚问题出自何方，只能靠蛛丝马迹进行猜测，这个时候如果能记录下当时方法调用的所有入参和返回值、抛出的异常，会对整个问题的思考与判断非常有帮助。于是，TimeTunnel命令就诞生了。
 
 
 
 ##### 其他
 
-profiler/火焰图
-options
+###### [profiler](https://arthas.aliyun.com/doc/profiler.html)
+
+使用[async-profiler在新窗口打开](https://github.com/jvm-profiling-tools/async-profiler)对应用采样，生成**==火焰图==**。本质上是通过不断的采样，然后把收集到的采样结果生成火焰图。
 
 
 
+```shell
+# 1 启动profiler
+[arthas@58048]$ profiler start
+Profiling started
 
+# 2 获取已采集的sample的数量
+[arthas@58048]$ profiler getSamples
+202
+
+# 3 查看profiler状态
+[arthas@58048]$ profiler status
+Profiling is running for 125 seconds
+
+# 4 停止profiler
+[arthas@58048]$ profiler stop
+OK
+profiler output file: /.../arthas-output/20231227-185823.html
+```
+
+停止profiler，默认情况下，生成的结果保存到应用的工作目录下的arthas-output目录，可通过`--file`制定结果输出路径，可以通过`--format`来制定生产svg等格式，如`profiler stop --file /tmp/output.svg --format html`。
+
+http://localhost:3658/arthas-output/
+
+> 在追求极致性能的场景下，了解程序运行过程中CPU在干什么很重要，火焰图就是一种非常直观的展示CPU在程序整个生命周期过程中时间分配的工具。这个工具可以非常直观地显示出调用栈中的CPU消耗瓶颈，通过x轴横条宽度来度量时间指标，y轴代表线程栈的层次。
+
+
+
+###### [options](https://arthas.aliyun.com/doc/options.html)
+
+查看或设置 Arthas 全局开关
 
 
 
