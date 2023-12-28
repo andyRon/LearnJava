@@ -6,7 +6,7 @@ import java.util.ArrayList;
  * 测试生成详细的日志文件
  *
  * -Xms60m -Xmx60m -XX:SurvivorRatio=8 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC
- *
+ * -Xloggc:/Users/andyron/Downloads/gc.log
  * @author andyron
  **/
 public class GCLogTest {
@@ -22,6 +22,5 @@ public class GCLogTest {
                 e.printStackTrace();
             }
         }
-
     }
 }

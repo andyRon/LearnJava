@@ -2296,6 +2296,8 @@ P87
 
 ### 9.2 方法区的理解 
 
+#### 方法区的官方描述
+
 https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.5.4
 
 > The Java Virtual Machine has a *method area* that is shared among all Java Virtual Machine threads. The method area is analogous to the storage area for compiled code of a conventional language or analogous to the "text" segment in an operating system process. It stores per-class structures such as the run-time constant pool, field and method data, and the code for methods and constructors, including the special methods ([§2.9](https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.9)) used in class and instance initialization and interface initialization.
@@ -2308,14 +2310,22 @@ https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.5.4
 >
 > - If memory in the method area cannot be made available to satisfy an allocation request, the Java Virtual Machine throws an `OutOfMemoryError`.
 
+官方文档的意思是在JVM中，方法区是可供各个线程共享的运行时内存区域。方法区与传统语言中的**编译代码存储区或者操作系统进程的正文段**的作用非常类似，它存储了每一个类的结构信息，例如，运行时常量池(Runtime Constant Pool)、字段和方法数据、构造函数和普通方法的字节码内容，还包括一些在类、实例、接口初始化时用到的特殊方法。
+
+方法区在虚拟机启动的时候创建，虽然方法区是堆的逻辑组成部分，但是简单的虚拟机实现可以选择在这个区域**不实现垃圾收集和压缩**。Java 8的虚拟机规范也不限定实现方法区的内存位置和编译代码的管理策略。方法区的容量可以是固定的，也可以随着程序执行的需求动态扩展，并在不需要太多空间时自动收缩。方法区在实际内存空间中可以是不连续的。
+
 《Java虚拟机规范》中明确说明：〝尽管所有的方法区在逻辑上是属于堆的一部分，但一些简单的实现可能不会选择去进行垃圾收集或者进行压缩。”但对于HotSpotJVM而言，方法区还有一个别名叫做Non-Heap（非堆），目的就是要和堆分开。
 
 所以，==方法区看作是一块独立于Java堆的内存空间==。
 
 ![](images/image-20230414201238021.png)
 
+
+
+#### 方法区的基本理解
+
 - ﻿方法区（Method Area）与Java堆一样，是各个线程共享的内存区域。
-- ﻿方法区在JVM启动的时候被创建，并且它的实际的物理内存空间中和Java堆区一样都可以是不连续的。
+- ﻿方法区在JVM启动的时候被创建，并且它的实际的物理内存空间中和Java堆区一样都==可以是不连续的==。
 - ﻿方法区的大小，跟堆空间一样，可以选择固定大小或者可扩展。
 - ﻿方法区的大小决定了系统可以保存多少个类，如果系统定义了太多的类，导致方法区溢出，虚拟机同样会抛出内存溢出错误：`java.lang.OutOfMemoryError:PermGen space` 或者`java.lang.OutOfMemoryError:Metaspace`。
   + 加载大量的第三方jar包；
@@ -2325,7 +2335,7 @@ https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.5.4
 
 #### Hotspot方法区的演进
 
-- 在jdk7及以前，习惯上把方法区，称为永久代。jdk8开始，使用元空间取代了永久代。
+- 在jdk7及以前，习惯上把方法区，称为永久代。jdk8开始，使用==元空间==取代了永久代。
 
 - ﻿本质上，方法区和永久代并不等价。仅是对hotspot而言的。《Java虚拟机规范》对如何实现方法区，不做统一要求。例如：BEA JRockit/ IBM J9中不存在永久代的概念。
   + 现在来看，当年使用永久代，不是好的idea。导致Java程序更容易OOM（超过`-XX:MaxPermsize`上限）

@@ -5375,7 +5375,11 @@ P363
 
 https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
 
+JVM参数总体上来说分为三大类。
+
 #### 类型一：标准参数选项
+
+所有的JVM都必须实现标准参数的功能，而且向后兼容。
 
 特点：比较稳定，后续版本基本不会变化，==以-开头==。
 
@@ -5437,11 +5441,19 @@ https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
 有关详细信息, 请参阅 http://www.oracle.com/technetwork/java/javase/documentation/index.html。
 ```
 
+HotSpot虚拟机的两种模式，分别是Server和Client，分别通过`-server`和`-client`模式设置。
+
+在32位Windows系统上，默认使用Client类型的JVM。要想使用Server模式，则机器配置至少有2个以上的CPU和2GB以上的物理内存。Client模式适用于对内存要求较小的桌面应用程序，默认使用==Serial串行垃圾收集器==。
+
+64位机器上只支持Server模式的JVM，适用于需要大内存的应用程序，默认使用==并行垃圾收集器==。
+
 #### 类型二：-X参数选项
+
+只能被部分JVM识别且不保证向后兼容。
 
 特点：非标准化参数，功能还是比较稳定的。但官方说后续版本可能会变更，以`-X`开头。
 
-直接在DOS窗口中运行java -X命令可以看到所有的X选项
+直接在DOS窗口中运行`java -X`命令可以看到所有的X选项。
 
 ```shell
 ➜  java -X
@@ -5501,23 +5513,21 @@ JVM的JIT编译模式相关的选项：
 
 - `-Xmixed`
 
-​	混合模式：这是默认模式，刚开始的时候使用解释器慢慢解释执行，后来让JIT即时编译器根据程序运行的情况，有选择地将某些热点代码提前编译并缓存在本地，在执行的时候效率就非常高了
+​	混合模式：这是默认模式，刚开始的时候使用解释器慢慢解释执行，后来让JIT即时编译器根据程序运行的情况，有选择地将某些热点代码提前编译并缓存在本地，在执行的时候效率就非常高了。
 
 
 
--Xmx -Xms -Xss属于XX参数？
+`-Xmx`、`-Xms`、`-Xss`属于-X参数，但执行效果：
 
-`-Xms<size>`    设置初始Java堆大小，等价于-XX:InitialHeapSize
-
-`-Xmx<size>`    设置最大Java堆大小，等价于-XX:MaxHeapSize
-
-`-Xss<size>`     设置Java线程堆栈大小，等价于-XX:ThreadStackSize
+- `-Xms<size>`    设置初始Java堆大小，等价于`-XX:InitialHeapSize`
+- `-Xmx<size>`    设置最大Java堆大小，等价于`-XX:MaxHeapSize`
+- `-Xss<size>`     设置Java线程堆栈大小，等价于`-XX:ThreadStackSize`
 
 
 
 #### 类型三：-XX参数选项
 
-特点：非标准化参数，使用的最多的参数类型，这类选项属于实验性，不稳定，以`-XX`开头。
+特点：非标准化参数，使用的最多的参数类型，这类选项属于==实验性==，不稳定，以`-XX`开头。
 
 作用：用于开发和调试JVM
 
@@ -5539,11 +5549,11 @@ JVM的JIT编译模式相关的选项：
 
   子类型1：数值型格式`-XX:<option>=<number>`
 
-  number表示数值，number可以带上单位，比如：‘m’、‘M° 表示兆，‘k‘、‘K’表示兆，‘g’、‘G’表示g（例如 32k跟32768是一样的效果）例如：
+  number表示数值，number可以带上单位，比如：‘m’、‘M’ 表示兆，‘k‘、‘K’表示兆，‘g’、‘G’表示g（例如 32k跟32768是一样的效果）例如：
 
   ﻿`-XX:NewSize=1024m` 表示设置新生代初始大小为1024兆
 
-  `-XX:MaxGCPauseMi11is=500` 表示设置GC停顿时间：500毫秒
+  `-XX:MaxGCPauseMillis=500` 表示设置GC停顿时间：500毫秒
 
   ﻿`-XX:GCTimeRatio=19` 表佘设置吞吐量
 
@@ -5567,17 +5577,37 @@ JVM的JIT编译模式相关的选项：
 $ java -XX:+PrintFlagsFinal -version
 ```
 
+![](images/image-20231228122156104.png)
 
+最后一列参数的取值有多种：
 
-### 4.2 添加JVM参数选项
+1. `product`表示该类型参数是官方支持的，属于JVM内部选项。
+2. `rw`表示可动态写入。
+3. `C1`表示Client JIT编译器。
+4. `C2`表示Server JIT编译器。
+5. `pd`表示平台独立。
+6. `lp64`表示仅支持64位JVM。
+7. `manageable`表示可以运行时修改。
+8. `diagnostic`表示用于JVM调试。
+9. `experimental`表示非官方支持的参数。
 
+默认不包含diagnostic和experimental两种类型，想要包含该类型的参数可以配合参数`-XX:+UnlockDiagnosticVMOptions`和`-XX:+UnlockExperimentalVMOptions`使用，例如`java-XX:+PrintFlagsFinal -XX:+UnlockDiagnosticVMOptions`。
 
+### 4.2 添加JVM参数选项的方式
 
-运行jar包：
+1. 通过idea等ide配置
+2. 通过`java`命令配置
 
-`java -Xms50m -Xmx50m -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -jar demo.jar`
+通过java命令运行class或者jar包的时候可以添加JVM参数，例如：
 
+```shell
+// 运行jar包时添加JVM参数
+java -Xms128m -Xmx256m -jar demo.jar
+// 运行类的字节码文件时添加JVM参数
+java -Xms128m -Xmx256m 类名
+```
 
+3. 通过web服务器配置
 
 通过Tomcat运行war包：
 
@@ -5585,128 +5615,108 @@ $ java -XX:+PrintFlagsFinal -version
 
 - Windows系统下载catalina.bat中添加类似如下配置：set "JAVA_OPTS=-Xms512M -Xmx1024M"
 
-
+4. 通过jinfo命令配置
 
 程序运行过程中
 
 - 使用`jinfo -flag <name>=<value> <pid>`设置非Boolean类型参数
 - 使用`jinfo -flag [+|-]<name> <pid>`设置Boolean类型参数
 
+### 4.3 常用的JVM参数选项❤️
 
-
-### 4.3 常用的JVM参数选项
-
-#### 打印设置的XX选项及值
+#### 1 打印设置的XX选项及值
 
 - `-XX:+PrintCommandLineFlags`  可以让程序运行前打印出用户手动设置或者JVM自动设置的XX选项
 - `-XX:+PrintFlagsInitial`  表示打印出所有XX选项的默认值
 - `-XX:+PrintFlagsFinal`  表示打印出XX选项在运行程序时生效的值  
 - `-XX:+PrintVMOptions`  打印JVM的参数
 
-#### 堆、栈、方法区等内存大小设置
+#### 2 堆、栈、方法区等内存大小设置
 
-栈 1 2
+##### 栈
 
-- `-Xss128k`
+- `-Xss128k`  等价于`-XX:ThreadStackSize`，设置每个每个线程的栈大小
 
-堆内存
+##### 堆内存
 
-- `-Xms3550m`  等价于-XX:InitialHeapSize，设置JVM初始堆内存为3500M
+- `-Xms3550m`  等价于`-XX:InitialHeapSize`，设置JVM初始堆内存为3500M
 
-- `-Xmx3550m`    等价于-XX:MaxHeapSize，设置JVM最大堆内存为3500M
+- `-Xmx3550m`    等价于`-XX:MaxHeapSize`，设置JVM最大堆内存为3500M
 
-- `-Xmn2g`
-      设置年轻代大小为2G，即等价于-XX:NewSize=2g -XX:MaxNewSize=2g，也就是设置年轻代初始值和年轻代最大值都是2G
-      官方推荐配置为整个堆大小的3/8
-
-- `-XX:NewSize=1024m`
-      设置年轻代初始值为1024M
-
-- `-XX:MaxNewSize=1024m`
-      设置年轻代最大值为1024M
-
-- `-XX:SurvivorRatio=8`
-      设置年轻代中Eden区与一个Survivor区的比值，默认为8
-
-- `-XX:+UseAdaptiveSizePolicy`
-      自动选择各区大小比例，默认开启
-
-- `-XX:NewRatio=2`
-      设置老年代与年轻代（包括1个Eden区和2个Survivor区）的比值，默认为2
-
-- `-XX:PretenureSizeThreadshold=1024`
-      设置让大于此阈值的对象直接分配在老年代，单位为字节
-      只对Serial、ParNew收集器有效
-
-- `-XX:MaxTenuringThreshold=15`
-      默认值为15
-      新生代每次MinorGC后，还存活的对象年龄+1，当对象的年龄大于设置的这个值时就进入老年代
-
-- `-XX:+PrintTenuringDistribution`
-      让JVM在每次MinorGC后打印出当前使用的Survivor中对象的年龄分布
-
-- `-XX:TargetSurvivorRatio`
-      表示MinorGC结束后Survivor区域中占用空间的期望比例
-
+- `-Xmn2g`  设置年轻代大小为2G，即等价于-XX:NewSize=2g -XX:MaxNewSize=2g，也就是设置年轻代初始值和年轻代最大值都是2G，官方推荐配置为整个堆大小的3/8
   
-
-方法区（永久代）
-
-- `-XX:PermSize=256m`
-        设置永久代初始值为256M
-- `-XX:MaxPermSize=256m`
-        设置永久代最大值为256M
-
-方法区（元空间）
-
-- `-XX:MetaspaceSize`
-        初始空间大小
-
-- `-XX:MaxMetaspaceSize`
-        最大空间，默认没有限制    
-
-- `-XX:+UseCompressedOops`
-        使用压缩对象指针
-
-- `-XX:+UseCompressedClassPointers`
-        使用压缩类指针
-
-- `-XX:CompressedClassSpaceSize`
-        设置Klass Metaspace的大小，默认1G
-
+- `-XX:NewSize=1024m`   设置年轻代初始值为1024M
   
+- `-XX:MaxNewSize=1024m`   设置年轻代最大值为1024M
+  
+- `-XX:SurvivorRatio=8`  设置年轻代中Eden区与一个Survivor区的比值，默认为8
+  
+- `-XX:+UseAdaptiveSizePolicy`  自动选择各区大小比例，默认开启
+  
+- `-XX:NewRatio=2`  设置老年代与年轻代（包括1个Eden区和2个Survivor区）的比值，默认为2
+  
+- `-XX:PretenureSizeThreadshold=1024`  设置让大于此阈值的对象直接分配在老年代，单位为字节，只对Serial、ParNew收集器有效
+  
+- `-XX:MaxTenuringThreshold=15`  默认值为15，新生代每次MinorGC后，还存活的对象年龄+1，当对象的年龄大于设置的这个值时就进入老年代
+  
+- `-XX:+PrintTenuringDistribution`  让JVM在每次MinorGC后打印出当前使用的Survivor中对象的年龄分布
+  
+- `-XX:TargetSurvivorRatio`  表示MinorGC结束后Survivor区域中占用空间的期望比例
 
-直接内存
+##### 方法区（永久代）
 
-- `-XX:MaxDirectMemorySize`
-      指定DirectMemory容量，若未指定，则默认与Java堆最大值一样
+- `-XX:PermSize=256m`  设置永久代初始值为256M
+- `-XX:MaxPermSize=256m`  设置永久代最大值为256M
 
-#### OutOfMemory相关的选项🔖
+##### 方法区（元空间）
+
+- `-XX:MetaspaceSize`  初始空间大小
+    
+- `-XX:MaxMetaspaceSize`  最大空间，默认没有限制    
+    
+- `-XX:+UseCompressedOops`  使用压缩对象指针
+    
+- `-XX:+UseCompressedClassPointers`  使用压缩类指针
+    
+- `-XX:CompressedClassSpaceSize`  设置Klass Metaspace的大小，默认1G
+
+##### 直接内存
+
+- `-XX:MaxDirectMemorySize`  指定DirectMemory容量，若未指定，则默认与Java堆最大值一样
+
+#### 3 OutOfMemory相关的选项
 
 - `-XX:+HeapDumpOnOutMemoryError`，表示在内存出现OOM的时候，生成Heap转储文件，以便后续分析，-XX:+HeapDumpBeforeFullGC和-XX:+HeapDumpOnOutMemoryError只能设置1个
+
 - `-XX:+HeapDumpBeforeFullGC`，表示在出现FullGC之前，生成Heap转储文件，以便后续分析，-XX:+HeapDumpBeforeFullGC和-XX:+HeapDumpOnOutMemoryError只能设置1个，请注意FullGC可能出现多次，那么dump文件也会生成多个
+
 - `-XX:HeapDumpPath=<path>`，指定heap转存文件的存储路径，如果不指定，就会将dump文件放在当前目录中
-- `-XX:OnOutOfMemoryError`，指定一个可行性程序或者脚本的路径，当发生OOM的时候，去执行这个脚本
+
+- `-XX:OnOutOfMemoryError`，指定一个可行性程序或者脚本的路径，当发生OOM的时候，去执行这个脚本。
+
+  大多数时候，内存溢出并不会导致整个应用都挂掉，但是最好还是把应用重启一下，因为一旦发生了内存溢出，可能会让应用处于一种不稳定的状态，一个不稳定的应用可能会提供错误的响应。例如：` -XX:OnOutOfMemoryError=/opt/Server/restart.sh`，在这个脚本中可以去用优雅的办法来重启应用。
+
+  ![](images/image-20231228124814646.png)
 
 
 
-#### 垃圾收集器相关选项
+#### 4 垃圾收集器相关选项
 
 ##### 查看默认的垃圾回收器
 
 - `-XX:+PrintCommandLineFlags`：查看命令行相关参数（包含使用的垃圾收集器）
 
-- 使用命令行指令：`jinfo - flag 相关垃圾回收器参数 进程ID`
+- 使用命令行指令：`jinfo -flag 相关垃圾回收器参数 进程ID`
 
 以上两种方式都可以查看默认使用的垃圾回收器，第一种方式更加准备，但是需要程序的支持；第二种方式需要去尝试，如果使用了，返回的值中有+号，否则就是-号
 
 ##### Serial回收器
 
-
+Serial收集器作为HotSpot中Client模式下的默认新生代垃圾收集器。Serial Old收集器是运行在Client模式下默认的老年代的垃圾收集器。`-XX:+UseSerialGC`参数可以指定新生代和老年代都使用串行收集器，表示新生代用Serial GC，且老年代用Serial Old收集器。可以获得最高的单线程收集效率。**现在已经很少使用Serial收集器了**。
 
 ##### Parnew回收器
 
-
+ParNew收集器可以使用`-XX:+UseParNewGC`参数指定。它表示新生代使用并行收集器，不影响老年代。
 
 ##### Parallel回收器
 
@@ -5717,12 +5727,11 @@ $ java -XX:+PrintFlagsFinal -version
   - ﻿上面两个参数，默认开启一个，另一个也会被开启。（**互相激活**）
 
 - ﻿`-XX:ParallelGCThreads` 设置年轻代并行收集器的线程数。一般地，最好与CPU数量相等，以避免过多的线程数影响垃圾收集性能。
-
   - ﻿在默认情况下，当CPU 数量小于8个， ParallelGCThreads 的值等于CPU 数量。
-
+  
   - ﻿当CPU数量大于8个，ParallelGCThreads 的值等于`3+[5*CPU_Count]/8]`。
-
-- ﻿﻿`-XX:MaxGcpauseMillis` 设置垃圾收集器最大停顿时间(即STW的时间）。单位是亳秒。
+  
+- ﻿﻿`-XX:MaxGCPauseMillis` 设置垃圾收集器最大停顿时间(即STW的时间）。单位是亳秒。
   - ﻿为了尽可能地把停顿时间控制在MaxGCPausemills 以内，收集器在工作时公调整Java堆大小或者其他一些参数。
   - ﻿对于用户来讲，停顿时问越短体验越好。但是在服务器端，我们注重高并发，整体的吞吐量。所以服务器端适合Parallel，进行控制。
   - ﻿<u>该参数使用需谨慎。</u>
@@ -5730,31 +5739,59 @@ $ java -XX:+PrintFlagsFinal -version
   - ﻿取值范围（0,100）。默认值99，也就是垃圾回收时间不超过1%。
   - ﻿与前一个`-XX:MaxGCPauseMillis`参数有一定矛盾性。暂停时间越长，Radio参数就容易超过设定的比例。
 
-- ﻿`-XX:+UseAdaptivesizePolicy` 设置Parallel Scavenge收集器具有**自适应调节策略**
-
-
+- ﻿`-XX:+UseAdaptivesizePolicy` 设置Parallel Scavenge收集器具有**自适应调节策略**。在这种模式下，新生代的大小、Eden 区和Survivor 区的比例、晋升老年代的对象年龄等参数会被自动调整，已达到在堆大小、吞吐量和停顿时间之间的平衡点。在手动调优比较困难的场合，可以直接使用这种自适应的方式，仅指定JVM 的最大堆、目标的吞吐量（GCTimeRatio）和停顿时间（MaxGCPauseMills），让JVM 自己完成调优工作。
 
 ##### CMS回收器
 
-![image-20230430222647041](images/image-20230430222647041.png)
+- ﻿`-XX:+UseConcMarkSweepGC`  手动指定使用CMS收集器执行内存回收任务。开启该参数后会自动将`-XX:+UseParNewGC`打开。即：ParNew（Young区用）+CMS（Old区用）+ Serial Old的组合。
+
+- ﻿﻿`-XX:CMSInitiatingOccupanyFraction`  设置堆内存使用率的國值，一旦达到该國值，便开始进行回收。
+  + JDK5及以前版本的默认值为68，即当老年代的空间使用率达到68%时，会执行一次CMS回收。JDK6及以上版本默认值为==92%==。
+  + ﻿﻿如果内存增长缓慢，则可以设置一个稍大的值，大的阈值可以有效降低CMS的触发频率，減少老年代回收的次数可以较为明显地改善应用程序性能。反之，如果应用程序内存使用率增长很快，则应该降低这个阈值，以避免频繁触发老年代串行收集器。因此通过该选项便可以==有效降低Full GC 的执行次数==。
+
+- `-﻿XX:+UseCMSCompactAtFullCollection`  用于指定在执行完Fu11 GC后对内存空间进行压缩整理，以此避免内存碎片的产生。不过由于内存压缩整理过程无法并发执行，所带来的问题就是停顿时间变得更长了。 
+- `-XX: CMSFullGCsBeforeCompaction`   设置在执行多少次Fu11 GC后对内存空间进行压缩整理。
+
+- `-XX:ParallelCMSThreads`  设置CMS的线程数量。CMS默认启动的线程数是`(ParallelGCThreads+3)/4`,ParallelGCThreads 是年轻代并行收集器的线程数。当CPU 资源比较紧张时，受到CMS收集器线程的影响，应用程序的性能在垃圾回收阶段可能会非常槽糕。
 
 补充参数
 
-![](images/image-20230430222734843.png) 
+- ﻿`-XX:ConcGCThreads`  设置并发垃圾收集的线程数，默认该值是基于ParallelGCThreads计算出来的；
 
-特别说明
+- ﻿﻿`-XX:+UseCMSInitiatingOccupancyOnly`  是否动态可调，用这个参数可以使CMS一直按CMSInitiatingOccupancyFraction设定的值启动
+- ﻿﻿`-XX:+CMSScavengeBeforeRemark`  强制hotspot虚拟机在cms remark阶段之前做一次minorgC，用于提高remark阶段的速度；
+- ﻿﻿`-XX:+CMSClassUnloadingEnable`  如果有的话，启用回收Perm 区（JDK8之前）
+- ﻿﻿`-XX:+CMSParallelInitialEnabled`  用于开启CMS initial-mark阶段采用多线程的方式进行标记，用于提高标记速度，在Java8开始已经默认开启；
+- ﻿﻿`-XX:+CMSParallelRemarkEnabled` 用户开启CMS remark阶段采用多线程的方式进行重新标记，默认开启；
 
+- ﻿`-XX:+ExplicitGInvokesConcurrent`、`-XX:+ExplicitGCInvokesConcurrentAndUnloadsClasses` 这两个参数用户指定hotspot虚拟在执行System.gc()时使用CMS周期；
+- ﻿`-XX:+CMSPrecleaningEnabled`  指定CMS是否需要进行Pre cleaning这个阶段 
 
+> 需要注意的是JDK 9新特性中CMS被标记为Deprecate了，如果对JDK 9及以上版本的HotSpot虚拟机使用参数`-XX:+UseConcMarkSweepGC`来开启CMS收集器的话，用户会收到一个警告信息，提示CMS未来将会被废弃。JDK 14新特性中删除了CMS垃圾收集器，如果在JDK 14中使用`-XX:+UseConcMarkSweepGC`的话，JVM不会报错，只是给出一个warning信息，但是不会exit。JVM会自动回退以默认GC方式启动JVM。
 
 ##### G1回收器
 
-![](images/image-20230430222824454.png)
+• `-ХХ:MaxGCPauseMillis`  设置期望达到的最大GC停顿时间指标（JVM会尽力实现，但不保证达到）。默认值是200ms
 
-Mixed GC调优参数
+• `-ХХ:ParallelGCThread`  设置STW时GC线程数的值。最多设置8
 
-![](images/image-20230430223212365.png)
+• `-XX:ConcGCThreads`  设置并发标记的线程数。将n设置并行垃圾回收线程数（ParallelGCThreads）的1/4左右。
 
+• `-XX:InitiatingHeapOccupancyPercent`  设置触发并发GC周期的Java堆占用率阈值。超过此值，就触发GC。默认值是45。
 
+• `-XX:G1NewSizePercent`、 `- XX:G1MaxNewSizePercent`  新生代占用整个堆内存的最小百分比（默认5%）、最大百分比（默认60%）
+
+• `-ХХ:G1ReservePercent=10`  保留内存区域，防止 to space（Survivor中的to区）溢出
+
+G1收集器主要涉及Mixed GC，Mixed GC会回收新生代和部分老年代。G1关于Mixed GC调优常用参数：
+
+- ﻿﻿`-XX:InitiatingHeapOccupancyPercent`：设置堆占用率的百分比（0到100）达到这个数值的时候触发global concurrent marking（**全局并发标记**），默认为45%。值为0表示间断进行全局并发标记。
+- ﻿﻿`-XX:G1MixedGCLiveThresholdPercent`：设置Old区的region被回收时候的对象占比，默认占用率为85%。只有Old区的region中存活的对象占用达到了这个百分比，才会在Mixed GC中被回收。
+
+- ﻿`XX:G1HeapWastePercent`： 在global concurrent marking（全局并发标记）结束之后，可以知道所有的区有多少空间要被回收，在每次young GC之后和再次发生Mixed GC之前，会检查垃圾占比是否达到此参数，只有达到了，下次才会发生Mixed GC。
+
+- ﻿﻿`-XX:G1MixedGCCountTarget`： 一次global concurrent marking（全局并发标记）之后，最多执行Mixed GC的次数，默认是8。
+- ﻿﻿`-XX:G1O1dCSetRegionThresholdPercent`： 设置Mixed GC收集周期中要收集的Old region数的上限。默认值是Java堆的10%。
 
 ##### 怎么选择垃圾收集器
 
@@ -5769,72 +5806,61 @@ Mixed GC调优参数
 
 1．没有最好的收集器，更没有万能的收集：
 
-2．调优永远是针对特定场景、特定需求，不存在一劳永逸的收集器
+2．调优永远是针对==特定场景、特定需求==，不存在一劳永逸的收集器
 
 
 
-#### GC日志相关选项
+#### 5 GC日志相关选项
 
 ##### 常用参数
 
-`-verbose:gc`
-  输出日志信息，默认输出的标准输出
-  可以独立使用
-`-XX:+PrintGC`
-  等同于-verbose:gc 表示打开简化的日志
-  可以独立使用
-`-XX:+PrintGCDetails`
-  在发生垃圾回收时打印内存回收详细的日志， 并在进程退出时输出当前内存各区域的分配情况
-  可以独立使用
-`-XX:+PrintGCTimeStamps`
-  程序启动到GC发生的时间秒数
-  不可以独立使用，需要配合-XX:+PrintGCDetails使用
-`-XX:+PrintGCDateStamps`
-  输出GC发生时的时间戳（以日期的形式，例如：2013-05-04T21:53:59.234+0800）
-  不可以独立使用，可以配合-XX:+PrintGCDetails使用
-`-XX:+PrintHeapAtGC`
-  每一次GC前和GC后，都打印堆信息
-  可以独立使用
-`-XIoggc:<file>`
-  把GC日志写入到一个文件中去，而不是打印到标准输出中
+- `-verbose:gc`   输出日志信息，默认输出的标准输出，可以独立使用
+- `-XX:+PrintGC` 等同于-verbose:gc 表示打开简化的日志，可以独立使用
+- `-XX:+PrintGCDetails`  在发生垃圾回收时打印内存回收详细的日志， 并在进程退出时输出当前内存各区域的分配情况，可以独立使用
+- `-XX:+PrintGCTimeStamps`  程序启动到GC发生的时间秒数，不可以独立使用，需要配合-XX:+PrintGCDetails使用
+- `-XX:+PrintGCDateStamps`
+    输出GC发生时的时间戳（以日期的形式，例如：2013-05-04T21:53:59.234+0800）
+    不可以独立使用，可以配合-XX:+PrintGCDetails使用
+- `-XX:+PrintHeapAtGC`  每一次GC前和GC后，都打印堆信息,可以独立使用
+- `-Xloggc:<file>`  把GC日志写入到一个文件中去，而不是打印到标准输出中
 
 ##### 其他参数
 
-`-XX:TraceClassLoading`
-  监控类的加载
-`-XX:PrintGCApplicationStoppedTime`
-  打印GC时线程的停顿时间
-`-XX:+PrintGCApplicationConcurrentTime`
-  垃圾收集之前打印出应用未中断的执行时间
-`-XX:+PrintReferenceGC`
-  记录回收了多少种不同引用类型的引用
-`-XX:+PrintTenuringDistribution`
-  让JVM在每次MinorGC后打印出当前使用的Survivor中对象的年龄分布
-`-XX:+UseGCLogFileRotation`
-  启用GC日志文件的自动转储
-`-XX:NumberOfGCLogFiles=1`
-  GC日志文件的循环数目
-`-XX:GCLogFileSize=1M`
-  控制GC日志文件的大小
+- `-XX:TraceClassLoading`
+    监控类的加载
+- `-XX:PrintGCApplicationStoppedTime`
+    打印GC时线程的停顿时间
+- `-XX:+PrintGCApplicationConcurrentTime`
+    垃圾收集之前打印出应用未中断的执行时间
+- `-XX:+PrintReferenceGC`
+    记录回收了多少种不同引用类型的引用
+- `-XX:+PrintTenuringDistribution`
+    让JVM在每次MinorGC后打印出当前使用的Survivor中对象的年龄分布
+- `-XX:+UseGCLogFileRotation`
+    启用GC日志文件的自动转储
+- `-XX:NumberOfGCLogFiles=1`
+    GC日志文件的循环数目
+- `-XX:GCLogFileSize=1M`
+    控制GC日志文件的大小
 
-#### 其他参数
+#### 6 其他参数
 
-`-XX:+DisableExplicitGC`
-  禁用hotspot执行System.gc()，默认禁用
-`-XX:ReservedCodeCacheSize=<n>[g|m|k]`、`-XX:InitialCodeCacheSize=<n>[g|m|k]`
-  指定代码缓存（JIT会缓存热点代码的编译后指令到方法区）的大小
-`-XX:+UseCodeCacheFlushing`
-  使用该参数让jvm放弃一些被编译的代码， 避免代码缓存被占满时JVM切换到interpreted-only的情况
-`-XX:+DoEscapeAnalysis`
-  开启逃逸分析
-`-XX:+UseBiasedLocking`
-  开启偏向锁
-`-XX:+UseLargePages`
-  开启使用大页面
-`-XX:+PrintTLAB`
-  打印TLAB的使用情况
-`-XX:TLABSize`
-  设置TLAB大小
+- `-XX:+DisableExplicitGC`
+    禁用hotspot执行System.gc()，默认禁用
+- `-XX:ReservedCodeCacheSize=<n>[g|m|k]`、`-XX:InitialCodeCacheSize=<n>[g|m|k]`
+    指定代码缓存（JIT会缓存热点代码的编译后指令到方法区）的大小
+- `-XX:+UseCodeCacheFlushing`
+    使用该参数让jvm放弃一些被编译的代码， 避免代码缓存被占满时JVM切换到interpreted-only的情况
+- `-XX:+DoEscapeAnalysis`
+    开启逃逸分析
+- `-XX:+UseBiasedLocking`
+    开启偏向锁
+- `-XX:+UseLargePages`
+    开启使用大页面
+- `-XX:+PrintTLAB`
+    打印TLAB的使用情况
+- `-XX:TLABSize`
+    设置TLAB大小
 
 
 
@@ -5842,25 +5868,49 @@ Mixed GC调优参数
 
 ### 4.4 通过java代码获取JVM参数
 
-Java提供了 java.lang.management包用于监视和管理Java虚拟机和Java运行时中的其他组件，它允许本地和远程监控和管理运行的Java虛拟机。其中ManagementFactory这个类还是挺常用的。另外还有Runtime 类也可以获取一些内存、CPU核数等相关的数据。
+Java提供了`java.lang.management`包用于监视和管理Java虚拟机和Java运行时中的其他组件，它允许本地和远程监控和管理运行的Java虛拟机。其中`ManagementFactory`这个类还是挺常用的。另外还有`Runtime` 类也可以获取一些内存、CPU核数等相关的数据。
 
 通过这些api可以监控我们的应用服务器的堆内存使用情况，设置一些阈值进行报警等处理。
 
+```java
+/**
+ * 监控我们的应用服务器的堆内存使用情况，设置一些阈值进行报警等处理。
+ * @author andyron
+ **/
+public class MemoryMonitor {
+    public static void main(String[] args) {
+        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+        MemoryUsage usage = memoryMXBean.getHeapMemoryUsage();
+        System.out.println("Init Heap: " + usage.getInit()/1024/1024 + "m");
+        System.out.println("Max Heap: " + usage.getMax()/1024/1024 + "m");
+        System.out.println("Use Heap: " + usage.getUsed()/1024/1024 + "m");
+        System.out.println("\nFull Information:");
+        System.out.println("Heap Memory Usage: " + memoryMXBean.getHeapMemoryUsage());
+        System.out.println("Non-Heap Memory Usage: " + memoryMXBean.getNonHeapMemoryUsage());
 
+        System.out.println("================通过Java获取相关系统状态====================");
+        System.out.println("当前堆内存的大小：" + (int) Runtime.getRuntime().totalMemory()/1024/1024 + "m");
+        System.out.println("空闲堆内存的大小：" + (int) Runtime.getRuntime().freeMemory()/1024/1024 + "m");
+        System.out.println("最大可用总堆内存的大小：" + Runtime.getRuntime().maxMemory()/1024/1024 + "m");
+    }
+}
+```
 
-
-
-## 5 分析GC日志
+## 5 分析GC日志 🔖
 
 P375
 
-GC日志是JVM产生的一种描述性的文本日志。就像开发Java程序需要输出日志一样，JVM通过GC日志来描述垃圾收集的情况。通过GC日志能直观地看到内存清理的工作过程，了解垃圾收集的行为，比如何时在新生代执行垃圾收集，何时在老年代执行垃圾收集。
+GC日志是JVM产生的一种描述性的文本日志。就像开发Java程序需要输出日志一样，JVM通过GC日志来描述垃圾收集的情况。通过GC日志能**直观地看到内存清理的工作过程，了解垃圾收集的行为**，比如何时在新生代执行垃圾收集，何时在老年代执行垃圾收集。
 
 ```
 -Xms100m -Xmx100m -XX:+PrintGCDetails -XX:+UseSerialGC
 ```
 
+GC日志主要用于==快速定位系统潜在的内存故障和性能瓶颈==，通过阅读GC日志，可以了解JVM的内存分配与回收策略。
 
+GC日志根据垃圾收集器分类可以分为**Parallel垃圾收集器日志、G1垃圾收集器日志和CMS垃圾收集器日志**。
+
+前面讲解堆的时候，垃圾收集分为**部分收集和整堆收集**，所以也可以把GC日志分为**Minor GC日志、Major GC日志和Full GC日志**。
 
 ### 5.1 GC日志参数
 
@@ -5891,6 +5941,33 @@ GC日志是JVM产生的一种描述性的文本日志。就像开发Java程序�
 7. `-Xloggc:<file>`
 
 表示把GC日志写入到一个文件中去，而不是打印到标准输出中
+
+```java
+/**
+ * 测试生成详细的日志文件
+ *
+ * -Xms60m -Xmx60m -XX:SurvivorRatio=8 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC
+ * -Xloggc:/Users/andyron/Downloads/gc.log
+ * @author andyron
+ **/
+public class GCLogTest {
+    public static void main(String[] args) {
+        ArrayList<byte[]> list = new ArrayList<>();
+
+        for (int i = 0; i < 5000; i++) {
+            byte[] arr = new byte[1024 * 50];//50KB
+            list.add(arr);
+            try {
+                Thread.sleep(30);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+
 
 
 
