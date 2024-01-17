@@ -3,6 +3,8 @@ package com.andyron;
 import java.util.ArrayList;
 
 /**
+ *  -Xms100m -Xmx100m -XX:+PrintGCDetails -XX:+UseSerialGC
+ *
  *  -XX:+PrintCommandLineFlags
  *
  *  -XX:+UseSerialGC:表明新生代使用Serial GC ，同时老年代使用Serial Old GC
@@ -14,6 +16,8 @@ import java.util.ArrayList;
  *  说明：二者可以相互激活
  *
  *  -XX:+UseConcMarkSweepGC：表明老年代使用CMS GC。同时，年轻代会触发对ParNew 的使用
+ *
+ *  -XX:+PrintGCDateStamps
  * @author andyron
  **/
 public class GCUseTest {
