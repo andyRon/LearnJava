@@ -66,6 +66,7 @@ public class DynamicArray<E> {
         ints.add(123);
         ints.add(4567);
         numbers.addAll(ints);
+
     }
 
     public  void dd() {

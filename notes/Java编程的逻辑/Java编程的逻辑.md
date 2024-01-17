@@ -4023,7 +4023,7 @@ String value = (String)kv.getSecond();
 
 实际上，Java泛型的内部原理就是这样的。
 
-Java有**Java编译器**和**Java虚拟机**，编译器将Java源代码转换为class文件，虚拟机加载并运行class文件。对于泛型类，Java编译器会将泛型代码转换为普通的非泛型代码，就像上面的普通Pair类代码及其使用代码一样，==将类型参数T擦除，替换为Object，插入必要的强制类型转换==。**Java虚拟机实际执行的时候，它是不知道泛型这回事的，只知道普通的类及代码。**
+Java有**Java编译器**和**Java虚拟机**，编译器将Java源代码转换为class文件，虚拟机加载并运行class文件。对于泛型类，Java编译器会将泛型代码转换为普通的非泛型代码，就像上面的普通Pair类代码及其使用代码一样，**将==类型参数==T擦除，替换为Object，插入必要的强制类型转换**。**Java虚拟机实际执行的时候，它是不知道泛型这回事的，只知道普通的类及代码。**
 
 ##### 3.泛型的好处
 
@@ -4200,8 +4200,8 @@ public void addAll(DynamicArray<? extends E> c) {
 
 `<T extends E>`和`<? extends E>`的关系：
 
-1. `<T extends E>`用于**定义**类型参数，它声明了一个类型参数T，可放在泛型类定义中类名后面、泛型方法返回值前面。
-2. `<? extends E>`用于**实例化**类型参数，它用于实例化泛型变量中的类型参数，只是这个具体类型是未知的，只知道它是E或E的某个子类型。
+1. `<T extends E>`用于**定义**类型参数，它声明了一个类型参数T，可放在泛型类定义中**类名后面、泛型方法返回值前面**。
+2. `<? extends E>`用于**实例化**类型参数，它用于**实例化泛型变量中的类型参数**，只是这个具体类型是未知的，只知道它是E或E的某个子类型。
 
 ```java
 public <T extends E> void addAll(DynamicArray<T> c)
@@ -4263,36 +4263,56 @@ Java容器类中就有类似这样的用法，==公共的API是通配符形式�
 
 
 
-另外，如果参数类型之间有依赖关系，也只能用类型参数，比如，将src容器中的内容复制到dest中：
+另外，**如果参数类型之间有依赖关系，也只能用类型参数**，比如，将src容器中的内容复制到dest中：
 
 ```java
 public static <D, S extends D> void copy(DynamicArray<D> dest, DynamicArray<S> src){
+  for(int i=0; i < src.size(); i++){
+    dest.add(src.get(i));
+  }
+}
+```
+
+S和D有依赖关系，要么相同，要么S是D的子类，否则类型不兼容，有编译错误。不过，上面的声明可以使用通配符简化，两个参数可以简化为一个：
+
+```java
+public static <D> void copy(DynamicArray<D> dest, DynamicArray<? extends D> src){
   for(int i=0; i<src.size(); i++){
     dest.add(src.get(i));
   }
 }
 ```
 
-如果返回值依赖于类型参数，也不能用通配符
-
-🔖
 
 
+**如果返回值依赖于类型参数，也不能用通配符**，比如，计算动态数组中的最大值：
 
-泛型方法到底应该用通配符的形式还是加类型参数？
+```java
+public static <T extends Comparable<T>> T max(DynamicArray<T> arr){
+  T max = arr.get(0);
+  for(int i=1; i<arr.size(); i++){
+    if(arr.get(i).compareTo(max)>0){
+      max = arr.get(i);
+    }
+  }
+  return max;
+}
+```
+
+
+
+泛型方法到底应该用通配符的形式还是加类型参数？总结：
 
 1. 通配符形式都可以用类型参数的形式来替代，==通配符能做的，用类型参数都能做==。
 2. 通配符形式可以减少类型参数，形式上往往更为简单，可读性也更好，所以，==能用通配符的就用通配符==。
 3. 如果类型参数之间有依赖关系，或者返回值依赖类型参数，或者需要写操作，则只能用类型参数。
 4. 通配符形式和类型参数往往配合使用，比如，上面的copy方法，定义必要的类型参数，使用通配符表达依赖，并接受更广泛的数据类型。
 
-
-
-#### 超类型通配符
+#### 超类型通配符🔖
 
 `<? super E>`，称为**超类型通配符**，表示E的某个父类型。无法用类型参数替代。
 
-🔖
+
 
 #### 通配符比较
 
@@ -4304,7 +4324,7 @@ public static <D, S extends D> void copy(DynamicArray<D> dest, DynamicArray<S> s
 
 
 
-### 8.3 细节和局限性🔖
+### 8.3 细节和局限性
 
 > 一项技术，往往只有理解了其局限性，才算是真正理解了它，才能更好地应用它。
 
@@ -4312,33 +4332,91 @@ Java泛型的实现机制决定了它有一定的限制性。
 
 #### 使用泛型类、方法和接口
 
-因为类型参数会被替换为Object，所以Java泛型中不能使用基本数据类型。
+- 因为类型参数会被替换为Object，所以Java泛型中不能使用基本数据类型。
 
 ```java
 // 不合法
 Pair<int> minmax = new Pair<int>(1,100);
 ```
 
+解决方法是使用基本类型对应的包装类。
+
+- 运行时类型信息不适用于泛型。
+
 一个泛型对象的getClass方法的返回值与原始类型对象也是相同的：
 
 ```java
 Pair<Integer> p1 = new Pair<Integer>(1,100);
 Pair<String> p2 = new Pair<String>("hello", "world");
-System.out.println(Pair.class==p1.getClass()); //true
-System.out.println(Pair.class==p2.getClass()); //true
+System.out.println(Pair.class == p1.getClass()); //true
+System.out.println(Pair.class == p2.getClass()); //true
 ```
 
 instanceof是运行时判断，也与泛型无关。
 
-运行时类型信息不适用于泛型。
+```java
+// 不支持
+if(p1 instanceof Pair<Integer>)
+  
+// 支持
+if(p1 instanceof Pair<? >)
+```
 
-类型擦除可能会引发一些冲突。
+- 类型擦除可能会引发一些冲突。🔖
 
 #### 定义泛型类、方法和接口
 
+在定义泛型类、方法和接口时，注意：
+
 - 不能通过类型参数创建对象。
 
+```java
+// 非法
+T elm = new T();
+T[] arr = new T[10];
+```
+
+因为如果允许，那么用户会以为创建的就是对应类型的对象，但由于类型擦除，Java只能创建Object类型的对象，而无法创建T类型的对象，容易引起误解，所以Java干脆禁止这么做。
+
+> 那如果确实希望根据类型创建对象呢？
+>
+> 需要设计API接受类型对象，即Class对象，并使用Java中的反射机制。
+>
+> 如果类型有默认构造方法，可以调用Class的newInstance方法构建对象，类似这样：
+>
+> ```java
+> public static <T> T create(Class<T> type){
+>   try {
+>     return type.newInstance();
+>   } catch (Exception e) {
+>     return null;
+>   }
+> }
+> ```
+>
+> ```java
+> Date date = create(Date.class);
+> StringBuilder sb = create(StringBuilder.class);
+> ```
+
 - 泛型类类型参数不能用于静态变量和方法。
+
+```java
+// 非法
+public class Singleton<T> {
+  private static T instance;
+  public synchronized static T getInstance(){
+    if(instance==null){
+      //创建实例
+    }
+    return instance;
+  }
+}
+```
+
+如果合法，那么对于每种实例化类型，都需要有一个对应的静态变量和方法。但由于类型擦除，Singleton类型只有一份，静态变量和方法都是类型的属性，且与类型参数无关，所以不能使用泛型类类型参数。
+
+
 
 - Java中还支持多个上界，多个上界之间以&分隔：
 
@@ -4352,7 +4430,14 @@ instanceof是运行时判断，也与泛型无关。
 
 不能创建泛型数组。
 
+```java
+// 非法
+Pair<Object, Integer>[] options = new Pair<Object, Integer>[]{
+  new Pair("1元",7), new Pair("2元", 2), new Pair("10元", 1)
+};
+```
 
+🔖
 
 ## 9 列表和队列
 
@@ -4361,10 +4446,6 @@ instanceof是运行时判断，也与泛型无关。
 ### 9.1 剖析ArrayList
 
 动态数组容器类
-
-```mermaid
-
-```
 
 ```java
   public boolean add(E e) //添加元素到末尾
@@ -4472,7 +4553,11 @@ public E remove(int index) {
 
 从index往后的元素都往前移动一位，实际调用`System.arraycopy`方法移动元素。
 
+其他方法大多是比较简单的，我们就不赘述了。上面的代码中，为便于理解，我们删减了一些**边界情况**处理的代码，完整代码要晦涩复杂一些，但接口一般都是简单直接的，这就是使用容器类的好处，这也是计算机程序中的基本思维方式，**封装复杂操作，提供简化接口**。
+
 #### 迭代
+
+foreach语法：
 
 ```java
 for(Integer a : intList){
@@ -4480,7 +4565,15 @@ for(Integer a : intList){
 }
 ```
 
-编译器会转换为：
+for语法：
+
+```java
+for(int i=0; i<intList.size(); i++){
+  System.out.println(intList.get(i));
+}
+```
+
+foreach看上去更为简洁，而且它适用于各种容器，更为通用。编译器会foreach结构转换为：
 
 ```java
 Iterator<Integer> it = intList.iterator();
@@ -4503,9 +4596,19 @@ public interface Iterable<T> {
 
 iterator方法返回一个实现了`Iterator`接口的对象。
 
+```java
+public interface Iterator<E> {
+  boolean hasNext();
+  E next();
+  void remove();
+}
+```
+
+hasNext()判断是否还有元素未访问，next()返回下一个元素，remove()删除最后返回的元素。
 
 
-只要对象实现了Iterable接口，就可以使用foreach语法，编译器会转换为调用Iterable和Iterator接口的方法。
+
+只要对象实现了Iterable接口，就可以使用foreach语法，编译器会转换为调用`Iterable`和`Iterator`接口的方法。
 
 -  Iterable表示对象可以被迭代，它有一个方法iterator()，返回Iterator对象，实际通过Iterator接口的方法进行遍历；
 - 如果对象实现了Iterable，就可以使用foreach语法；
@@ -4513,27 +4616,84 @@ iterator方法返回一个实现了`Iterator`接口的对象。
 
 ##### 2.ListIterator
 
+除了iterator(), ArrayList还提供了两个返回Iterator接口的方法：
+
+```java
+public ListIterator<E> listIterator()
+public ListIterator<E> listIterator(int index)
+```
+
+`ListIterator`扩展了`Iterator`接口，增加了向前遍历、添加元素、修改元素、返回索引位置等方法：
+
+```java
+public interface ListIterator<E> extends Iterator<E> {
+  boolean hasPrevious();
+  E previous();
+  int nextIndex();
+  int previousIndex();
+  void set(E e);
+  void add(E e);
+}
+```
+
+listIterator()方法返回的迭代器从0开始，而listIterator(int index)方法返回的迭代器从指定位置index开始。比如，从末尾往前遍历，代码为：
+
+```java
+public void reverseTraverse(List<Integer> list){
+  ListIterator<Integer> it = list.listIterator(list.size());
+  while(it.hasPrevious()){
+    System.out.println(it.previous());
+  }
+}
+```
+
 ##### 3.迭代的陷阱
 
-迭代的中间调用容器的删除方法: `java.util.ConcurrentModificationException`。
+迭代器常见的误用，就是在迭代的中间调用容器的删除方法。比如，要删除一个整数ArrayList中所有小于100的数：
 
-迭代器内部会维护一些索引位置相关的数据，要求<u>在迭代过程中，容器不能发生结构性变化</u>，否则这些索引位置就失效了。
+```java
+// java.util.ConcurrentModificationException
+public void remove(ArrayList<Integer> list){
+  for(Integer a : list){
+    if(a<=100){
+      list.remove(a);
+    }
+  }
+}
+```
 
-##### 4.迭代器实现的原理🔖🔖
+报错原因是迭代器内部会维护一些索引位置相关的数据，要求**在迭代过程中，容器不能发生结构性变化**，否则这些索引位置就失效了。
 
+所谓结构性变化就是**添加、插入和删除元素**，只是修改元素内容不算结构性变化。
 
+正确用法是使用迭代器的remove方法：
+
+```java
+public static void remove(ArrayList<Integer> list){
+  Iterator<Integer> it = list.iterator();
+  while(it.hasNext()){
+    if(it.next()<=100){
+      it.remove();
+    }
+  }
+}
+```
+
+##### 4.迭代器实现的原理
 
 
 
 ##### 5.迭代器的好处
 
-**迭代器表示的是一种==关注点分离==的思想，将数据的实际组织方式与数据的迭代遍历相分离，是一种常见的设计模式。**
+**迭代器表示的是一种==关注点分离==的思想，将数据的实际==组织方式==与数据的==迭代遍历==相分离，是一种常见的设计模式。**需要访问容器元素的代码只需要一个Iterator接口的引用，不需要关注数据的实际组织方式，可以使用**一致和统一的方式进行访问**。
+
+而提供Iterator接口的代码了解数据的组织方式，可以提供高效的实现。在ArrayList中， size/get(index)语法与迭代器性能是差不多的，但在后续介绍的其他容器中，则不一定，比如LinkedList，迭代器性能就要高很多。
 
 从封装的思路上讲，迭代器**==封装了各种数据组织方式的迭代操作==**，提供了简单和一致的接口。
 
 #### ArrayList实现的接口
 
-Java的各种容器类有一些**共性**的操作，这些共性以接口的方式体现。
+Java的各种容器类有一些**==共性==**的操作，这些共性以接口的方式体现。
 
 ##### 1.Collection
 
@@ -4559,7 +4719,28 @@ public interface Collection<E> extends Iterable<E> {
 }
 ```
 
-containsAll表示检查是否包含了参数容器中的所有元素，只有全包含才返回true, retainAll表示只保留参数容器中的元素，其他元素会进行删除。
+addAll表示添加，removeAll表示删除，containsAll表示检查是否包含了参数容器中的所有元素，只有全包含才返回true, retainAll表示只保留参数容器中的元素，其他元素会进行删除。
+
+> Java 8对Collection接口添加了几个默认方法，包括removeIf、stream、spliterator等。
+
+抽象类AbstractCollection对这几个方法都提供了默认实现，实现的方式就是利用迭代器方法逐个操作。比如
+
+```java
+public boolean removeAll(Collection<?> c) {
+    Objects.requireNonNull(c);
+    boolean modified = false;
+    Iterator<?> it = iterator();
+    while (it.hasNext()) {
+        if (c.contains(it.next())) {
+            it.remove();
+            modified = true;
+        }
+    }
+    return modified;
+}
+```
+
+ArrayList继承了AbstractList，而AbstractList又继承了AbstractCollection, ArrayList对其中一些方法进行了重写，以提供更为高效的实现。
 
 ##### 2.List
 
@@ -4587,9 +4768,9 @@ public interface RandomAccess {
 }
 ```
 
-这种没有任何代码的接口在Java中被称为**==标记接口==**，用于声明类的一种属性。
+这种没有任何代码的接口在Java中被称为**==标记接口==**，用于**声明类的一种属性**。
 
-可随机访问就是具备类似数组那样的特性，数据在内存是连续存放的，根据索引值就可以直接定位到具体的元素，访问效率很高。
+**可随机访问**就是具备类似数组那样的特性，数据在内存是连续存放的，根据索引值就可以直接定位到具体的元素，访问效率很高。
 
 > 有没有声明RandomAccess有什么关系呢？
 >
@@ -4608,27 +4789,61 @@ public static <T> int binarySearch(List<? extends Comparable<? super T>> list, T
 
 #### ArrayList的其他方法
 
-- 构造方法：
+- 构造方法
 
 ```java
 public ArrayList(int initialCapacity)
 public ArrayList(Collection<? extends E> c)
 ```
 
-- 返回数据：
+第一个方法以指定的大小initialCapacity初始化内部的数组大小：
+
+```java
+this.elementData = new Object[initialCapacity];
+```
+
+预先知道长度上限的情况下，使用这个构造方法可以避免重新分配和复制数组。
+
+第二个构造方法以一个已有的Collection构建，数据会新复制一份。
+
+- 返回数组
 
 ```java
 public Object[] toArray()
 public <T> T[] toArray(T[] a)
 ```
 
-- Arrays中有一个静态方法asList可以返回对应的List（返回不是ArrayList，Arrays类的一个内部类）。
+```java
+public Object[] toArray() {
+  return Arrays.copyOf(elementData, size);
+}
+```
+
+最终调用`System.arraycopy`方法，也就是C语言的数组分配。
+
+第二个方法返回对应类型的数组，如果参数数组长度足以容纳所有元素，就使用该数组，否则就新建一个数组，比如：
+
+```java
+ArrayList<Integer> intList = new ArrayList<Integer>();
+intList.add(123);
+intList.add(456);
+intList.add(789);
+Integer[] arrA = new Integer[3];
+intList.toArray(arrA);
+Integer[] arrB = intList.toArray(new Integer[0]);
+System.out.println(Arrays.equals(arrA, arrB));
+```
+
+输出为true，表示两种方式都是可以的。
+
+> Arrays中有一个静态方法asList可以返回对应的List，这个List不是ArrayList，而是Arrays类的一个内部类，在这个内部类的实现中，内部用的数组就是传入的数组，没有拷贝，也不会动态改变大小，所以对数组的修改也会反映到List中，对List调用add、remove方法会抛出异常。🔖
 
 - 控制内部使用的数组大小：
 
 ```java
+// 确保数组的大小至少为minCapacity，如果不够，会进行扩展
 public void ensureCapacity(int minCapacity)
-  
+// 重新分配一个数组，大小刚好为实际内容的长度。调用这个方法可以节省数组占用的空间。  
 public void trimToSize()
 ```
 
@@ -4647,7 +4862,11 @@ ArrayList内部采用动态数组实现，这决定它的特点：
 3. 添加元素的效率还可以，重新分配和复制数组的开销被平摊了，具体来说，添加N个元素的效率为O(N)。
 4. 插入和删除元素的效率比较低，因为需要移动元素，具体为O(N)。
 
-
+> ArrayList不是线程安全的。
+>
+> 实现线程安全的一种方式是使用Collections提供的方法装饰ArrayList。
+>
+> 类`Vector`是Java最早实现的容器类之一，也实现了List接口，基本原理与ArrayList类似，内部使用synchronized实现了线程安全。
 
 ### 9.2 剖析LinkedList
 
@@ -4677,19 +4896,49 @@ Queue扩展了Collection，它的主要操作有三个：
 | 取队首元素并删除   | remove          | poll            |
 | 取队首元素但不删除 | element         | peek            |
 
-在队列为满时，add会抛出异常`IllegalStateException`，而offer只是返回false；
+在队列为满时，add会抛出异常`IllegalStateException`，而offer只是返回false；【LinkedList的实现中，队列长度没有限制，但别的Queue的实现可能有】
 
 在队列为空时，element和remove会抛出异常`NoSuchElementException`，而peek和poll返回特殊值null。
 
-> Java中没有单独的栈接口，栈相关方法包括在了表示双端队列的接口Deque中，主要有三个方法：
+可以把LinkedList当作Queue使用：
+
+```java
+Queue<String> queue = new LinkedList<>();
+queue.offer("a");
+queue.offer("b");
+queue.offer("c");
+while(queue.peek()! =null){
+  System.out.println(queue.poll());
+}
+```
+
+
+
+> Java中没有单独的栈接口，栈相关方法包括在了表示双端队列的接口`Deque`中，主要有三个方法：
 >
 > ```java
->         void push(E e);
->         E pop();
->         E peek();
+> void push(E e);  入栈，在头部添加元素
+> E pop();  出栈，返回头部元素，并且从栈中删除
+> E peek();  查看栈头部元素，不修改栈
 > ```
 >
+> 也可以把LinkedList当作栈使用：
+>
+> ```java
+> Deque<String> stack = new LinkedList<>();
+> stack.push("a");
+> stack.push("b");
+> stack.push("c");
+> while(stack.peek()! = null){
+>   System.out.println(stack.pop());
+> }
+> ```
+>
+> 
+>
 > 类Stack，也实现了栈的一些方法，如push/pop/peek等，但它没有实现Deque接口，它是Vector的子类，它增加的这些方法也通过synchronized实现了线程安全。
+
+
 
 栈和队列都是在两端进行操作，栈只操作头部，队列两端都操作，但尾部只添加、头部只查看和删除。有一个更为通用的操作两端的接口`Deque`。Deque扩展了Queue，包括了栈的操作方法，此外，它还有如下更为明确的操作两端的方法：
 
@@ -4708,17 +4957,33 @@ E removeFirst();
 E removeLast();
 ```
 
+xxxFirst操作头部，xxxLast操作尾部。与队列类似，每种操作有两种形式，区别也是在队列为空或满时处理不同。
+
 为空时，getⅩⅩⅩ/removeⅩⅩⅩ会抛出异常，而peekⅩⅩⅩ/pollⅩⅩⅩ会返回null；
 
 队列满时，addⅩⅩⅩ会抛出异常，offerⅩⅩⅩ只是返回false。
 
-<u>栈和队列只是双端队列的特殊情况，它们的方法都可以使用双端队列的方法替代，不过，使用不同的名称和方法，概念上更为清晰。</u>
+**栈和队列只是双端队列的特殊情况，它们的方法都可以使用双端队列的方法替代，不过，==使用不同的名称和方法，概念上更为清晰==。**
 
-相比于ArrayList，LinkedList增加了一个接口Deque，可以把它看作队列、栈、双端队列，方便地在两端进行操作。
+Deque接口还有一个迭代器方法，可以从后往前遍历:
+
+```java
+Deque<String> deque = new LinkedList<>(Arrays.asList(new String[]{"a", "b", "c"}));
+Iterator<String> it = deque.descendingIterator();
+while(it.hasNext()){
+  System.out.print(it.next()+" ");
+}
+```
+
+
+
+总结：LinkedList的用法是比较简单的，相比于ArrayList，LinkedList增加了一个接口Deque，可以把它看作**队列、栈、双端队列**，方便地在两端进行操作。
 
 #### 实现原理
 
 ##### 1 内部组成
+
+LinkedList直译就是链表
 
 ==双向链表==
 
@@ -4731,6 +4996,21 @@ transient Node<E> last;
 ```
 
 LinkedList的所有public方法内部操作的都是这三个实例变量。
+
+```java
+private static class Node<E> {
+  E item;
+  Node<E> next;
+  Node<E> prev;
+  Node(Node<E> prev, E element, Node<E> next) {
+    this.item = element;
+    this.next = next;
+    this.prev = prev;
+  }
+}
+```
+
+
 
 ##### 2 add
 
@@ -4887,6 +5167,8 @@ E unlink(Node<E> x) {
 
 删除x节点，基本思路就是让x的前驱和后继直接链接起来，next是x的后继，prev是x的前驱。
 
+![](images/image-20240117132439409.png)
+
 #### LinkedList特点分析
 
 用法上，LinkedList是一个List，但也实现了Deque接口，可以作为队列、栈和双端队列使用。实现原理上，LinkedList内部是一个双向链表，并维护了长度、头节点和尾节点，这决定了它有如下特点：
@@ -4900,6 +5182,8 @@ E unlink(Node<E> x) {
 ### 9.3 剖析ArrayDeque
 
 ArrayDeque是**==基于数组实现的双端队列==**。
+
+ArrayDeque实现了Deque接口，同LinkedList一样，它的队列长度也是没有限制的。
 
 一般而言，由于需要移动元素，数组的插入和删除效率比较低，但ArrayDeque的效率却非常高。
 
@@ -4935,6 +5219,8 @@ private transient int tail;
 ArrayDeque的高效来源于head和tail这两个变量，它们使得物理上简单的从头到尾的数组变为了一个==逻辑上循环的数组==，避免了在头尾操作时的移动。
 
 ##### 1.循环数组
+
+ArrayDeque中的数组是一个逻辑上的循环数组，所谓循环是指元素到数组尾之后可以接着从数组头开始，数组的长度、第一个和最后一个元素都与head和tail这两个变量有关，具体来说：
 
 - 如果head和tail相同，则数组为空，长度为0。
 
@@ -6562,11 +6848,45 @@ Collections有三组装饰器方法，它们的返回对象都没有新的方法
 
 
 
-### 12.3 容器类总结🔖
+### 12.3 容器类总结
 
 #### 用法和特点
 
+容器类有两个根接口，分别是Collection和Map, ==Collection表示单个元素的集合，Map表示键值对的集合==。
 
+- `Collection`表示的数据集合有基本的增、删、查、遍历等方法，但没有定义元素间的顺序或位置，也没有规定是否有重复元素。
+- `List`是Collection的子接口，表示有顺序或位置的数据集合，增加了根据索引位置进行操作的方法。它有两个主要的实现类：ArrayList和LinkedList。
+  - `ArrayList`基于数组实现， `LinkedList`基于链表实现；
+  - ArrayList的随机访问效率很高，但从中间插入和删除元素需要移动元素，效率比较低，LinkedList则正好相反，随机访问效率比较低，但增删元素只需要调整邻近节点的链接。
+- `Set`也是Collection的子接口，它没有增加新的方法，但保证不含重复元素。它有两个主要的实现类：HashSet和TreeSet。
+  - `HashSet`基于哈希表实现，要求键重写hashCode方法，效率更高，但元素间没有顺序；
+  - `TreeSet`基于排序二叉树实现，元素按比较有序，元素需要实现Comparable接口，或者创建TreeSet时提供一个Comparator对象。
+  - HashSet还有一个子类`LinkedHashSet`可以按插入有序。
+  - 还有一个针对枚举类型的实现类`EnumSet`，它基于位向量实现，效率很高。
+- `Queue`是Collection的子接口，表示先进先出的队列，在尾部添加，从头部查看或删除。
+  - `Deque`是Queue的子接口，表示更为通用的双端队列，有明确的在头或尾进行查看、添加和删除的方法。
+  - 普通队列有两个主要的实现类：`LinkedList`和`ArrayDeque`。LinkedList基于链表实现，ArrayDeque基于循环数组实现。一般而言，如果只需要Deque接口，ArrayDeque的效率更高一些。
+  - Queue还有一个特殊的实现类`PriorityQueue`，表示优先级队列，内部是用堆实现的。堆除了用于实现优先级队列，还可以高效方便地解决很多其他问题，比如求前K个最大的元素、求中值等。
+
+- `Map`接口表示键值对集合，经常根据键进行操作，它有两个主要的实现类：`HashMap`和`TreeMap`。
+  - HashMap基于哈希表实现，要求键重写hashCode方法，操作效率很高，但元素没有顺序。
+  - TreeMap基于排序二叉树实现，要求键实现Comparable接口，或提供一个Comparator对象，操作效率稍低，但可以按键有序。
+  - HashMap还有一个子类`LinkedHashMap`，它可以按插入或访问有序。之所以能有序，是因为每个元素还加入到了一个双向链表中。如果键本来就是有序的，使用LinkedHashMap而非TreeMap可以提高效率。按访问有序的特点可以方便地用于实现LRU缓存。
+  - 如果键为枚举类型，可以使用专门的实现类`EnumMap`，它使用效率更高的数组实现。
+
+> 除了`Hashtable`、`Vector`和`Stack`，上面介绍的各种容器类都不是线程安全的，也就是说，如果多个线程同时读写同一个容器对象，是不安全的。如果需要线程安全，可以使用Collections提供的`synchronizedⅩⅩⅩ`方法对容器对象进行同步，或者使用**线程安全的专门容器类**。
+
+> 容器类提供的迭代器都有一个特点，都会在迭代中间进行结构性变化检测，如果容器发生了结构性变化，就会抛出ConcurrentModificationException，所以不能在迭代中间直接调用容器类提供的add/remove方法，如需添加和删除，应调用迭代器的相关方法。
+
+> **在解决一个特定问题时，经常需要综合使用多种容器类**。比如，要统计一本书中出现次数最多的前10个单词，可以先使用HashMap统计每个单词出现的次数，再使用TopK类用PriorityQueue求前10个单词，或者使用Collections提供的sort方法。
+
+> 容器中的元素类型可以是简单的，也可以是复杂的自定义类型，还可以是容器类型。
+>
+> 比如在一个新闻应用中，表示当天的前十大新闻可以用一个List表示，形如`List<News>`，
+>
+> 而为了表示每个分类的前十大新闻，可以用一个Map表示，键为分类Category，值为`List<News>`，形如`Map<Category, List<News>>`，
+>
+> 而表示每天的每个分类的前十大新闻，可以在Map中使用Map，键为日期，值也是一个Map，形如`Map<Date,Map<Category, List<News>>`。
 
 #### 数据结构和算法
 
