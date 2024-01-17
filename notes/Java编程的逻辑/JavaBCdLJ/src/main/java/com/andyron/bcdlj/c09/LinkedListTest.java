@@ -1,7 +1,8 @@
 package com.andyron.bcdlj.c09;
 
-import java.util.LinkedList;
-import java.util.List;
+import org.junit.jupiter.api.Test;
+
+import java.util.*;
 
 /**
  * @author andyron
@@ -16,5 +17,14 @@ public class LinkedListTest {
         System.out.println(list.get(2));
         System.out.println(list.indexOf("jack"));
 
+    }
+
+    @Test
+    void descendingIterator() {
+        Deque<String> deque = new LinkedList<>(Arrays.asList(new String[]{"a", "b", "c"}));
+        Iterator<String> it = deque.descendingIterator();
+        while(it.hasNext()){
+            System.out.print(it.next()+" ");
+        }
     }
 }

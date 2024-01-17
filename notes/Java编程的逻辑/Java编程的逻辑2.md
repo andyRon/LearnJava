@@ -6480,3 +6480,54 @@ return container;
 
 
 #### 与Date/Calendar对象的转换
+
+
+
+
+
+# 七、更多
+
+
+
+## Java集合的双大括号初始化
+
+双大括号初始化（double brace initialization）或者匿名内部类初始化法
+
+
+
+```java
+List<String> list = new ArrayList<String>() {{
+    add("Hello");
+    add("World!");
+}};
+
+
+Map<String, Object> map = new HashMap<String, Object>() {
+    {
+        put("name", "Tom");
+        put("age", 10);
+	}
+};
+```
+
+#### 原理
+
+第一层花括号定义了一个**继承于ArrayList的匿名内部类 (Anonymous Inner Class)**：
+
+```java
+//定义了一个继承于ArrayList的匿名内部类
+new ArrayList<String>(){
+    
+};
+```
+
+第二层花括号是这个匿名内部类**实例初始化块 (Instance Initializer Block)**（或称为非静态初始化块）：
+
+```java
+new ArrayList<String>(){
+  {
+    //这里是实例初始化块，可以直接调用父类的非私有方法或访问非私有成员
+  }
+};
+```
+
