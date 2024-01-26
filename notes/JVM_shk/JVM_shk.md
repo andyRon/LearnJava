@@ -4869,7 +4869,7 @@ Serial/Serial Old、Serial/CMS、ParNew/Serial Old、ParNew/CMS, Parallel Scaven
   -XX:InitialHeapSize=268435456 -XX:MaxHeapSize=4294967296 -XX:+PrintCommandLineFlags -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseParallelGC
   ```
 
-  
+  `java -XX:+PrintCommandLineFlags -version`
 
 - ﻿使用命令行指令：`jinfo -flag 相关垃圾回收器参数 进程ID`
 
