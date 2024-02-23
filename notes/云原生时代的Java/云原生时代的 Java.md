@@ -73,6 +73,8 @@ Java 与云原生的矛盾，来源于 Java 诞生之初，植入到它基因之
 
 ![](images/iShot_2024-02-23_13.41.05.png)
 
+https://openjdk.org/projects/
+
 ### Project Leyden
 
 对于原生语言的挑战，最有力、最彻底的反击手段无疑是将字节码直接编译成可以脱离 Java 虚拟机的原生代码。
