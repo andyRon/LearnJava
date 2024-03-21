@@ -99,7 +99,7 @@ static JNINativeMethod methods[] = {
 
 #### 1把锁
 
-synchronized
+`synchronized`
 
 #### 2个并
 
@@ -809,7 +809,7 @@ public <U,V> CompletableFuture<V> thenCombine(
 > 8、hashmap是如何寻址的，哈希碰撞后是如何存储数据的，1.8后什么时候变成红黑树,红黑树有什么好处
 > 9、concurrrenthashmap怎么实现线程安全，一个里面会有几个段 segment，jdk1.8后有优化concurrenthashmap吗?分段锁有什么坏处
 
-### 乐观锁和悲观锁
+### 4.1 乐观锁和悲观锁
 
 - 悲观锁：
   + 认为自己在使用数据的时候==一定有别的线程来修改数据==，因此在获取数据的时候会先加锁，确保数据不会被别的线程修改。
@@ -1063,9 +1063,297 @@ ObjectMonitor中有几个关键属性：
 
 
 
-### 公平锁和非公平锁
+### 4.2 公平锁和非公平锁
 
-🔖p35
+#### 什么是公平锁和非公平锁
+
+- 公平锁：是指多个线程按照申请锁的顺序来获取锁。类似排队打饭先来后到。排队买票，先来的人先买后来的人在队尾排着，这是公平的Lock lock = new ReentrantLock（true）；//true ==表示公平锁，先来先得==
+- 非公平锁：是指在多线程获取锁的顺序并不是按照申请锁的顺序,有可能后申请的线程比先申请的线程优先获取到锁,在高并发的情况下,有可能造成优先级反转或者饥饿的状态（某个线程一直得不到锁）
+
+注意：`synchronized` 和 `ReentrantLock` 默认是非公平锁
+
+
+#### 排队抢票案例(公平出现锁饥饿)
+
+锁饥饿:我们使用5个线程买100张票,使用ReentrantLock默认是非公平锁,获取到的结果可能都是A线程在出售这100张票,会导致B、C、D、E线程发生锁饥饿(使用公平锁会有什么问题)
+
+
+
+#### 为什么会有公平锁、非公平锁的设计?为什么默认非公平？
+
+面试题
+
+- 恢复挂起的线程到真正锁的获取还是有时间差的,从开发人员来看这个时间微乎其微,但是从CPU的角度来看,这个时间存在的还是很明显的,所以非公平锁能更**充分的利用CPU的时间片,尽量减少CPU空闲状态时间**。
+- 使用多线程很重要的考量点是**线程切换的开销**,当采用非公平锁时，当一个线程请求锁获取同步状态,然后释放同步状态,因为不需要考虑是否还有前驱节点,所以刚释放锁的线程在此刻再次获取同步状态的概率就变得非常大了,所以就减少了线程的开销线程的开销
+
+#### 什么时候用公平？什么时候用非公平？
+
+面试题
+
+如果为了更高的吞吐量,很显然非公平锁是比较合适的,因为节省很多线程切换时间,吞吐量自然就上去了；
+
+否则那就用公平锁,大家公平使用，没有效率、性能要求没那么高。
+
+#### 源码解读
+
+- 公平锁:排序排队公平锁,就是判断同步队列是否还有先驱节点的存在(我前面还有人吗?),如果没有先驱节点才能获锁
+- 先占先得非公平锁,是不管这个事的,只要能抢获到同步状态就可以
+- ReentrantLock默认是非公平锁,公平锁要多一个方法,所以非公平锁的性能更好(aqs源码)
+
+![image-20240321235919091](images/image-20240321235919091.png)
+
+![](images/image-20240322000115445.png)
+
+### 4.3 可重入锁(又名递归锁)
+
+#### 什么是可重入锁？
+
+可重入锁又名递归锁,是指在==同一个线程==在外层方法获取锁的时候，再进入该线程的内层方法会==自动获取锁==(前提，锁对象得是同一个对象)，不会因为之前已经获取过还没有释放而阻塞。
+
+如果是1个有`synchronized`修饰得递归调用方法，**程序第2次进入被自己阻塞了岂不是天大的笑话,出现了作茧自缚**。
+
+所以Java中`ReentrantLock`和`synchronized`都是可重入锁，可重入锁的一个优点是**可在一定程度避免死锁**。
+
+
+
+#### 可重入锁这四个字分开解释
+
+可: 可以
+
+重: 再次
+
+入: 进入
+
+锁: 同步锁
+
+进入什么：进入同步域(即同步代码块、方法或显示锁锁定的代码)
+
+
+
+一个线程中的多个流程可以获取同一把锁，持有这把同步锁可以再次进入。自己可以获取自己的内部锁。
+
+
+
+#### 可重入锁的种类
+
+- 隐式锁(即synchronized关键字使用的锁)默认是可重入锁。【在同步块、同步方法都使用】
+
+**在一个synchronized修饰的方法或者代码块的内部调用本类的其他synchronized修饰的方法或代码块时,是永远可以得到锁的**。
+
+同步块：
+
+```java
+final Object object = new Object();
+
+new Thread(() -> {
+  synchronized (object) {
+    System.out.println(Thread.currentThread().getName() + "\t ------外层调用");
+    synchronized (object) {
+      System.out.println(Thread.currentThread().getName() + "\t ------外层调用");
+      synchronized (object) {
+        System.out.println(Thread.currentThread().getName() + "\t ------外层调用");
+      }
+    }
+  }
+}, "t1").start();
+```
+
+同步方法：
+
+```java
+    public synchronized void m1() {
+        // 在一个synchronized修饰的方法或者代码块的内部调用本类的其他synchronized修饰的方法或代码块时,是永远可以得到锁的
+        System.out.println(Thread.currentThread().getName() + "\t ----- come in");
+        m2();
+        System.out.println(Thread.currentThread().getName() + "\t ------end m1");
+    }
+    public synchronized void m2() {
+        System.out.println(Thread.currentThread().getName() + "\t ----- come in");
+        m3();
+    }
+    public synchronized void m3() {
+        System.out.println(Thread.currentThread().getName() + "\t ----- come in");
+    }
+```
+
+```java
+        // 从头到尾只有t2这一个线程持有同一把锁
+        ReEntryLockDemo reEntryLockDemo = new ReEntryLockDemo();
+        new Thread(() -> {
+            reEntryLockDemo.m1();
+        }, "t2").start();
+```
+
+
+
+- 显示锁(即Lock)也有`ReentrantLock`这样的可重入锁
+
+​	lock和unlock一定要一一匹配,如果少了或多了,都会坑到别的线程
+
+```java
+    static Lock lock = new ReentrantLock();
+    // 显示锁，lock和unlock方法是一一对应的。
+    public static void xianshiLock() {
+
+        new Thread(() -> {
+            lock.lock();
+            try {
+                System.out.println(Thread.currentThread().getName() + "\t ----- come in外层调用");
+                lock.lock();
+                try {
+                    System.out.println(Thread.currentThread().getName() + "\t ----- come in内层调用");
+                } finally {
+                    lock.unlock();
+                }
+            } finally {
+//                lock.unlock();
+            }
+        }, "t1").start();
+
+        // 如果t1线程中缺少unlock，就会死锁，导致t2线程无法获取到锁，一直在等待
+        new Thread(() -> {
+            lock.lock();
+            try {
+                System.out.println(Thread.currentThread().getName() + "\t ----- come in外层调用");
+            } finally {
+                lock.unlock();
+            }
+        }, "t2").start();
+    }
+```
+
+#### Synchronized的重入的实现机理
+
+为什么任何一个对象都可以成为一个锁
+
+`ObjectMonitor.hpp`（`ReentrantLock`也是使用这个。都是使用这个？）
+
+![](images/image-20240322003531930.png)
+
+ObjectMonitor中有几个关键属性：
+
+| _owner      | 指向持有ObjectMonitor对象的线程   |
+| ----------- | --------------------------------- |
+| _WaitSet    | 存放处于wait状态的线程队列        |
+| _EntryList  | 存放处于等待锁block状态的线程队列 |
+| _recursions | 锁的重入次数                      |
+| _count      | 用来记录该线程获取锁的次数        |
+
+- 每个锁对象拥有一个锁计数器（`_recursions`）和一个指向持有该锁的线程的指针（`_owner`）。
+
+- 当执行`monitorenter`时，如果目标锁对象的计数器为零，那么说明它没有被其他线程所持有，Java虚拟机会将该锁对象的持有线程设置为当前线程，并且将计数器加1。
+
+- 在目标锁对象的计数器不为零的情况下，如果锁对象的持有线程时当前线程，那么Java虚拟机可以将其计数器加1，否则需要等待,直到持有线程释放该锁。
+
+- 当执行`monitorexit`，Java虚拟机则需将锁对象的计数器减1。计数器为零代表锁已经释放。
+  
+
+### 4.4 死锁及排查
+
+#### 什么是死锁？
+
+死锁是指两个或两个以上的线程在执行过程中,因争夺资源而造成的一种==互相等待==的现象,若无外力干涉那它们都将无法推进下去,如果资源充足,进程的资源请求都能够得到满足,死锁出现的可能性就很低,否则就会因争夺有限的资源而陷入死锁。
+
+![](images/image-20240322005455350.png)
+
+
+
+#### 产生死锁的原因
+
+- 系统资源不足
+
+- 进程运行推进的顺序不合适
+
+- 资源分配不当
+
+#### 代码展示
+
+```java
+public class DeadLockDemo {
+    public static void main(String[] args) {
+        final Object objectA = new Object();
+        final Object objectB = new Object();
+
+        new Thread(() -> {
+            synchronized (objectA) {
+                System.out.println(Thread.currentThread().getName() + "\t ----- 自己持有A锁，希望获得B锁");
+                try { TimeUnit.SECONDS.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+                synchronized (objectB) {
+                    System.out.println(Thread.currentThread().getName() + "\t ----- 成功获得B锁");
+                }
+            }
+        }, "A").start();
+
+        new Thread(() -> {
+            synchronized (objectB) {
+                System.out.println(Thread.currentThread().getName() + "\t ----- 自己持有B锁，希望获得A锁");
+                try { TimeUnit.SECONDS.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+                synchronized (objectA) {
+                    System.out.println(Thread.currentThread().getName() + "\t ----- 成功获得A锁");
+                }
+            }
+        }, "B").start();
+    }
+}
+```
+
+
+
+#### 如何排除死锁
+
+程序一直运行（灯不灭），怎么证明是死锁了
+
+##### 方式一:纯命令
+
+`jps`（java ps -ef）
+
+```
+jps -l
+jstack 进程id
+```
+
+![](images/image-20240322010629982.png)
+
+##### 方式二:jconsole(输入cmd,输入jconsole,点击检测死锁按钮)
+
+![](images/image-20240322010825087.png)
+
+
+
+> 本章后面部分，学完之后章节，再学
+>
+> ![](images/image-20240322011044716.png)
+
+### 小总结
+
+![](images/image-20240322011336070.png)
+
+#### ObjectMonitor
+
+指针指向monitor对象（也称为管程或监视器锁）的起始地址。每个对象都存在着一个monitor与之关联，当一个 monitor 被某个线程持有后，它便处于**锁定状态**。在Java虚拟机（HotSpot）中，monitor是由ObjectMonitor实现的，其主要数据结构如下（位于HotSpot虚拟机源码ObjectMonitor.hpp文件，C++实现的）
+
+![](images/iShot_2024-03-21_23.40.48.png)
+
+
+
+### 4.5 自旋锁
+
+#### 什么是自旋锁？
+
+(是指尝试获取锁的线程不会立即阻塞，而是采用循环的方式去尝试获取锁,当线程发现锁被占用时，会不断循环判断锁的状态，直到获取。这样的好处是减少线程上下文切换的消耗，缺点是循环会消耗CPU)
+
+
+
+#### 如何手写一个自选锁
+
+
+
+
+
+#### CAS缺点
+
+1. 循环时间长开销很大
+2. 引出来ABA问题(在CAS篇章将详细说明)
 
 
 
