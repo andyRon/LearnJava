@@ -139,7 +139,7 @@ Monitor（监视器），也就是我们平时所说的==锁==。
 
 Monitor其实是一种==同步机制==，他的义务是保证（同一时间）只有一个线程可以访问被保护的数据和代码。
 
-JVM中同步是基于进入和退出监视器对象(Monitor,==管程对象==)来实现的，每个对象实例都会有一个Monitor对象：
+JVM中同步是基于进入和退出监视器对象(Monitor，==管程对象==)来实现的，每个对象实例都会有一个Monitor对象：
 
 ```java
 Object o = new Object();
@@ -1361,8 +1361,336 @@ jstack 进程id
 
 
 
-## 5 LockSupport与线程中断
+## 5 线程中断与LockSupport❤️ 
 
+`java.util.concurrent.locks.LockSupport`
+
+### 线程中断机制
+
+> 阿里面试题：
+>
+> Thread中三个方法的含义：
+>
+> - `void interrupt()`  中断此线程
+> - `static boolean interrupted() `  测试当前线程是否已被中断
+> - `boolean isInterrupted()`  测试线程是否已被中断
+>
+> 如何**中断**一个运行中的线程？？
+>
+> 如何停止一个运行中的线程？？
+
+
+
+#### 什么是中断
+
+- 一个线程不应该由其他线程来强制中断或停止，而是==应该由线程自己自行停止==，所以，**Thread.stop、Thread.suspend、Thread.resume都已经被废弃了**。
+
+- 在Java中没有办法立即停止一条线程，然而停止线程却显得尤为重要，如取消一个耗时操作。因此，Java提供了一种用于停止线程的机制——==中断==，也即中断标识==协商机制==。
+
+- 中断只是一种协作机制，**Java没有给中断增加任何语法，中断的过程完全需要程序员自己实现**。
+
+- 若要中断一个线程，你需要手动调用该线程的`interrupt`方法，该方法也**仅仅是将线程对象的==中断标识==设为true**；接着你需要自己写代码不断地检测当前线程的标识位，如果为true，表示别的线程请求这条线程中断，此时究竟该做什么需要你自己写代码实现。
+
+  > 服务员有礼貌请求某个客户不要吸烟，然后客户自己停止吸烟，而不是直接上去打断其🚬。
+
+- 每个线程对象中都有一个标识，用于标识线程是否被中断；该标识位为true表示中断，为false表示未中断；通过调用线程对象的interrupt方法将线程的标识位设为true；可以在别的线程中调用，也可以在自己的线程中调用。
+
+
+
+#### 中断机制3个中断方法
+
+##### boolean isInterrupted()
+
+实例方法，判断当前线程是否被中断(通过检查中断标识位) 实例方法。
+
+##### void interrupt()
+
+实例方法，仅仅是设置线程的中断状态未true，不会停止线程。
+
+```java
+    public void interrupt() {
+        if (this != Thread.currentThread())
+            checkAccess();
+
+        synchronized (blockerLock) {
+            Interruptible b = blocker;
+            if (b != null) {
+                interrupt0();           // Just to set the interrupt flag  native方法
+                b.interrupt(this);
+                return;
+            }
+        }
+        interrupt0();
+    }
+```
+
+![](images/image-20240322130849898.png)
+
+具体来说，当对一个线程，调用 interrupt()时：
+
+1. 如果线程处于==正常活动状==态，那么会将该线程的中断标志设置为 true，仅此而已。**被设置中断标志的线程将继续正常运行，不受影啊**。所以，interrupt()并不能真正的中断线程，需要被调用的线程自己进行配合才行。
+
+```java
+/**
+ * 验证线程的中断标识为true，是不是就立刻停止
+ * @author andyron
+ **/
+public class Interrupt {
+    public static void main(String[] args) {
+        // 实例方法interrupt()，仅仅是设置线程的中断状态未true，不会停止线程。
+        Thread t1 = new Thread(() -> {
+            for (int i = 0; i <= 300; i++) {
+                System.out.println("-----: " + i);
+            }
+            System.out.println("t1线程调用interrupt()后的中断标识02： " + Thread.currentThread().isInterrupted());  // ture
+        }, "t1");
+        t1.start();
+
+        System.out.println("t1线程默认的中断标识： " + t1.isInterrupted());  // false
+
+        try { TimeUnit.MILLISECONDS.sleep(2); } catch (InterruptedException e) { e.printStackTrace(); }
+        t1.interrupt();  // true
+        System.out.println("t1线程调用interrupt()后的中断标识01： " + t1.isInterrupted());  // true
+
+        try { TimeUnit.MILLISECONDS.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+        System.out.println("t1线程调用interrupt()后的中断标识03： " + t1.isInterrupted());  // false  因为2000ms后线程t1已经运行完了，是不活动线程
+    }
+}
+```
+
+
+
+2. 如果线程处于被阻塞状态（例如处于sleep，wait, join等状态），在别的线程中调用当前线程对象的interrupt方法，那么线程将立即退出被阻塞状态，并抛出一个`InterruptedException`异常。
+
+```java
+/**
+ * 线程处于被阻塞状态时，在别的线程中调用当前线程对象的interrupt方法，那么线程将立即退出被阻塞状态，并抛出一个`InterruptedException`异常。
+ * @author andyron
+ **/
+public class Interrupt2 {
+    public static void main(String[] args) {
+        Thread t1 = new Thread(() -> {
+            while (true) {
+                if (Thread.currentThread().isInterrupted()) {
+                    System.out.println(Thread.currentThread().getName() + "\t " + "中断标志位： " +
+                            Thread.currentThread().isInterrupted() + " 程序停止");
+                    break;
+                }
+
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();   // 为什么要在异常处，再调用一次
+                    e.printStackTrace();
+                }
+
+                System.out.println("----- hello Interrupt2");
+            }
+        }, "t1");
+        t1.start();
+
+        try { TimeUnit.SECONDS.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+        new Thread(() -> t1.interrupt(), "t2").start();
+    }
+}
+/*
+    1 中断标志位默认为false；
+    2 t2 向 t1发出中断协商（t2调用t1.interrupt()），中断标志位变为true；
+    3 中断标识位true，正常情况，程序停止
+    4 中断标识位true，异常情况，InterruptedException，将会把中断状态清楚，中断标志位变为false，导致无限循环
+    5 在catch块中，需要再次给中断标识位设置为true，
+ */
+
+```
+
+sleep方法抛出InterruptedException后，中断标识也被清空置为false，我们在catch没有通过调用th.interrupt( )方法再次将中断标识位设置位true，这就是导致无限循环了
+
+##### static boolean interrupted()
+
+静态方法，判断线程是否被中断，并清除当前中断状态。
+
+这个方法做了两件事：
+
+1. 返回当前线程的中断状态，测试当前线程是否已被中断；
+2. 将当前线程的中断状态清零，并重新设为false
+
+```java
+        System.out.println(Thread.currentThread().getName() + "\t" + Thread.interrupted());     // false
+        System.out.println(Thread.currentThread().getName() + "\t" + Thread.interrupted());     // false
+        System.out.println("-----1");
+        Thread.currentThread().interrupt();  // 中断标志位设置为true
+        System.out.println("-----2");
+        System.out.println(Thread.currentThread().getName() + "\t" + Thread.interrupted());     // true  返回当前线程的中断状态并清除
+        System.out.println(Thread.currentThread().getName() + "\t" + Thread.interrupted());     // false
+```
+
+![](images/image-20240322140303347.png)
+
+原理:假设有两个线程A、B，线程B调用了interrupt方法，这个时候我们连接调用两次isInterrupted方法，第一次会返回true，然后这个方法会将中断标识位设置位false，所以第二次调用将返回false
+
+##### 比较静态方法interrupted和实例方法isInterrupted
+
+都调用的`private native boolean isInterrupted(boolean ClearInterrupted);`，不同的是：
+
+1. 静态方法interrupted将会清除中断状态(传入的参数ClearInterrupted位true)
+2. 实例方法isInterrupted则不会(传入的参数ClearInterrupted为false)
+
+
+
+
+
+#### 如何使用中断标识停止线程？
+
+
+
+三种中断标识停止线程的方式：
+
+1. 通过一个`volatile`变量实现
+
+`volatile`变量，可见性
+
+```java
+/**
+ * 通过volatile变量实现停止线程
+ * @author andyron
+ **/
+public class InterruptDemo {
+    static volatile boolean isStop = false;
+
+    public static void main(String[] args) {
+        new Thread(() -> {
+            while (true) {
+                if (isStop) {
+                    System.out.println(Thread.currentThread().getName() + "\t isStop被修改为ture，程序停止");
+                    break;
+                }
+                System.out.println("t1 -------- hello volatile");
+            }
+        }, "t1").start();
+
+        // 暂停毫秒
+        try { TimeUnit.MILLISECONDS.sleep(20); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        new Thread(() -> {
+            isStop = true;
+        }, "t2").start();
+
+    }
+}
+```
+
+2. 通过`AtomicBoolean`
+
+```java
+/**
+ * 通过AtomicBoolean实现停止线程
+ * @author andyron
+ **/
+public class InterruptDemo2 {
+    static AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+    public static void main(String[] args) {
+        new Thread(() -> {
+            while (true) {
+                if (atomicBoolean.get()) {
+                    System.out.println(Thread.currentThread().getName() + "\t atomicBoolean被修改为ture，程序停止");
+                    break;
+                }
+                System.out.println("t1 -------- hello atomicBoolean");
+            }
+        }, "t1").start();
+
+        // 暂停毫秒
+        try { TimeUnit.MILLISECONDS.sleep(20); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        new Thread(() -> {
+            atomicBoolean.set(true);
+        }, "t2").start();
+    }
+}
+
+```
+
+3. 通过Thread类自带的中断API方法实现
+
+在需要中断的线程中==不断监听中断状态==，一旦发生中断，就执行型对于的中断处理业务逻辑。【前面的两种方法也类似，不断监听对应变量】
+
+```java
+        Thread t1 = new Thread(() -> {
+            while (true) {
+                if (Thread.currentThread().isInterrupted()) {
+                    System.out.println(Thread.currentThread().getName() + "\t 中端标识被修改为ture，程序停止");
+                    break;
+                }
+                System.out.println("t1 -------- hello 中断 api");
+            }
+        }, "t1");
+        t1.start();
+
+        // 暂停毫秒
+        try { TimeUnit.MILLISECONDS.sleep(20); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        new Thread(() -> {
+            t1.interrupt();
+        }, "t2").start();
+```
+
+
+
+#### 面试题：当前线程的中断标识为true，是不是就立刻停止？
+
+不会，参考上线interrupt()的代码案例。
+
+### LockSupport
+
+#### 什么是LockSupport?
+
+ 通过park()和unpark(thread)方法来实现阻塞和唤醒线程的操作
+
+②. LockSupport是一个线程阻塞工具类，所有的方法都是静态方法，可以让线程在任意位置阻塞，阻塞之后也有对应的唤醒方法。归根结底，LockSupport调用的Unsafe中的native代码
+
+③. 官网解释:
+LockSupport是用来创建锁和其他同步类的基本线程阻塞原语
+LockSupport类使用了一种名为Permit(许可)的概念来做到阻塞和唤醒线程的功能，每个线程都有一个许可(permit)，permit只有两个值1和零，默认是零
+可以把许可看成是一种(0，1)信号量(Semaphore)，但与Semaphore不同的是，许可的累加上限是1
+
+
+
+
+#### 阻塞方法
+
+permit默认是0，所以一开始调用park()方法，当前线程就会阻塞，直到别的线程将当前线程的permit设置为1时， park方法会被唤醒，然后会将permit再次设置为0并返回
+
+②. static void park( ):底层是unsafe类native方法
+
+③. static void park(Object blocker)
+
+
+
+
+
+#### 唤醒方法(注意这个permit最多只能为1)
+
+调用unpark(thread)方法后，就会将thread线程的许可permit设置成1(注意多次调用unpark方法，不会累加，permit值还是1)会自动唤醒thread线程，即之前阻塞中的LockSupport.park()方法会立即返回
+
+②. static void unpark( )
+
+
+
+
+
+#### LockSupport它的解决的痛点
+
+LockSupport不用持有锁块，不用加锁，程序性能好
+
+先后顺序，不容易导致卡死(因为unpark获得了一个凭证，之后再调用park方法，就可以名正言顺的凭证消费，故不会阻塞)
+
+
+
+#### LockSupport 面试题目
+
+为什么可以先唤醒线程后阻塞线程?(因为unpark获得了一个凭证，之后再调用park方法，就可以名正言顺的凭证消费，故不会阻塞)
+
+为什么唤醒两次后阻塞两次，但最终结果还会阻塞线程?(因为凭证的数量最多为1，连续调用两次unpark和调用一次unpark效果一样，只会增加一个凭证;而调用两次park却需要消费两个凭证，证不够，不能放行)
 
 
 
