@@ -1363,9 +1363,9 @@ jstack 进程id
 
 ## 5 线程中断与LockSupport❤️ 
 
-`java.util.concurrent.locks.LockSupport`
 
-### 线程中断机制
+
+### 5.1 线程中断机制
 
 > 阿里面试题：
 >
@@ -1640,62 +1640,558 @@ public class InterruptDemo2 {
 
 不会，参考上线interrupt()的代码案例。
 
-### LockSupport
+### 5.2 LockSupport
+
+`java.util.concurrent.locks.LockSupport`
 
 #### 什么是LockSupport?
 
- 通过park()和unpark(thread)方法来实现阻塞和唤醒线程的操作
+LockSupport是用来创建锁和其他同步类的基本线程阻塞原语。
 
-②. LockSupport是一个线程阻塞工具类，所有的方法都是静态方法，可以让线程在任意位置阻塞，阻塞之后也有对应的唤醒方法。归根结底，LockSupport调用的Unsafe中的native代码
+- 通过park()和unpark(thread)方法来实现阻塞和唤醒线程的操作
+
+-  LockSupport是一个线程阻塞工具类，所有的方法都是静态方法，可以让线程在任意位置阻塞，阻塞之后也有对应的唤醒方法。归根结底，LockSupport调用的Unsafe中的native代码。
 
 ③. 官网解释:
 LockSupport是用来创建锁和其他同步类的基本线程阻塞原语
 LockSupport类使用了一种名为Permit(许可)的概念来做到阻塞和唤醒线程的功能，每个线程都有一个许可(permit)，permit只有两个值1和零，默认是零
 可以把许可看成是一种(0，1)信号量(Semaphore)，但与Semaphore不同的是，许可的累加上限是1
 
+#### 线程等待唤醒机制
+
+LockSupport就是对==线程等待唤醒机制==的另外一种优化和提升。
+
+##### 3中让线程等待和唤醒的方法
+
+> 技术的发展
+>
+> ![](images/image-20240322163117701.png)
+
+- 方式1：使用Object中的wait()方法让线程等待，使用Object中的notify()方法唤醒线程。
+
+```java
+/**
+ * 方式1（wait，notify）正常情况
+ * @author andyron
+ **/
+public class LockSupportDemo {
+    public static void main(String[] args) {
+        Object objectLock = new Object();
+        new Thread(() -> {
+            synchronized (objectLock) {
+                System.out.println(Thread.currentThread().getName() + "\t -------come in");
+                try {
+                    objectLock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(Thread.currentThread().getName() + "\t -------被唤醒");
+
+            }
+        }, "t1").start();
+
+        // 暂停几秒钟线程
+        try { TimeUnit.SECONDS.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        new Thread(() -> {
+            synchronized (objectLock) {
+                objectLock.notify();
+                System.out.println(Thread.currentThread().getName() + "\t -------发出通知");
+            }
+        }, "t2").start();
+    }
+}
+```
+
+```java
+/**
+ * 方式1（wait，notify）异常1：wait方法和notify方法两个方法都去掉同步代码块
+ * 结果出现两个异常 
+ * @author andyron
+ **/
+public class LockSupportDemo2 {
+    public static void main(String[] args) {
+        Object objectLock = new Object();
+        new Thread(() -> {
+//            synchronized (objectLock) {
+                System.out.println(Thread.currentThread().getName() + "\t -------come in");
+                try {
+                    objectLock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(Thread.currentThread().getName() + "\t -------被唤醒");
+
+//            }
+        }, "t1").start();
+
+        // 暂停几秒钟线程
+        try { TimeUnit.SECONDS.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        new Thread(() -> {
+//            synchronized (objectLock) {
+                objectLock.notify();
+                System.out.println(Thread.currentThread().getName() + "\t -------发出通知");
+//            }
+        }, "t2").start();
+    }
+}
+```
+
+`IllegalMonitorStateException`
+
+```java
+/**
+ * 方式1（wait，notify）异常2：将notify放在wait方法前面。
+ * 程序员无法执行，无法唤醒
+ * @author andyron
+ **/
+public class LockSupportDemo3 {
+    public static void main(String[] args) {
+        Object objectLock = new Object();
+        new Thread(() -> {
+            try { TimeUnit.SECONDS.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+            synchronized (objectLock) {
+                System.out.println(Thread.currentThread().getName() + "\t -------come in");
+                try {
+                    objectLock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(Thread.currentThread().getName() + "\t -------被唤醒");
+
+            }
+        }, "t1").start();
+
+        new Thread(() -> {
+            synchronized (objectLock) {
+                objectLock.notify();
+                System.out.println(Thread.currentThread().getName() + "\t -------发出通知");
+            }
+        }, "t2").start();
+    }
+}
+
+```
 
 
 
-#### 阻塞方法
-
-permit默认是0，所以一开始调用park()方法，当前线程就会阻塞，直到别的线程将当前线程的permit设置为1时， park方法会被唤醒，然后会将permit再次设置为0并返回
-
-②. static void park( ):底层是unsafe类native方法
-
-③. static void park(Object blocker)
+小结：wait和notify方法必须要在同步块或者方法里面，且成对出现使用。先wait后notify才行。
 
 
 
+- 方式2：使用JUC包中的Condition的await()方法让线程等待，使用signal()方法唤醒线程。
+
+```java
+       	Lock lock = new ReentrantLock();
+        Condition condition = lock.newCondition();
+
+        new Thread(() -> {
+            lock.lock();
+            try {
+                System.out.println(Thread.currentThread().getName() + "\t ----come in");
+                condition.await();
+                System.out.println(Thread.currentThread().getName() + "\t ----被唤醒");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
+            }
+        }, "t1").start();
+
+        // 暂停几秒钟线程
+        try { TimeUnit.SECONDS.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        new Thread(() -> {
+            lock.lock();
+            try {
+                condition.signal();
+                System.out.println(Thread.currentThread().getName() + "\t ----发出通知");
+            } finally {
+                lock.unlock();
+            }
+        }, "t2").start();
+```
 
 
-#### 唤醒方法(注意这个permit最多只能为1)
 
-调用unpark(thread)方法后，就会将thread线程的许可permit设置成1(注意多次调用unpark方法，不会累加，permit值还是1)会自动唤醒thread线程，即之前阻塞中的LockSupport.park()方法会立即返回
-
-②. static void unpark( )
+小结：Condition中的线程等待和唤醒方法，需要先获取锁；一定要先await后signal，不能反了。
 
 
 
+> 上述两个对象Object和Condition使用的限制条件：线程先要获得并持有锁，必须在锁块（synchronized或lock）中；必须要先等待后唤醒，线程才能够被唤醒。
 
-
-#### LockSupport它的解决的痛点
-
-LockSupport不用持有锁块，不用加锁，程序性能好
-
-先后顺序，不容易导致卡死(因为unpark获得了一个凭证，之后再调用park方法，就可以名正言顺的凭证消费，故不会阻塞)
+- 方式3：LockSupport类可以阻塞当前线程以及唤醒制定被阻塞的线程。
 
 
 
-#### LockSupport 面试题目
+#### LockSupport
 
-为什么可以先唤醒线程后阻塞线程?(因为unpark获得了一个凭证，之后再调用park方法，就可以名正言顺的凭证消费，故不会阻塞)
+LockSupport类使用了一种名为==Permit（许可）==的概念来做到**阻塞和唤醒线程**的功能，每个线程都有一个许可（permit），但与`Semaphore`不同的是，==许可的累加上限是1==。
 
-为什么唤醒两次后阻塞两次，但最终结果还会阻塞线程?(因为凭证的数量最多为1，连续调用两次unpark和调用一次unpark效果一样，只会增加一个凭证;而调用两次park却需要消费两个凭证，证不够，不能放行)
+##### 阻塞方法
+
+permit默认是0，所以一开始调用park()方法，当前线程就会阻塞，直到别的线程将当前线程的permit设置为1时， park方法会被唤醒，然后会将permit再次设置为0并返回。
+
+```java
+public static void park() {
+  UNSAFE.park(false, 0L);
+}
+// UNSAFE
+public native void park(boolean isAbsolute, long time);
+```
+
+permit许可证默认没有不能放行，所以一开始调park()方法当前线程就会阻塞，直到别的线程给当前线程的发放permit，park方法才会被唤醒。
+
+##### 唤醒方法
+
+调用unpark(thread)方法后，就会将thread线程的许可permit设置成1(注意多次调用unpark方法，不会累加，permit值还是1)会自动唤醒thread线程，即之前阻塞中的LockSupport.park()方法会立即返回。
+
+```java
+public static void unpark(Thread thread) {
+  if (thread != null)
+    UNSAFE.unpark(thread);
+}
+
+// UNSAFE
+public native void unpark(Object thread);
+```
+
+调用unpark(thread)方法后，就会将thread线程的许可证permit发放，会自动唤醒park线程，即之前阻塞中的LockSupport.park()方法会立即返回。
 
 
 
+##### 代码案例
 
-## 6 Java内存模型之JMM
+```java
+    private static void t1() {
+        Thread t1 = new Thread(() -> {
+            System.out.println(Thread.currentThread().getName() + "\t ----come in");
+            LockSupport.park();
+            System.out.println(Thread.currentThread().getName() + "\t ----被唤醒");
+        }, "t1");
+        t1.start();
+
+        // 暂停几秒钟线程
+        try { TimeUnit.SECONDS.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        new Thread(() -> {
+            LockSupport.unpark(t1);
+            System.out.println(Thread.currentThread().getName() + "\t ----发出通知");
+        }, "t2").start();
+    }
+
+    // 先唤醒后等待也可以
+    private static void t2() {
+        Thread t1 = new Thread(() -> {
+            try { TimeUnit.SECONDS.sleep(3); } catch (InterruptedException e) { e.printStackTrace(); }
+            System.out.println(Thread.currentThread().getName() + "\t ----come in "  + System.currentTimeMillis());
+            LockSupport.park();
+            System.out.println(Thread.currentThread().getName() + "\t ----被唤醒 " + System.currentTimeMillis());
+        }, "t1");
+        t1.start();
+
+
+        new Thread(() -> {
+            LockSupport.unpark(t1);
+            System.out.println(Thread.currentThread().getName() + "\t ----发出通知 "  + System.currentTimeMillis());
+        }, "t2").start();
+    }
+```
+
+t2的结果：
+
+```
+t2	 ----发出通知 1711100288326
+t1	 ----come in 1711100291328
+t1	 ----被唤醒 1711100291328
+```
+
+sleep方法3秒后醒来，执行park无效，没有阻塞效果，解释如下:先执行了unpark（t1）导致上面的park方法形同虚设无效，时间一样.
+
+类似高速公路的ETC，提前买好了通行证unpark，到闸机处直医拾起栏杆放位了，没有park拦截了。
+
+##### LockSupport解决的痛点
+
+- 不用持有锁块
+
+- 可以先唤醒后等待
+
+> 注意：park()和unpark()成对使用。
+
+
+
+##### 重点说明
+
+LockSupport是用来创建锁和其他同步类的基本线程阻塞原语。
+
+LockSupport是一个线程阻塞工具类，所有的方法都是静态方法，可以让线程在任意位置阻塞，阻塞之后也有对应的唤醒方法。归根结底，LockSupport调用的Unsafe中的native代码。
+
+LockSupport提供park()和unpark()方法实现阻塞线程和解除线程阻塞的过程
+
+LockSupport和每个使用它的线程都有一个许可（permit）关联。
+
+每个线程都有一个相关的permit，permit最多只有一个，重复调用unpark也不会积累凭证。
+
+
+
+形象的理解：线程阻塞需要消耗凭证（permit），这个凭证最多只有1个。
+
+
+
+当调用park方法时
+
+- ﻿如果有凭证，则会直接消耗掉这个凭证然后正常退出；
+- ﻿如果无凭证，就必须阻寨等待凭证可用；
+
+而unpark则相反，它会增加一个凭证，但凭证最多只能有1个，累加无效。
+
+
+
+##### 面试题目
+
+为什么可以先唤醒线程后阻塞线程?
+
+因为unpark获得了一个凭证，之后再调用park方法，就可以名正言顺的凭证消费，故不会阻塞。先发放了凭证后续可以畅通无阻。
+
+
+
+为什么唤醒两次后阻塞两次，但最终结果还会阻塞线程?
+
+因为凭证的数量最多为1，连续调用两次unpark和调用一次unpark效果一样，只会增加一个凭证;而调用两次park却需要消费两个凭证，证不够，不能放行。
+
+
+## 6 Java内存模型（JMM）
+
+面试题：
+
+你知道什么是Java内存模型JMM吗？
+
+JMM与volatile它们两个之间的关系？（下一章详细讲解）
+
+JMM有哪些特性or它的三大特性是什么？
+
+为什么要有JMM，它什么出现？作用和功能是什么？
+
+happens-before先行发生原则你有了解过吗？
+
+### 计算机硬件存储体系
+
+![](images/iShot_2024-03-22_17.56.21.png)
+
+#### 推导出我们需要知道JMM
+
+因为有这么多级的缓存（cpu和物理主内存的速度不一致的）。
+
+CPU的运行并**不是直接操作内存而是先把内存里边的数据读到缓存**，而内存的读和写操作的时候就会造成不一致的问题
+
+![](images/iShot_2024-03-22_18.01.41.png)
+
+JVM规范中试图定义一种Java内存模型（java Memory Model，简称JMM）来==屏藏掉各种硬件和操作系统的内存访问差异==，以实现让Java程序在各种平台下都能达到**一致的==内存访问效果==**。
+
+### JMM学术定义
+
+JMM（Java内存模型Java Memory Model，简称JMM）本身是一种**抽象**的概念并不真实存在它仅仅描述的是**一组约定或规范**，通过这组规范定义了程序中（尤其是多线程）各个**变量的读写访问方式**并决定一个线程对共享变量的写入何时以及如何变成对另一个线程可见，关键技术点都是围绕多线程的==原子性、可见性和有序性==展开的。
+
+原则：JMM的关键技术点都是围绕多线程的原子性、可见性和有序性展开的。
+
+能干嘛？
+
+1. ﻿﻿通过JMM来实现**线程和主内存之间的抽象关系**。
+2. ﻿屏蔽各个**硬件平台**和**操作系统**的==内存访问差异==以实现让Java程序在各种平台下都能达到一致的内存访问效果。
+
+### JMM规范下的三大特性
+
+#### 可见性
+
+是指当一个线程修改了某一个**共享变量**的值，其他线程是否能够立即知道该变更，JMM规定了所有的变量都存储在**主内存**中。【即时可见，即时通知】
+
+![](images/iShot_2024-03-22_18.13.09.png)
+
+系统主内存共享变量数据修改被写入的时机是不确定的，多线程并发下很可能出现”==脏读==”，所以每个线程都有自己的==工作内存==，线程自己的工作内存中保存了该线程使用到的变量的==主内存副本拷贝==，线程对变量的所有操作（读取，赋值等）都必需在线程自己的工作内存中进行，而不能够直接读写主内存中的变量。不同线程之间也无法直接访问对方工作内存中的变量，线程间变量值的传递均需要通过主内存来完成。
+
+线程脏读的情况：
+
+- 主内存中有变量x，初始值为0
+
+- 线程A 要将x加 1，先将x=0 拷贝到自己的私有内存中，然后更新x的值
+- 线程A 将更新后的x值回刷到主内存的时间是不固定的
+
+- 刚好在线程A没有回刷x到主内存时，线程B 同样从主内存中读取x，此时为O，和线程 A一样的操作，最后期盼的x=2就会变成x=1
+
+
+
+#### 原子性
+
+指一个操作是不可打断的，即多线程环境下，操作不能被其他线程干扰。
+
+
+
+#### 有序性 
+
+指令重排
+
+案例
+
+```java
+public void mySort() {
+  int x = 11;  //语句1
+  int y = 12;  //语句2
+  x = x + 5;   //语句3
+  y = x * x;   //语句4
+}
+```
+
+1234
+
+2134
+
+1324
+
+问题：请问语句4可以重排后变成第一个条吗？不可以，数据依赖性
+
+
+
+对于一个线程的执行代码而言，我们总是习惯性认为代码的执行总是从上到下，有序执行。但为了提升性能，编译器和处理器通常会对指令序列进行**重新排序**。Java规范规定JVM线程内部维持**顺序化语义**，即只要程序的最终结果与它顺序化执行的结果相等，那么指令的执行顺序可以与代码顺序不一致，此过程叫**==指令的重排序==**。
+
+优点：JVM能根据处理器特性（CPU多级缓存系统、多核处理器等）适当的对机器指令进行重排序，使机器指令能更符合CPU的执行特性，最大限度的发挥机器性能。
+
+缺点：指令重排可以保证**串行语义一致**，但没有义务保证**多线程间的语义**也一致（即可能产生“脏读“），简单说，两行以上不相干的代码在执行的时候有可能先执行的不是第一条，**不见得是从上到下顺序执行，执行顺序会被优化**。
+
+从源码到最终执行示例图：
+
+![](images/image-20240322183111857.png)
+
+单线程环境里面确保程序最终执行结果和代码顺序执行的结果一致。
+
+处理器在进行重排序时必须要考虑指令之间的==数据依赖性==。
+
+多线程环境中线程交替执行，由于编译器优化重排的存在，两个线程中使用的变量能否保证一致性是无法确定的，结果无法预测。
+
+### JMM规范下，多线程对变量的读写过程
+
+由于JVM运行程序的实体是线程，而每个线程创建时JVM都会为其创建一个**工作内存**（有些地方称为**栈空间**），工作内存是每个线程的私有数据区域，而Java内存模型中规定所有变量都存储在**主内存**，主内存是共享内存区域，所有线程都可以访问，但**线程对变量的操作（读取赋值等）必须在工作内存中进行，首先要将变量从主内存拷贝到的线程自己的工作内存空间，然后对变量进行操作，操作完成后再将变量写回主内存**，不能直接操作主内存中的变量，各个线程中的工作内存中存储着主内存中的变量副本拷贝，因此不同的线程间无法访问对方的工作内存，**线程问的通信（传值）**必须通过主内存来完成，其简要访问过程如下图：
+
+![](images/iShot_2024-03-22_18.37.01.png)
+
+**JMM定义了线程和主内存之间的抽象关系**：
+
+1. 线程之间的共享变量存储在主内存中（从硬件角度来说就是内存条）
+
+2. 每个线程都有一个私有的本地工作内存，本地工作内逐中存儲了该线程用来读/类型变量的副本（从硬件角度来说就是CPU的缓存，比如寄存器、L1、L2、L3缓存等）
+
+
+
+小结：
+
+我们定义的所有共享变量都储存在物理主内存中
+
+每个线程都有自己独立的工作内存，里面保存该线程使用到的变量的副本（主内存中该变量的一份拷贝）
+
+线程对共享变量所有的操作都必须先在线程自己的工作内存中进行后写回主内存，不能直接从主内存中读写（不能越级）
+
+不同线程之间也无法直接访问其他线程的工作内存中的变量，线程间变量值的传递需要通过主内存来进行（同级不能相互访问）
+
+
+
+### JMM规范下，多线程先行发生原则（不容易理解）
+
+多线先行发生原则happens-before
+
+在JMM中，如果一个操作==执行的结果==需要对另一个操作可见性或者代码重排序，那么这两个操作之间必须存在happens-before（先行发生）原则。逻辑上的先后关系。
+
+#### x、y案例
+
+| ×=5                | 线程A执行 |
+| ------------------ | --------- |
+| y=X                | 线程B执行 |
+| 上述称之为：写后读 |           |
+
+问题：y是否等于5呢？
+
+如果线程A的操作（x=5）happens-before（先行发生）线程B的操作（y =x），那么可以确定线程B执行后y=5一定成立；
+
+如果他们不存在happens-before原则，那么y=5不一定成立。
+
+这就是happens-before原则的威力。--> **包含可见性和有序性的约束**
+
+#### 先行发生原则说明
+
+如果Java內存模型中所有的有序性都仅靠`volatile`和`synchronized`来完成，那么有很多操作都将会变得非常啰嗦，但是我们在编写Java并发代码的时候并没有察觉到这一点。
+
+我们没有时时、处处、次次，添加`volatile`不`synchronized`来完成程序，这是因为Java语言中JMM原则下有一个“先行发生”（Happens-Before）的原则限制和规矩，给你立好了规！
+
+
+
+这个原则非常重要：
+
+它是判断数据是否存在竟争，线程是否安全的非常有用的手段。依赖这个原则，我们可以通过几条简单规则一揽子解决**并发环境下两个操作之间是否可能存在冲突的所有问题**，而不需要陷入Java内存模型苦涩难懂的底层编译原理之中。
+
+#### happens-before总原则
+
+- 如果一个操作happens-before另一个操作，那么第一个操作的执行结果将对第二个操作可见，而且第一个操作的执行顺序排在第二个操作之前。
+
+- 两个操作之间在在happens-before关系，并不意味看一定要按照happens-before原则制定的顺序来执行。如果重排序之后的执行结果与按照happens-before关系来执行的**结果一致**，那么这种重排序**并不非法**。
+
+值日，周一张三周二李四，假如有事情调换班可以的
+
+1+2+3 = 3+2+1
+
+#### happens-before的细分8条 🔖
+
+1. 次序规则：
+
+一个线程内,按照代码顺序,写在前面的操作先行发生于写在后面的操作(强调的是一个线程)；
+
+前一个操作的结果可以被后续的操作获取。讲白点就是前面一个操作把变量X赋值为1,那后面一个操作肯定能知道X已经变成了1。
+
+2. ﻿﻿锁定规则：
+
+一个unlock操作先行发生于后面((这里的"后面"是指时间上的先后))对同一个锁的lock操作(上一个线程unlock了,下一个线程才能获取到锁,进行lock)。
+
+3. ﻿﻿﻿volatile变量规则：
+
+对一个volatile变量的写操作先行发生于后面对这个变量的读操作,**前面的写对后面的读是可见的**,这里的"后面"同样是指时间是的先后。
+
+4. ﻿﻿传递规则：
+
+如果操作A先行发生于操作B,而操作B又先行发生于操作C,则可以得出A先行发生于操作C。
+
+5. ﻿﻿线程启动规则（Thread Start Rule）：
+
+Thread对象的start()方法先行发生于线程的每一个动作
+
+6. ﻿﻿﻿线程中断规则（Thread Interruption Rule）：
+
+对线程interrupt()方法的调用先发生于被中断线程的代码检测到中断事件的发生
+
+可以通过Thread.interrupted()检测到是否发生中断
+
+7. ﻿﻿﻿线程终止规则（Thread Termination Rule）：
+
+线程中的所有操作都先行发生于对此线程的终止检测
+
+8. ﻿﻿﻿对象终结规则（Finalizer Rule）：
+
+对象没有完成初始化之前,是不能调用finalized()方法的
+
+
+
+#### 小结
+
+在Java语言里面，Happens-Before 的语义本质上是一种可见性。
+
+A Happens-Before B 意味着 A发生过的事情对B来说是可见的，无论A事件和B事件是否发生在同一个线程里。
+
+JMM的设计分为两部分：
+
+- 一部分是面向我们程序员提供的，也就是happens-before规则，它通俗易懂的向我们程序员阐述了一个**强内存模型**，我们只要理解happens-before规则，就可以编写并发安全的程序了。
+
+- 另一部分是针对JVM实现的，为了尽可能少的对编译器和处理器做约束从而提高性能，JMM在不影响程序执行结果的前提下对其不做要求，即允许优化重排序。我们只需要关注前者就好了，也就是理解happens-before规则即可，其它繁杂的内容有JMM规范结合操作系统给我们搞定，我们只写好代码即可。
+
+
+
+案例 🔖
 
 
 
