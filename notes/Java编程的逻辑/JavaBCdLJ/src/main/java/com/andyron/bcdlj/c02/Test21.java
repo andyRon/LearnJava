@@ -36,5 +36,8 @@ public class Test21 {
 
         System.out.println(Integer.toBinaryString(Float.floatToIntBits(1.2345f)));
         System.out.println(Long.toBinaryString(Double.doubleToLongBits(1.2345f)));
+
+        System.out.println(Integer.toBinaryString(Float.floatToIntBits(3.75f)));
+
     }
 }
