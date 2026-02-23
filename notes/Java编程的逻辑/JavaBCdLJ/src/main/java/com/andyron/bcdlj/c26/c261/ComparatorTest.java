@@ -30,7 +30,7 @@ public class ComparatorTest {
                 new Student("andy", 89d)
 
         });
-        // 将学生列表按照分数倒序排（高分在前），分数一样的按照名字进行排序
+        // 将学生列表按照≤分数倒序排（高分在前），分数一样的按照名字进行排序
         students.sort(Comparator.comparing(Student::getScore).reversed().thenComparing(Student::getName));
 
         for (Student s : students) {
