@@ -1,4 +1,4 @@
-package top.andyron.ch03.c33_1;
+package top.andyron.ch03;
 
 // exception
 public class Main {
