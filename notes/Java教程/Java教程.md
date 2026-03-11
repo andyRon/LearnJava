@@ -4818,47 +4818,701 @@ t.start();
 
 ### 13.6 线程同步
 
+#### 13.6.0 介绍
+
+当多个线程同时运行时，线程的调度由操作系统决定，程序本身无法决定。因此，任何一个线程都有可能在任何指令处被操作系统暂停，然后在某个时间段后继续执行。
+
+这个时候，有个单线程模型下不存在的问题就来了：**如果多个线程同时读写共享变量，会出现数据不一致的问题。**
+
+```java
+// 多线程
+public class Main {
+    public static void main(String[] args) throws Exception {
+        var add = new AddThread();
+        var dec = new DecThread();
+        add.start();
+        dec.start();
+        add.join();
+        dec.join();
+        System.out.println(Counter.count);
+    }
+}
+
+class Counter {
+    public static int count = 0;
+}
+
+class AddThread extends Thread {
+    public void run() {
+        for (int i=0; i<10000; i++) { Counter.count += 1; }
+    }
+}
+
+class DecThread extends Thread {
+    public void run() {
+        for (int i=0; i<10000; i++) { Counter.count -= 1; }
+    }
+}
+```
+
+上面的代码很简单，两个线程同时对一个`int`变量进行操作，一个加10000次，一个减10000次，最后结果应该是0，但是，每次运行，结果实际上都是不一样的。
+
+这是因为对变量进行读取和写入时，结果要正确，必须保证是**原子操作**。原子操作是指不能被中断的一个或一系列操作。
+
+例如，对于语句：
+
+```java
+n = n + 1;
+```
+
+看上去是一行语句，实际上对应了3条指令：
+
+```java
+ILOAD
+IADD
+ISTORE
+```
+
+我们假设`n`的值是`100`，如果两个线程同时执行`n = n + 1`，得到的结果很可能不是`102`，而是`101`，原因在于：
+
+```
+┌───────┐     ┌───────┐
+│Thread1│     │Thread2│
+└───┬───┘     └───┬───┘
+    │             │
+    │ILOAD (100)  │
+    │             │ILOAD (100)
+    │             │IADD
+    │             │ISTORE (101)
+    │IADD         │
+    │ISTORE (101) │
+    ▼             ▼
+```
+
+如果线程1在执行`ILOAD`后被操作系统中断，此刻如果线程2被调度执行，它执行`ILOAD`后获取的值仍然是`100`，最终结果被两个线程的`ISTORE`写入后变成了`101`，而不是期待的`102`。
+
+这说明多线程模型下，要保证逻辑正确，对共享变量进行读写时，必须保证一组指令以原子方式执行：即某一个线程执行时，其他线程必须等待：
+
+```
+┌───────┐     ┌───────┐
+│Thread1│     │Thread2│
+└───┬───┘     └───┬───┘
+    │             │
+    │-- lock --   │
+    │ILOAD (100)  │
+    │IADD         │
+    │ISTORE (101) │
+    │-- unlock -- │
+    │             │-- lock --
+    │             │ILOAD (101)
+    │             │IADD
+    │             │ISTORE (102)
+    │             │-- unlock --
+    ▼             ▼
+```
+
+通过加锁和解锁的操作，就能保证3条指令总是在一个线程执行期间，不会有其他线程会进入此指令区间。即使在执行期线程被操作系统中断执行，其他线程也会因为无法获得锁导致无法进入此指令区间。只有执行线程将锁释放后，其他线程才有机会获得锁并执行。这种加锁和解锁之间的代码块我们称之为**==临界区（Critical Section）==**，**任何时候临界区最多只有一个线程能执行**。
+
+见，保证一段代码的原子性就是通过加锁和解锁实现的。Java程序使用`synchronized`关键字对一个对象进行加锁：
+
+```java
+synchronized(lock) {
+    n = n + 1;
+}
+```
+
+`synchronized`保证了代码块在任意时刻最多只有一个线程能执行。我们把上面的代码用`synchronized`改写如下：
+
+```java
+// 多线程
+public class Main {
+    public static void main(String[] args) throws Exception {
+        var add = new AddThread();
+        var dec = new DecThread();
+        add.start();
+        dec.start();
+        add.join();
+        dec.join();
+        System.out.println(Counter.count);
+    }
+}
+
+class Counter {
+    public static final Object lock = new Object();
+    public static int count = 0;
+}
+
+class AddThread extends Thread {
+    public void run() {
+        for (int i=0; i<10000; i++) {
+            synchronized(Counter.lock) {
+                Counter.count += 1;
+            }
+        }
+    }
+}
+
+class DecThread extends Thread {
+    public void run() {
+        for (int i=0; i<10000; i++) {
+            synchronized(Counter.lock) {
+                Counter.count -= 1;
+            }
+        }
+    }
+}
+```
+
+注意到代码：
+
+```java
+synchronized(Counter.lock) { // 获取锁
+    ...
+} // 释放锁
+```
+
+它表示用`Counter.lock`实例作为锁，两个线程在执行各自的`synchronized(Counter.lock) { ... }`代码块时，必须先获得锁，才能进入代码块进行。执行结束后，在`synchronized`语句块结束会自动释放锁。这样一来，对`Counter.count`变量进行读写就不可能同时进行。上述代码无论运行多少次，最终结果都是0。
+
+使用`synchronized`解决了多线程同步访问共享变量的正确性问题。但是，它的缺点是带来了**性能下降**。因为`synchronized`代码块**无法并发执行**。此外，加锁和解锁需要消耗一定的时间，所以，`synchronized`会降低程序的执行效率。
+
+如何使用`synchronized`：
+
+1. 找出修改共享变量的线程代码块；
+2. 选择一个共享实例作为锁；
+3. 使用`synchronized(lockObject) { ... }`。
+
+在使用`synchronized`的时候，不必担心抛出异常。因为无论是否有异常，都会在`synchronized`结束处正确释放锁：
+
+```java
+public void add(int m) {
+    synchronized (obj) {
+        if (m < 0) {
+            throw new RuntimeException();
+        }
+        this.value += m;
+    } // 无论有无异常，都会在此释放锁
+}
+```
+
+##### 不需要synchronized的操作 🔖
+
+JVM规范定义了几种原子操作：
+
+- 基本类型（`long`和`double`除外）赋值，例如：`int n = m`；
+- 引用类型赋值，例如：`List<String> list = anotherList`。
+
+`long`和`double`是64位数据，JVM没有明确规定64位赋值操作是不是一个原子操作，不过在x64平台的JVM是把`long`和`double`的赋值作为原子操作实现的。
+
+单条原子操作的语句不需要同步。例如：
+
+```java
+public void set(int m) {
+    synchronized(lock) {
+        this.value = m;
+    }
+}
+```
+
+就不需要同步。
+
+对引用也是类似。例如：
+
+```java
+public void set(String s) {
+    this.value = s;
+}
+```
+
+上述赋值语句并不需要同步。
+
+但是，如果是多行赋值语句，就必须保证是同步操作，例如：
+
+```java
+class Point {
+    int x;
+    int y;
+    public void set(int x, int y) {
+        synchronized(this) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+}
+```
+
+> 提示：
+>
+> 多线程连续读写多个变量时，同步的目的是为了保证程序逻辑正确！
+
+不但写需要同步，读也需要同步：
+
+```java
+class Point {
+    int x;
+    int y;
+
+    public void set(int x, int y) {
+        synchronized(this) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    public int[] get() {
+        int[] copy = new int[2];
+        copy[0] = x;
+        copy[1] = y;
+    }
+}
+```
+
+假定当前坐标是`(100, 200)`，那么当设置新坐标为`(110, 220)`时，上述未同步的多线程读到的值可能有：
+
+- (100, 200)：x，y更新前；
+- (110, 200)：x更新后，y更新前；
+- (110, 220)：x，y更新后。
+
+如果读取到`(110, 200)`，即读到了更新后的x，更新前的y，那么可能会造成程序的逻辑错误，无法保证读取的多个变量状态保持一致。
+
+有些时候，通过一些巧妙的转换，可以把非原子操作变为原子操作。例如，上述代码如果改造成：
+
+```java
+class Point {
+    int[] ps;
+    public void set(int x, int y) {
+        int[] ps = new int[] { x, y };
+        this.ps = ps;
+    }
+}
+```
+
+就不再需要写同步，因为`this.ps = ps`是引用赋值的原子操作。而语句：
+
+```java
+int[] ps = new int[] { x, y };
+```
+
+这里的`ps`是方法内部定义的局部变量，每个线程都会有各自的局部变量，互不影响，并且互不可见，并不需要同步。
+
+不过要注意，读方法在复制`int[]`数组的过程中仍然需要同步。
+
+##### 不可变对象无需同步 🔖
+
+如果多线程读写的是一个不可变对象，那么无需同步，因为不会修改对象的状态：
+
+```java
+class Data {
+    List<String> names;
+    void set(String[] names) {
+        this.names = List.of(names);
+    }
+    List<String> get() {
+        return this.names;
+    }
+}
+```
+
+注意到`set()`方法内部创建了一个不可变`List`，这个`List`包含的对象也是不可变对象`String`，因此，整个`List<String>`对象都是不可变的，因此读写均无需同步。
+
+> 不可变性的三个层次：
+>
+> - List 结构不可变（List.of() 创建）
+>   不能 add、remove、clear
+>   多线程读安全
+> - 元素不可变（String 是 final 类）
+>   "hello" 的内容不能改
+>   没有 setName() 之类的方法
+> - 引用可见性
+>   names 字段虽然没加 volatile
+>   但由于指向的是不可变对象
+>   一旦发布，所有线程看到相同状态
+
+分析变量是否能被多线程访问时，首先要理清概念，多线程同时执行的是方法。对于下面这个例子：
+
+```java
+class Status {
+    List<String> names;
+    int x;
+    int y;
+    void set(String[] names, int n) {
+        List<String> ns = List.of(names);
+        this.names = ns;
+        int step = n * 10;
+        this.x += step;
+        this.y += step;
+    }
+    StatusRecord get() {
+        return new StatusRecord(this.names, this.x, this.y);
+    }
+}
+```
+
+如果有A、B两个线程，同时执行是指：
+
+- 可能同时执行set()；
+- 可能同时执行get()；
+- 可能A执行set()，同时B执行get()。
+
+类的成员变量`names`、`x`、`y`显然能被多线程同时读写，但局部变量（包括方法参数）如果没有“逃逸”，那么只有当前线程可见。局部变量`step`仅在`set()`方法内部使用，因此每个线程同时执行set时都有一份独立的step存储在线程的栈上，互不影响，但是局部变量`ns`虽然每个线程也各有一份，但后续赋值后对其他线程就变成可见了。对`set()`方法同步时，如果要最小化`synchronized`代码块，可以改写如下：
+
+```java
+void set(String[] names, int n) {
+    // 局部变量其他线程不可见:
+    List<String> ns = List.of(names);
+    int step = n * 10;
+    synchronized(this) {
+        this.names = ns;
+        this.x += step;
+        this.y += step;
+    }
+}
+```
+
+因此，深入理解多线程还需理解变量在栈上的存储方式，基本类型和引用类型的存储方式也不同。
+
+#### 13.6.1 同步方法
+
+Java程序依靠`synchronized`对线程进行同步，使用`synchronized`的时候，锁住的是哪个对象非常重要。
+
+让线程自己选择锁对象往往会使得代码逻辑混乱，也不利于封装。更好的方法是把`synchronized`逻辑封装起来。例如，我们编写一个计数器如下：
+
+```java
+public class Counter {
+    private int count = 0;
+
+    public void add(int n) {
+        synchronized(this) {
+            count += n;
+        }
+    }
+
+    public void dec(int n) {
+        synchronized(this) {
+            count -= n;
+        }
+    }
+
+    public int get() {
+        return count;
+    }
+}
+```
+
+这样一来，线程调用`add()`、`dec()`方法时，它不必关心同步逻辑，因为`synchronized`代码块在`add()`、`dec()`方法内部。并且，我们注意到，`synchronized`锁住的对象是`this`，即当前实例，这又使得创建多个`Counter`实例的时候，它们之间互不影响，可以并发执行：
+
+```java
+var c1 = new Counter();
+var c2 = new Counter();
+
+// 对c1进行操作的线程:
+new Thread(() -> {
+  c1.add(2);
+}).start();
+new Thread(() -> {
+  c1.dec(1);
+}).start();
+
+// 对c2进行操作的线程:
+new Thread(() -> {
+  c2.add(3);
+}).start();
+new Thread(() -> {
+  c2.dec(2);
+}).start();
+```
+
+现在，对于`Counter`类，多线程可以正确调用。
+
+如果一个类被设计为允许多线程正确访问，我们就说这个类就是**==“线程安全”的（thread-safe）==**，上面的`Counter`类就是线程安全的。Java标准库的`java.lang.StringBuffer`也是线程安全的。
+
+还有一些不变类，例如`String`，`Integer`，`LocalDate`，它们的所有成员变量都是`final`，多线程同时访问时只能读不能写，这些不变类也是线程安全的。
+
+最后，类似`Math`这些只提供静态方法，没有成员变量的类，也是线程安全的。
+
+除了上述几种少数情况，大部分类，例如`ArrayList`，都是非线程安全的类，我们不能在多线程中修改它们。但是，如果所有线程都只读取，不写入，那么`ArrayList`是可以安全地在线程间共享的。
+
+> 提示：没有特殊说明时，一个类默认是非线程安全的。
 
 
-#### 同步方法
+
+当锁住的是`this`实例时，实际上可以用`synchronized`修饰这个方法。下面两种写法是等价的：
+
+```java
+public void add(int n) {
+    synchronized(this) { // 锁住this
+        count += n;
+    } // 解锁
+}
+```
+
+写法二：
+
+```java
+public synchronized void add(int n) { // 锁住this
+    count += n;
+} // 解锁
+```
+
+因此，用`synchronized`修饰的方法就是**同步方法**，它表示整个方法都必须用`this`实例加锁。
+
+<u>如果对一个静态方法添加`synchronized`修饰符，它锁住的是哪个对象？</u>
+
+对于`static`方法，是没有`this`实例的，因为`static`方法是针对类而不是实例。但是我们注意到任何一个类都有一个由JVM自动创建的`Class`实例，因此，对`static`方法添加`synchronized`，锁住的是该类的`Class`实例。
 
 
 
-#### 死锁
+`Counter`的`get()`方法只读一个`int`变量不需要同步，如果是多个就需要同步了。
+
+#### 13.6.2 死锁
+
+Java的线程锁是可重入的锁。
+
+```java
+public class Counter {
+    private int count = 0;
+
+    public synchronized void add(int n) {
+        if (n < 0) {
+            dec(-n);
+        } else {
+            count += n;
+        }
+    }
+
+    public synchronized void dec(int n) {
+        count += n;
+    }
+}
+```
+
+观察`synchronized`修饰的`add()`方法，一旦线程执行到`add()`方法内部，说明它已经获取了当前实例的`this`锁。如果传入的`n < 0`，将在`add()`方法内部调用`dec()`方法。由于`dec()`方法也需要获取`this`锁，现在问题来了：
+
+对同一个线程，能否在获取到锁以后继续获取同一个锁？
+
+答案是肯定的。JVM允许同一个线程重复获取同一个锁，这种能被同一个线程反复获取的锁，就叫做**可重入锁**。
+
+由于Java的线程锁是可重入锁，所以，获取锁的时候，不但要判断是否是第一次获取，还要记录这是第几次获取。每获取一次锁，记录+1，每退出`synchronized`块，记录-1，减到0的时候，才会真正释放锁。
+
+##### 死锁 🔖
+
+一个线程可以获取一个锁后，再继续获取另一个锁。例如：
 
 
 
-#### 使用wait和notify
 
-#### 使用ReentrantLock
 
-#### 使用Condition
+Java的`synchronized`锁是可重入锁；
 
-#### 使用ReadWriteLock
+死锁产生的条件是多线程各自持有不同的锁，并互相试图获取对方已持有的锁，导致无限等待；
 
-#### 使用StampedLock
+避免死锁的方法是多线程获取锁的顺序要一致。
 
-#### 使用Concurrent集合
+#### 13.6.3 使用wait和notify
 
-#### 使用Atomic
+
+
+##### 小结
+
+`wait`和`notify`用于多线程协调运行：
+
+- 在`synchronized`内部可以调用`wait()`使线程进入等待状态；
+- 必须在已获得的锁对象上调用`wait()`方法；
+- 在`synchronized`内部可以调用`notify()`或`notifyAll()`唤醒其他等待线程；
+- 必须在已获得的锁对象上调用`notify()`或`notifyAll()`方法；
+- 已唤醒的线程还需要重新获得锁后才能继续执行。
+
+#### 13.6.4 使用ReentrantLock
+
+> reentrant  再进入
+
+如果用`ReentrantLock`替代，可以把代码改造为：
+
+```java
+public class Counter {
+    private final Lock lock = new ReentrantLock();
+    private int count;
+
+    public void add(int n) {
+        lock.lock();
+        try {
+            count += n;
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+```
+
+
+
+因为`synchronized`是Java语言层面提供的语法，所以我们不需要考虑异常，而`ReentrantLock`是Java代码实现的锁，我们就必须先获取锁，然后在`finally`中正确释放锁。
+
+顾名思义，`ReentrantLock`是可重入锁，它和`synchronized`一样，一个线程可以多次获取同一个锁。
+
+和`synchronized`不同的是，`ReentrantLock`可以尝试获取锁：
+
+```java
+if (lock.tryLock(1, TimeUnit.SECONDS)) {
+    try {
+        ...
+    } finally {
+        lock.unlock();
+    }
+}
+```
+
+上述代码在尝试获取锁的时候，最多等待1秒。如果1秒后仍未获取到锁，`tryLock()`返回`false`，程序就可以做一些额外处理，而不是无限等待下去。
+
+所以，使用`ReentrantLock`比直接使用`synchronized`更安全，线程在`tryLock()`失败的时候不会导致死锁。
+
+
+
+
+
+#### 13.6.5 使用Condition
+
+使用`ReentrantLock`比直接使用`synchronized`更安全，可以替代`synchronized`进行线程同步。
+
+使用`Condition`对象来实现`wait`和`notify`的功能。
+
+
+
+#### 13.6.6 使用ReadWriteLock
+
+
+
+
+
+使用`ReadWriteLock`可以提高读取效率：
+
+- `ReadWriteLock`只允许一个线程写入；
+- `ReadWriteLock`允许多个线程在没有写入时同时读取；
+- `ReadWriteLock`适合读多写少的场景。
+
+#### 13.6.7 使用StampedLock
+
+`ReadWriteLock`可以解决多线程同时读，但只有一个线程能写的问题。
+
+深入分析`ReadWriteLock`，会发现它有个潜在的问题：如果有线程正在读，写线程需要等待读线程释放锁后才能获取写锁，即读的过程中不允许写，这是一种悲观的读锁。
+
+要进一步提升并发执行效率，Java 8引入了新的读写锁：`StampedLock`。
+
+`StampedLock`和`ReadWriteLock`相比，改进之处在于：读的过程中也允许获取写锁后写入！这样一来，我们读的数据就可能不一致，所以，需要一点额外的代码来判断读的过程中是否有写入，这种读锁是一种乐观锁。
+
+乐观锁的意思就是乐观地估计读的过程中大概率不会有写入，因此被称为乐观锁。反过来，悲观锁则是读的过程中拒绝有写入，也就是写入必须等待。显然乐观锁的并发效率更高，但一旦有小概率的写入导致读取的数据不一致，需要能检测出来，再读一遍就行。
+
+#### 13.6.8 使用Semaphore
+
+本质上锁的目的是保护一种受限资源，保证同一时刻只有一个线程能访问（ReentrantLock），或者只有一个线程能写入（ReadWriteLock）。
+
+还有一种受限资源，它需要保证同一时刻最多有N个线程能访问，比如同一时刻最多创建100个数据库连接，最多允许10个用户下载等。
+
+
+
+
+
+#### 13.6.9 使用Concurrent集合
+
+
+
+使用`java.util.concurrent`包提供的线程安全的并发集合可以大大简化多线程编程：
+
+- 多线程同时读写并发集合是安全的；
+- 尽量使用Java标准库提供的并发集合，避免自己编写同步代码。
+
+#### 13.6.10 使用Atomic
+
+一组原子操作的封装类，位于`java.util.concurrent.atomic`包。
 
 
 
 ### 13.7 使用线程池
 
+把很多小任务让一组线程来执行，而不是一个任务对应一个新线程。这种能接收大量小任务并进行分发处理的就是线程池。
+
+简单地说，线程池内部维护了若干个线程，没有任务的时候，这些线程都处于等待状态。如果有新任务，就分配一个空闲线程执行。如果所有线程都处于忙碌状态，新任务要么放入队列等待，要么增加一个新线程进行处理。
+
+Java标准库提供了`ExecutorService`接口表示线程池，它的典型用法如下：
+
+```java
+// 创建固定大小的线程池:
+ExecutorService executor = Executors.newFixedThreadPool(3);
+// 提交任务:
+executor.submit(task1);
+executor.submit(task2);
+executor.submit(task3);
+executor.submit(task4);
+executor.submit(task5);
+```
+
+因为`ExecutorService`只是接口，Java标准库提供的几个常用实现类有：
+
+- FixedThreadPool：线程数固定的线程池；
+- CachedThreadPool：线程数根据任务动态调整的线程池；
+- SingleThreadExecutor：仅单线程执行的线程池。
+
+创建这些线程池的方法都被封装到`Executors`这个类中
+
 
 
 ### 13.8 使用Future
 
+
+
 ### 13.9 使用CompletableFuture
+
+
+
+`CompletableFuture`可以指定异步处理流程：
+
+- `thenAccept()`处理正常结果；
+- `exceptional()`处理异常结果；
+- `thenApplyAsync()`用于串行化另一个`CompletableFuture`；
+- `anyOf()`和`allOf()`用于并行化多个`CompletableFuture`。
 
 ### 13.10 使用ForkJoin
 
+Java 7开始引入了一种新的Fork/Join线程池，它可以执行一种特殊的任务：把一个大任务拆成多个小任务并行执行。
+
+
+
+#### 小结
+
+Fork/Join是一种基于“分治”的算法：通过分解任务，并行执行，最后合并结果得到最终结果。
+
+`ForkJoinPool`线程池可以把一个大任务分拆成小任务并行执行，任务类必须继承自`RecursiveTask`或`RecursiveAction`。
+
+使用Fork/Join模式可以进行并行计算以提高效率。
+
 ### 13.11 使用ThreadLocal
+
+
+
+
+
+#### 小结
+
+`ThreadLocal`表示线程的“局部变量”，它确保每个线程的`ThreadLocal`变量都是各自独立的；
+
+`ThreadLocal`适合在一个线程的处理流程中保持上下文（避免了同一参数在所有方法中传递）；
+
+使用`ThreadLocal`要用`try ... finally`结构，并在`finally`中清除。
 
 ### 13.12 使用虚拟线程
 
 
+
+
+
+#### 小结
+
+Java 19引入的虚拟线程是为了解决IO密集型任务的吞吐量，它可以高效通过少数线程去调度大量虚拟线程；
+
+虚拟线程在执行到IO操作或Blocking操作时，会自动切换到其他虚拟线程执行，从而避免当前线程等待，能最大化线程的执行效率；
+
+虚拟线程使用普通线程相同的接口，最大的好处是无需修改任何代码，就可以将现有的IO操作异步化获得更大的吞吐能力。
+
+计算密集型任务不应使用虚拟线程，只能通过增加CPU核心解决，或者利用分布式计算资源。
 
 ## 14.Maven基础
 
