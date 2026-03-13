@@ -6362,6 +6362,15 @@ JavaEE最核心的组件就是**基于Servlet标准的Web服务器**，开发者
 import javax.servlet.*;
 ```
 
+```xml
+<dependency>
+  <groupId>javax.servlet</groupId>
+  <artifactId>javax.servlet-api</artifactId>
+  <version>4.0.1</version>
+  <scope>provided</scope>
+</dependency>
+```
+
 而5.0及以后的`servlet-api`由Eclipse开源社区维护，引入的依赖项是`jakarta.servlet:jakarta.servlet-api`，编写代码时引入的包名为：
 
 ```java
@@ -6370,23 +6379,256 @@ import jakarta.servlet.*;
 
 
 
+普通的Java程序是通过启动JVM，然后执行`main()`方法开始运行。但是Web应用程序有所不同，我们无法直接运行`war`文件，必须先启动Web服务器，再由Web服务器加载我们编写的`HelloServlet`，这样就可以让`HelloServlet`处理浏览器发送的请求。
+
+
+
+#### Tomcat版本
+
+- 使用Servlet<=4.0时，选择Tomcat 9.x或更低版本；
+- 使用Servlet>=5.0时，选择Tomcat 10.x或更高版本。
+
+
+
+在Servlet容器中运行的Servlet具有如下特点：
+
+- 无法在代码中直接通过new创建Servlet实例，必须由Servlet容器自动创建Servlet实例；
+- Servlet容器只会给每个Servlet类创建唯一实例；
+- Servlet容器会使用多线程执行`doGet()`或`doPost()`方法。
+
+复习Java多线程的内容，可以得出结论：
+
+- 在Servlet中定义的实例变量会被多个线程同时访问，要注意线程安全；
+- `HttpServletRequest`和`HttpServletResponse`实例是由Servlet容器传入的局部变量，它们只能被当前线程访问，不存在多个线程访问的问题；
+- 在`doGet()`或`doPost()`方法中，如果使用了`ThreadLocal`，但没有清理，那么它的状态很可能会影响到下次的某个请求，因为Servlet容器很可能用线程池实现线程复用。
+
+因此，正确编写Servlet，要清晰理解Java的多线程模型，需要同步访问的必须同步。
+
+
+
+#### 小结
+
+编写Web应用程序就是编写Servlet处理HTTP请求；
+
+Servlet API提供了`HttpServletRequest`和`HttpServletResponse`两个高级接口来封装HTTP请求和响应；
+
+Web应用程序必须按固定结构组织并打包为`.war`文件；
+
+需要启动Web服务器来加载我们的war包来运行Servlet。
+
 ### 20.3 Servlet开发
 
+之前，一个完整的Web应用程序的开发流程如下：
+
+1. 编写Servlet；
+2. 打包为war文件；
+3. 复制到Tomcat的webapps目录下；
+4. 启动Tomcat。
+
+但不好调试。
+
+因为Tomcat实际上也是一个Java程序，Tomcat的启动流程：
+
+1. 启动JVM并执行Tomcat的`main()`方法；
+2. 加载war并初始化Servlet；
+3. 正常服务。
+
+启动Tomcat无非就是设置好classpath并执行Tomcat某个jar包的`main()`方法，我们完全可以把Tomcat的jar包全部引入进来，然后自己编写一个`main()`方法，先启动Tomcat，然后让它加载我们的webapp就行。
 
 
 
+
+
+通过`main()`方法启动Tomcat服务器并加载我们自己的webapp有如下好处：
+
+1. 启动简单，无需下载Tomcat或安装任何IDE插件；
+2. 调试方便，可在IDE中使用断点调试；
+3. 使用Maven创建war包后，也可以正常部署到独立的Tomcat服务器中。
+
+
+
+#### 生成可执行war包
+
+🔖
 
 ### 20.4 Servlet进阶
 
-#### 重定向与转发
+#### 20.4.0
+
+一个Web App就是由一个或多个Servlet组成的，每个Servlet通过注解说明自己能处理的路径。
+
+> 早期的Servlet需要在web.xml中配置映射路径，但最新Servlet版本只需要通过注解就可以完成映射。
+
+HTTP的其它请求方法就要覆写对应的方法，例如post就要覆写`doGet()`。
+
+浏览器发出的HTTP请求总是由Web Server先接收，然后，根据Servlet配置的映射，不同的路径转发到不同的Servlet：
+
+```
+               ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+
+               │            /hello    ┌───────────────┐│
+                          ┌──────────▶│ HelloServlet  │
+               │          │           └───────────────┘│
+┌───────┐    ┌──────────┐ │ /signin   ┌───────────────┐
+│Browser│───▶│Dispatcher│─┼──────────▶│ SignInServlet ││
+└───────┘    └──────────┘ │           └───────────────┘
+               │          │ /         ┌───────────────┐│
+                          └──────────▶│ IndexServlet  │
+               │                      └───────────────┘│
+                              Web Server
+               └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+```
+
+这种根据路径转发的功能我们一般称为dispatch。映射到`/`的`IndexServlet`比较特殊，它实际上会接收所有未匹配的路径，相当于`/*`，因为Dispatcher的逻辑可以用伪代码实现如下：
+
+```java
+String path = ...
+if (path.equals("/hello")) {
+    dispatchTo(helloServlet);
+} else if (path.equals("/signin")) {
+    dispatchTo(signinServlet);
+} else {
+    // 所有未匹配的路径均转发到"/"
+    dispatchTo(indexServlet);
+}
+```
 
 
 
-#### 使用Session和Cookie
+所以我们在浏览器输入一个`http://localhost:8080/abc`也会看到`IndexServlet`生成的页面。
+
+
+
+##### HttpServletRequest
+
+`HttpServletRequest`封装了一个HTTP请求，它实际上是从`ServletRequest`继承而来。最早设计Servlet时，设计者希望Servlet不仅能处理HTTP，也能处理类似SMTP等其他协议，因此，单独抽出了`ServletRequest`接口，但实际上除了HTTP外，并没有其他协议会用Servlet处理，所以这是一个过度设计。
+
+我们通过`HttpServletRequest`提供的接口方法可以拿到HTTP请求的几乎全部信息，常用的方法有：
+
+- getMethod()：返回请求方法，例如，`"GET"`，`"POST"`；
+- getRequestURI()：返回请求路径，但不包括请求参数，例如，`"/hello"`；
+- getQueryString()：返回请求参数，例如，`"name=Bob&a=1&b=2"`；
+- getParameter(name)：返回请求参数，GET请求从URL读取参数，POST请求从Body中读取参数；
+- getContentType()：获取请求Body的类型，例如，`"application/x-www-form-urlencoded"`；
+- getContextPath()：获取当前Webapp挂载的路径，对于ROOT来说，总是返回空字符串`""`；
+- getCookies()：返回请求携带的所有Cookie；
+- getHeader(name)：获取指定的Header，对Header名称不区分大小写；
+- getHeaderNames()：返回所有Header名称；
+- getInputStream()：如果该请求带有HTTP Body，该方法将打开一个输入流用于读取Body；
+- getReader()：和getInputStream()类似，但打开的是Reader；
+- getRemoteAddr()：返回客户端的IP地址；
+- getScheme()：返回协议类型，例如，`"http"`，`"https"`；
+
+此外，`HttpServletRequest`还有两个方法：`setAttribute()`和`getAttribute()`，可以给当前`HttpServletRequest`对象附加多个Key-Value，相当于把`HttpServletRequest`当作一个`Map<String, Object>`使用。
+
+调用`HttpServletRequest`的方法时，注意务必阅读接口方法的文档说明，因为有的方法会返回`null`，例如`getQueryString()`的文档就写了：
+
+```plain
+... This method returns null if the URL does not have a query string...
+```
+
+##### HttpServletResponse
+
+`HttpServletResponse`封装了一个HTTP响应。由于HTTP响应必须先发送Header，再发送Body，所以，操作`HttpServletResponse`对象时，必须先调用设置Header的方法，最后调用发送Body的方法。
+
+常用的设置Header的方法有：
+
+- setStatus(sc)：设置响应代码，默认是`200`；
+- setContentType(type)：设置Body的类型，例如，`"text/html"`；
+- setCharacterEncoding(charset)：设置字符编码，例如，`"UTF-8"`；
+- setHeader(name, value)：设置一个Header的值；
+- addCookie(cookie)：给响应添加一个Cookie；
+- addHeader(name, value)：给响应添加一个Header，因为HTTP协议允许有多个相同的Header；
+
+写入响应时，需要通过`getOutputStream()`获取写入流，或者通过`getWriter()`获取字符流，二者只能获取其中一个。
+
+写入响应前，无需设置`setContentLength()`，因为底层服务器会根据写入的字节数自动设置，如果写入的数据量很小，实际上会先写入缓冲区，如果写入的数据量很大，服务器会自动采用Chunked编码让浏览器能识别数据结束符而不需要设置Content-Length头。
+
+但是，写入完毕后调用`flush()`却是必须的，因为大部分Web服务器都基于HTTP/1.1协议，会复用TCP连接。如果没有调用`flush()`，将导致缓冲区的内容无法及时发送到客户端。此外，写入完毕后千万不要调用`close()`，原因同样是因为会复用TCP连接，如果关闭写入流，将关闭TCP连接，使得Web服务器无法复用此TCP连接。
+
+>  注意:写入完毕后对输出流调用flush()而不是close()方法！
+
+有了`HttpServletRequest`和`HttpServletResponse`这两个高级接口，我们就不需要直接处理HTTP协议。注意到具体的实现类是由各服务器提供的，而我们编写的Web应用程序只关心接口方法，并不需要关心具体实现的子类。
+
+##### Servlet多线程模型🔖
+
+一个Servlet类在服务器中只有一个实例，但对于每个HTTP请求，Web服务器会使用多线程执行请求。因此，一个Servlet的`doGet()`、`doPost()`等处理请求的方法是多线程并发执行的。如果Servlet中定义了字段，要注意多线程并发访问的问题：
+
+```java
+public class HelloServlet extends HttpServlet {
+    private Map<String, String> map = new ConcurrentHashMap<>();
+
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 注意读写map字段是多线程并发的:
+        this.map.put(key, value);
+    }
+}
+```
+
+对于每个请求，Web服务器会创建唯一的`HttpServletRequest`和`HttpServletResponse`实例，因此，`HttpServletRequest`和`HttpServletResponse`实例只有在当前处理线程中有效，它们总是局部变量，不存在多线程共享的问题。
+
+#### 20.4.1 重定向与转发
+
+##### Redirect
+
+重定向是指当浏览器请求一个URL时，服务器返回一个重定向指令，告诉浏览器地址已经变了，麻烦使用新的URL再重新发送新请求。
+
+
+
+##### Forward
+
+Forward是指内部转发。当一个Servlet处理请求的时候，它可以决定自己不继续处理，而是转发给另一个Servlet处理。
+
+```java
+@WebServlet(urlPatterns = "/morning")
+public class ForwardServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.getRequestDispatcher("/hello").forward(req, resp);
+    }
+}
+```
+
+
+
+`ForwardServlet`在收到请求后，它并不自己发送响应，而是把请求和响应都转发给路径为`/hello`的Servlet，即下面的代码：
+
+```java
+req.getRequestDispatcher("/hello").forward(req, resp);
+```
+
+后续请求的处理实际上是由`HelloServlet`完成的。这种处理方式称为转发（Forward），我们用流程图画出来如下：
+
+```
+                          ┌────────────────────────┐
+                          │      ┌───────────────┐ │
+                          │ ────▶│ForwardServlet │ │
+┌───────┐  GET /morning   │      └───────────────┘ │
+│Browser│ ──────────────▶ │              │         │
+│       │ ◀────────────── │              ▼         │
+└───────┘    200 <html>   │      ┌───────────────┐ │
+                          │ ◀────│ HelloServlet  │ │
+                          │      └───────────────┘ │
+                          │       Web Server       │
+                          └────────────────────────┘
+```
+
+转发和重定向的区别在于，转发是在Web服务器内部完成的，对浏览器来说，它只发出了一个HTTP请求：
+
+![forward](images/forward.jpg)
+
+注意到使用转发的时候，浏览器的地址栏路径仍然是`/morning`，浏览器并不知道该请求在Web服务器内部实际上做了一次转发。
+
+#### 20.4.2 使用Session和Cookie
 
 
 
 
+
+Servlet容器提供了Session机制以跟踪用户；
+
+默认的Session机制是以Cookie形式实现的，Cookie名称为`JSESSIONID`；
+
+通过读写Cookie可以在客户端设置用户偏好等。
 
 ### 20.5 JSP开发
 
