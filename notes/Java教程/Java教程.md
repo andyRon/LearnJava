@@ -6636,15 +6636,109 @@ Servlet容器提供了Session机制以跟踪用户；
 
 ### 20.6 MVC开发
 
+```java
+@WebServlet(urlPatterns = "/user")
+public class UserServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 假装从数据库读取:
+        School school = new School("No.1 Middle School", "101 South Street");
+        User user = new User(123, "Bob", school);
+        // 放入Request中:
+        req.setAttribute("user", user);
+        // forward给user.jsp:
+        req.getRequestDispatcher("/WEB-INF/user.jsp").forward(req, resp);
+    }
+}
+```
+
+
+
+`UserServlet`作为控制器（Controller），`User`作为模型（Model），`user.jsp`作为视图（View），整个MVC架构如下：
+
+```
+                   ┌───────────────────────┐
+             ┌────▶│Controller: UserServlet│
+             │     └───────────────────────┘
+             │                 │
+┌───────┐    │           ┌─────┴─────┐
+│Browser│────┘           │Model: User│
+│       │◀───┐           └─────┬─────┘
+└───────┘    │                 │
+             │                 ▼
+             │     ┌───────────────────────┐
+             └─────│    View: user.jsp     │
+                   └───────────────────────┘
+```
+
+使用MVC模式的好处是，Controller专注于业务处理，它的处理结果就是Model。Model可以是一个JavaBean，也可以是一个包含多个对象的Map，Controller只负责把Model传递给View，View只负责把Model给“渲染”出来，这样，三者职责明确，且开发更简单，因为开发Controller时无需关注页面，开发View时无需关心如何创建Model。
+
 
 
 ### 20.7 MVC高级开发
+
+直接把MVC搭在Servlet和JSP之上还是不太好，原因如下：
+
+- Servlet提供的接口仍然偏底层，需要实现Servlet调用相关接口；
+- JSP对页面开发不友好，更好的替代品是模板引擎；
+- 业务逻辑最好由纯粹的Java类实现，而不是强迫继承自Servlet。
+
+能不能通过普通的Java类实现MVC的Controller？类似下面的代码：
+
+```java
+public class UserController {
+    @GetMapping("/signin")
+    public ModelAndView signin() {
+        ...
+    }
+
+    @PostMapping("/signin")
+    public ModelAndView doSignin(SignInBean bean) {
+        ...
+    }
+
+    @GetMapping("/signout")
+    public ModelAndView signout(HttpSession session) {
+        ...
+    }
+}
+```
+
+上面的这个Java类每个方法都对应一个GET或POST请求，方法返回值是`ModelAndView`，它包含一个View的路径以及一个Model，这样，再由MVC框架处理后返回给浏览器。
+
+如果是GET请求，我们希望MVC框架能直接把URL参数按方法参数对应起来然后传入：
+
+```java
+@GetMapping("/hello")
+public ModelAndView hello(String name) {
+    ...
+}
+```
+
+如果是POST请求，我们希望MVC框架能直接把Post参数变成一个JavaBean后通过方法参数传入：
+
+```java
+@PostMapping("/signin")
+public ModelAndView doSignin(SignInBean bean) {
+    ...
+}
+```
+
+为了增加灵活性，如果Controller的方法在处理请求时需要访问`HttpServletRequest`、`HttpServletResponse`、`HttpSession`这些实例时，只要方法参数有定义，就可以自动传入：
+
+```java
+@GetMapping("/signout")
+public ModelAndView signout(HttpSession session) {
+    ...
+}
+```
+
+以上就是我们在设计MVC框架时，上层代码所需要的一切信息。
 
 
 
 ### 20.8 使用Filter（过滤器）
 
-Filter组件，即过滤器，它的作用是，在HTTP请求到达Servlet之前，可以被一个或多个Filter预处理，类似打印日志、登录检查等逻辑，完全可以放到Filter中。
+为了把一些公用逻辑从各个Servlet中抽离出来，JavaEE的Servlet规范还提供了一种Filter组件，即过滤器，它的作用是，在HTTP请求到达Servlet之前，可以被一个或多个Filter预处理，类似打印日志、登录检查等逻辑，完全可以放到Filter中。
 
 
 
