@@ -6742,6 +6742,14 @@ public ModelAndView signout(HttpSession session) {
 
 
 
+遗憾的是，Servlet规范并没有对`@WebFilter`注解标注的Filter规定顺序。如果一定要给每个Filter指定顺序，就必须在`web.xml`文件中对这些Filter再配置一遍。
+
+
+
+
+
+> 注意：如果Filter要使请求继续被处理，就一定要调用chain.doFilter()！
+
 Filter是一种对HTTP请求进行预处理的组件，它可以构成一个处理链，使得公共处理代码能集中到一起；
 
 Filter适用于日志、登录检查、全局设置等；
