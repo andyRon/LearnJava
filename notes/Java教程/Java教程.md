@@ -6790,7 +6790,24 @@ Filter适用于日志、登录检查、全局设置等；
 
 
 
+`AppListener`实现了`ServletContextListener`接口，它会在整个Web应用程序初始化完成后，以及Web应用程序关闭后获得回调通知。
 
+除了`ServletContextListener`外，还有几种Listener：
+
+- HttpSessionListener：监听HttpSession的创建和销毁事件；
+- ServletRequestListener：监听ServletRequest请求的创建和销毁事件；
+- ServletRequestAttributeListener：监听ServletRequest请求的属性变化事件（即调用`ServletRequest.setAttribute()`方法）；
+- ServletContextAttributeListener：监听ServletContext的属性变化事件（即调用`ServletContext.setAttribute()`方法）；
+
+#### ServletContext
+
+一个Web服务器可以运行一个或多个WebApp，对于每个WebApp，Web服务器都会为其创建一个全局唯一的`ServletContext`实例，我们在`AppListener`里面编写的两个回调方法实际上对应的就是`ServletContext`实例的创建和销毁。
+
+`ServletRequest`、`HttpSession`等很多对象也提供`getServletContext()`方法获取到同一个`ServletContext`实例。`ServletContext`实例最大的作用就是设置和共享全局信息。
+
+此外，`ServletContext`还提供了动态添加Servlet、Filter、Listener等功能，它允许应用程序在运行期间动态添加一个组件，虽然这个功能不是很常用。
+
+#### 小结
 
 通过Listener我们可以监听Web应用程序的生命周期，获取`HttpSession`等创建和销毁的事件；
 

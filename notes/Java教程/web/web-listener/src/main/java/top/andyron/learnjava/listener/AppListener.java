@@ -1,0 +1,22 @@
+package top.andyron.learnjava.listener;
+
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
+import jakarta.servlet.annotation.WebListener;
+
+@WebListener
+public class AppListener implements ServletContextListener {
+
+    // 在此初始化WebApp,例如打开数据库连接池等
+    // Web服务器保证在contextInitialized()执行后，才会接受用户的HTTP请求。
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        System.out.println("WebApp initialized. ServletContext = " + sce.getServletContext());
+    }
+
+    // 在此清理WebApp,例如关闭数据库连接池等:
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+        System.out.println("WebApp destroyed.");
+    }
+}
