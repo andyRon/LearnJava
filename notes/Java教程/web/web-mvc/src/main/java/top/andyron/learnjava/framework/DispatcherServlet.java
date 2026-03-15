@@ -25,6 +25,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import top.andyron.learnjava.controller.IndexController;
 import top.andyron.learnjava.controller.UserController;
 
+// MVC 框架的核心调度器 Servlet（接收所有请求的Servlet），实现了类似 Spring MVC 的功能。
+// 请求 → DispatcherServlet → 查找映射 → 调用 Controller 方法 → 返回 ModelAndView → ViewEngine 渲染 → 响应 HTML
+
 @WebServlet(urlPatterns = "/")
 public class DispatcherServlet extends HttpServlet {
 
@@ -147,12 +150,21 @@ public class DispatcherServlet extends HttpServlet {
 			HttpServletResponse.class, HttpSession.class);
 }
 
+/**
+ * 抽象调度器基类
+ */
 abstract class AbstractDispatcher {
 
+    /**
+     * MVC 框架的核心执行引擎，负责调用 Controller 方法
+     */
 	public abstract ModelAndView invoke(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, ReflectiveOperationException;
 }
 
+/**
+ * 处理 GET 请求，解析查询参数
+ */
 class GetDispatcher extends AbstractDispatcher {
 
 	final Object instance;
@@ -204,6 +216,10 @@ class GetDispatcher extends AbstractDispatcher {
 	}
 }
 
+
+/**
+ * 处理 POST 请求，解析 JSON 请求体
+ */
 class PostDispatcher extends AbstractDispatcher {
 
 	final Object instance;

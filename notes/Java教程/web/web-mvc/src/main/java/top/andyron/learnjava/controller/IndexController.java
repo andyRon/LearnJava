@@ -17,7 +17,7 @@ public class IndexController {
     @GetMapping("/hello")
     public ModelAndView hello(String name) {
         if (name == null) {
-            name = "World";
+            name = "World@";
         }
         return new ModelAndView("/hello.html", "name", name);
     }
