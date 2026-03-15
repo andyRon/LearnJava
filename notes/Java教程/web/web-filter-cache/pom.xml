@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>top.andyron.learnjava</groupId>
-  <artifactId>web-filter-signature</artifactId>
+  <artifactId>web-filter-cache</artifactId>
   <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 

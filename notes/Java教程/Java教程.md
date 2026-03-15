@@ -6760,9 +6760,29 @@ Filter适用于日志、登录检查、全局设置等；
 
 
 
-#### 修改响应
+对`HttpServletRequest`进行读取时，只能读取一次。如果Filter调用`getInputStream()`读取了一次数据，后续Servlet处理时，再次读取，将无法读到任何数据。
+
+需要一个“伪造”的`HttpServletRequest`，对`getInputStream()`和`getReader()`返回一个新的流。
 
 
+
+##### 小结
+
+对`HttpServletRequest`接口进行代理的步骤：
+
+1. 从`HttpServletRequestWrapper`继承一个`XxxHttpServletRequest`，需要传入原始的`HttpServletRequest`实例；
+2. 覆写某些方法，使得新的`XxxHttpServletRequest`实例看上去“改变”了原始的`HttpServletRequest`实例；
+3. 在`doFilter()`中传入新的`XxxHttpServletRequest`实例。
+
+
+
+借助`HttpServletRequestWrapper`，可以在Filter中实现对原始`HttpServletRequest`的修改。
+
+#### 修改响应 🔖
+
+
+
+借助`HttpServletResponseWrapper`，可以在Filter中实现对原始`HttpServletResponse`的修改。
 
 ### 20.9 使用Listener（监听器）
 
